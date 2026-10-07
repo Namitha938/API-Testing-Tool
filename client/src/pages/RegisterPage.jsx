@@ -10,7 +10,8 @@ import {
   ArrowLeft,
   Sun,
   Moon,
-  CheckCircle2
+  CheckCircle2,
+  Home
 } from 'lucide-react';
 
 export default function RegisterPage() {
@@ -82,12 +83,15 @@ export default function RegisterPage() {
       <div className="w-full max-w-md flex items-center justify-between mb-6">
         <Link
           to="/"
-          className={`flex items-center gap-1.5 text-xs font-medium transition ${
-            isDark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-600 hover:text-slate-900'
+          className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition ${
+            isDark
+              ? 'border-slate-800 bg-slate-900/80 text-slate-300 hover:text-white hover:bg-slate-800'
+              : 'border-slate-200 bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-100 shadow-xs'
           }`}
+          title="Return to Home"
         >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back to Home</span>
+          <Home className="w-4 h-4 text-sky-500" />
+          <span>Home</span>
         </Link>
 
         <button
@@ -254,3 +258,4 @@ export default function RegisterPage() {
     </div>
   );
 }
+

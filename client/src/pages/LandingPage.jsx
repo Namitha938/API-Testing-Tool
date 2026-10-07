@@ -18,7 +18,8 @@ import {
   Sun,
   Moon,
   ExternalLink,
-  Laptop
+  Laptop,
+  Home
 } from 'lucide-react';
 
 export default function LandingPage() {
@@ -101,7 +102,16 @@ export default function LandingPage() {
           </div>
 
           {/* Links */}
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
+          <nav className="hidden md:flex items-center gap-7 text-sm font-medium">
+            <a
+              href="#"
+              className={`flex items-center gap-1.5 transition ${
+                isDark ? 'text-sky-400 hover:text-sky-300' : 'text-sky-600 hover:text-sky-500 font-semibold'
+              }`}
+            >
+              <Home className="w-4 h-4" />
+              <span>Home</span>
+            </a>
             <a
               href="#features"
               className={isDark ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-600'}
@@ -581,6 +591,10 @@ export default function LandingPage() {
           </div>
 
           <div className="flex items-center gap-6">
+            <a href="#" className={`flex items-center gap-1 ${isDark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-800'}`}>
+              <Home className="w-3.5 h-3.5" />
+              <span>Home</span>
+            </a>
             <Link to="/app" className={isDark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-800'}>
               Studio
             </Link>

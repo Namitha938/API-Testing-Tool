@@ -105,28 +105,30 @@ export default function LandingPage() {
           <nav className="hidden md:flex items-center gap-7 text-sm font-medium">
             <a
               href="#"
-              className={`flex items-center gap-1.5 transition ${
-                isDark ? 'text-sky-400 hover:text-sky-300' : 'text-sky-600 hover:text-sky-500 font-semibold'
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-all duration-200 ${
+                isDark
+                  ? 'bg-slate-900 border-slate-700/80 text-white hover:bg-slate-800 hover:border-slate-600'
+                  : 'bg-slate-900 border-slate-800 text-white hover:bg-slate-800 shadow-sm'
               }`}
             >
-              <Home className="w-4 h-4" />
-              <span>Home</span>
+              <Home className="w-4 h-4 text-white shrink-0" />
+              <span className="text-white font-semibold">Home</span>
             </a>
             <a
               href="#features"
-              className={isDark ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-600'}
+              className={`transition-colors hover:scale-105 transform duration-200 ${isDark ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-600'}`}
             >
               Features
             </a>
             <a
               href="#demo"
-              className={isDark ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-600'}
+              className={`transition-colors hover:scale-105 transform duration-200 ${isDark ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-600'}`}
             >
               Interactive Preview
             </a>
             <a
               href="#architecture"
-              className={isDark ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-600'}
+              className={`transition-colors hover:scale-105 transform duration-200 ${isDark ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-600'}`}
             >
               Architecture
             </a>
@@ -137,7 +139,7 @@ export default function LandingPage() {
             {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
-              className={`p-2 rounded-lg border transition-all ${
+              className={`p-2 rounded-lg border transition-all duration-200 hover:scale-110 active:scale-95 ${
                 isDark
                   ? 'border-slate-800 bg-slate-900 text-amber-400 hover:bg-slate-800'
                   : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100 shadow-xs'
@@ -154,7 +156,7 @@ export default function LandingPage() {
                 </span>
                 <Link
                   to="/app"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold shadow-md shadow-sky-600/20 transition"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold shadow-md shadow-sky-600/20 transition hover:scale-105 active:scale-95 duration-200"
                 >
                   <span>Launch Studio</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -164,7 +166,7 @@ export default function LandingPage() {
               <div className="flex items-center gap-2">
                 <Link
                   to="/login"
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition duration-200 hover:scale-105 ${
                     isDark
                       ? 'text-slate-300 hover:text-white hover:bg-slate-800'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -174,7 +176,7 @@ export default function LandingPage() {
                 </Link>
                 <Link
                   to="/register"
-                  className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-sky-600 hover:bg-sky-500 text-white shadow-md shadow-sky-600/20 transition flex items-center gap-1.5"
+                  className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-sky-600 hover:bg-sky-500 text-white shadow-md shadow-sky-600/20 transition hover:scale-105 active:scale-95 duration-200 flex items-center gap-1.5"
                 >
                   <UserPlus className="w-3.5 h-3.5" />
                   <span>Get Started</span>
@@ -187,23 +189,37 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <section className="relative overflow-hidden pt-16 pb-20 md:pt-24 md:pb-28 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full text-center">
-        {/* Glow backdrop */}
+        {/* Animated Background Glowing Blobs */}
         <div
-          className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] blur-[140px] rounded-full pointer-events-none ${
+          className={`absolute top-1/4 left-1/2 -translate-x-1/2 w-[550px] h-[340px] blur-[130px] rounded-full pointer-events-none animate-blob ${
             isDark
-              ? 'bg-gradient-to-tr from-sky-500/20 via-indigo-500/15 to-purple-600/10'
-              : 'bg-gradient-to-tr from-sky-300/30 via-indigo-200/20 to-purple-200/20'
+              ? 'bg-gradient-to-tr from-sky-500/25 via-indigo-500/20 to-purple-600/15'
+              : 'bg-gradient-to-tr from-sky-300/35 via-indigo-200/25 to-purple-200/25'
+          }`}
+        />
+        <div
+          className={`absolute top-1/3 left-1/4 w-[400px] h-[280px] blur-[120px] rounded-full pointer-events-none animate-blob animation-delay-2000 ${
+            isDark
+              ? 'bg-gradient-to-tr from-cyan-500/15 via-sky-500/15 to-transparent'
+              : 'bg-gradient-to-tr from-cyan-300/25 via-sky-200/20 to-transparent'
+          }`}
+        />
+        <div
+          className={`absolute top-1/4 right-1/4 w-[420px] h-[300px] blur-[120px] rounded-full pointer-events-none animate-blob animation-delay-4000 ${
+            isDark
+              ? 'bg-gradient-to-tr from-purple-500/15 via-rose-500/10 to-transparent'
+              : 'bg-gradient-to-tr from-purple-300/25 via-rose-200/15 to-transparent'
           }`}
         />
 
         <div
-          className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium mb-6 shadow-xs border ${
+          className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium mb-6 shadow-xs border transition-transform duration-300 hover:scale-105 ${
             isDark
-              ? 'bg-slate-900 border-slate-700/60 text-sky-400'
+              ? 'bg-slate-900 border-slate-700/60 text-sky-400 shadow-sky-500/5'
               : 'bg-white border-slate-200 text-sky-700 shadow-xs'
           }`}
         >
-          <Sparkles className="w-3.5 h-3.5 text-sky-500" />
+          <Sparkles className="w-3.5 h-3.5 text-sky-500 animate-pulse" />
           <span>Full-Stack Modern API Development & Automation Platform</span>
         </div>
 
@@ -213,7 +229,7 @@ export default function LandingPage() {
           }`}
         >
           Test, Inspect & Automate APIs{' '}
-          <span className="bg-gradient-to-r from-sky-500 via-indigo-500 to-cyan-500 bg-clip-text text-transparent">
+          <span className="animate-gradient-x bg-gradient-to-r from-sky-400 via-indigo-400 via-cyan-400 to-sky-400 bg-clip-text text-transparent">
             Without Friction
           </span>
         </h1>
@@ -229,9 +245,9 @@ export default function LandingPage() {
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
           <Link
             to="/app"
-            className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-semibold text-sm shadow-xl shadow-sky-600/25 transition transform hover:-translate-y-0.5"
+            className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl bg-gradient-to-r from-sky-600 via-indigo-600 to-sky-600 hover:from-sky-500 hover:to-indigo-500 text-white font-semibold text-sm shadow-xl shadow-sky-600/30 transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 active:scale-95"
           >
-            <Zap className="w-4 h-4 fill-white" />
+            <Zap className="w-4 h-4 fill-white animate-pulse" />
             <span>Open API Studio</span>
             <ArrowRight className="w-4 h-4 ml-1" />
           </Link>
@@ -239,10 +255,10 @@ export default function LandingPage() {
           {!user && (
             <Link
               to="/login"
-              className={`inline-flex items-center gap-2 px-6 py-3.5 rounded-xl border font-semibold text-sm transition ${
+              className={`inline-flex items-center gap-2 px-6 py-3.5 rounded-xl border font-semibold text-sm transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 active:scale-95 ${
                 isDark
-                  ? 'bg-slate-900 hover:bg-slate-800 border-slate-700 text-slate-200'
-                  : 'bg-white hover:bg-slate-50 border-slate-300 text-slate-800 shadow-xs'
+                  ? 'bg-slate-900 hover:bg-slate-800 border-slate-700 text-slate-200 shadow-md'
+                  : 'bg-white hover:bg-slate-50 border-slate-300 text-slate-800 shadow-sm'
               }`}
             >
               <LogIn className="w-4 h-4 text-sky-600" />
@@ -275,10 +291,10 @@ export default function LandingPage() {
       {/* Interactive Studio Preview Mockup */}
       <section id="demo" className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-24 w-full">
         <div
-          className={`rounded-2xl border shadow-2xl overflow-hidden transition-colors duration-300 ${
+          className={`rounded-2xl border shadow-2xl overflow-hidden transition-all duration-500 animate-float ${
             isDark
-              ? 'border-slate-800 bg-slate-900/90'
-              : 'border-slate-200 bg-white shadow-xl'
+              ? 'border-slate-800 bg-slate-900/90 shadow-black/60 hover:shadow-sky-500/10 hover:border-slate-700'
+              : 'border-slate-200 bg-white shadow-xl hover:shadow-2xl hover:border-slate-300'
           }`}
         >
           {/* Mock Window Title Bar */}
@@ -288,16 +304,16 @@ export default function LandingPage() {
             }`}
           >
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-rose-500" />
-              <div className="w-3 h-3 rounded-full bg-amber-500" />
-              <div className="w-3 h-3 rounded-full bg-emerald-500" />
+              <div className="w-3 h-3 rounded-full bg-rose-500 transition-transform duration-200 hover:scale-125" />
+              <div className="w-3 h-3 rounded-full bg-amber-500 transition-transform duration-200 hover:scale-125" />
+              <div className="w-3 h-3 rounded-full bg-emerald-500 transition-transform duration-200 hover:scale-125" />
               <span className={`text-xs ml-2 font-mono ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                 APITester Studio - Request Workbench
               </span>
             </div>
             <Link
               to="/app"
-              className="text-xs text-sky-600 hover:text-sky-500 font-semibold flex items-center gap-1"
+              className="text-xs text-sky-600 hover:text-sky-500 font-semibold flex items-center gap-1 transition duration-200 hover:translate-x-1"
             >
               <span>Click to Enter Fullscreen</span>
               <ArrowRight className="w-3 h-3" />
@@ -307,8 +323,8 @@ export default function LandingPage() {
           {/* Interactive Mock UI */}
           <div className={`p-4 sm:p-6 font-mono text-xs space-y-4 ${isDark ? 'bg-slate-900/60' : 'bg-slate-50/70'}`}>
             <div
-              className={`flex flex-wrap sm:flex-nowrap items-center gap-2 p-2.5 rounded-xl border ${
-                isDark ? 'bg-slate-950 border-slate-800' : 'bg-white border-slate-200 shadow-xs'
+              className={`flex flex-wrap sm:flex-nowrap items-center gap-2 p-2.5 rounded-xl border transition-all duration-300 ${
+                isDark ? 'bg-slate-950 border-slate-800 hover:border-slate-700' : 'bg-white border-slate-200 shadow-xs hover:border-slate-300'
               }`}
             >
               <span className="px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/30">
@@ -323,7 +339,7 @@ export default function LandingPage() {
               </div>
               <Link
                 to="/app"
-                className="px-4 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg font-bold flex items-center gap-1.5 transition text-xs shrink-0"
+                className="px-4 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg font-bold flex items-center gap-1.5 transition-all duration-200 hover:scale-105 active:scale-95 text-xs shrink-0 shadow-md shadow-sky-600/30"
               >
                 <PlayCircle className="w-3.5 h-3.5" />
                 <span>Send</span>
@@ -333,7 +349,7 @@ export default function LandingPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Request Parameters Card */}
               <div
-                className={`border rounded-xl p-4 ${
+                className={`border rounded-xl p-4 transition-all duration-200 hover:border-slate-700 ${
                   isDark ? 'bg-slate-950/70 border-slate-800' : 'bg-white border-slate-200 shadow-xs'
                 }`}
               >
@@ -361,14 +377,18 @@ export default function LandingPage() {
 
               {/* Response Inspector Card */}
               <div
-                className={`border rounded-xl p-4 ${
+                className={`border rounded-xl p-4 transition-all duration-200 hover:border-slate-700 ${
                   isDark ? 'bg-slate-950/70 border-slate-800' : 'bg-white border-slate-200 shadow-xs'
                 }`}
               >
                 <div className="font-semibold mb-2 flex items-center justify-between">
                   <span className={isDark ? 'text-slate-400' : 'text-slate-600'}>RESPONSE INSPECTOR</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30 font-bold">
+                    <span className="text-[10px] text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30 font-bold flex items-center gap-1.5">
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                      </span>
                       200 OK
                     </span>
                     <span className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>18 ms</span>
@@ -415,20 +435,20 @@ export default function LandingPage() {
             {features.map((item, idx) => (
               <div
                 key={idx}
-                className={`border p-6 rounded-2xl transition duration-200 group ${
+                className={`border p-6 rounded-2xl transition-all duration-300 transform hover:-translate-y-2 group ${
                   isDark
-                    ? 'bg-slate-900/80 border-slate-800 hover:border-slate-700 hover:bg-slate-900'
-                    : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-md'
+                    ? 'bg-slate-900/80 border-slate-800 hover:border-sky-500/40 hover:bg-slate-900 hover:shadow-xl hover:shadow-sky-500/5'
+                    : 'bg-white border-slate-200 hover:border-sky-400 hover:shadow-xl'
                 }`}
               >
                 <div
-                  className={`p-3 rounded-xl border inline-block mb-4 group-hover:scale-105 transition transform ${
-                    isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
+                  className={`p-3 rounded-xl border inline-block mb-4 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 ${
+                    isDark ? 'bg-slate-950 border-slate-800 group-hover:border-sky-500/30' : 'bg-slate-50 border-slate-200 group-hover:border-sky-300'
                   }`}
                 >
                   {item.icon}
                 </div>
-                <h3 className={`text-base font-semibold mb-2 ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
+                <h3 className={`text-base font-semibold mb-2 transition-colors duration-200 group-hover:text-sky-400 ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
                   {item.title}
                 </h3>
                 <p className={`text-sm leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
@@ -591,8 +611,8 @@ export default function LandingPage() {
           </div>
 
           <div className="flex items-center gap-6">
-            <a href="#" className={`flex items-center gap-1 ${isDark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-800'}`}>
-              <Home className="w-3.5 h-3.5" />
+            <a href="#" className={`flex items-center gap-1.5 ${isDark ? 'text-slate-300 hover:text-white' : 'text-slate-700 hover:text-slate-900'}`}>
+              <Home className="w-3.5 h-3.5 text-white" />
               <span>Home</span>
             </a>
             <Link to="/app" className={isDark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-800'}>

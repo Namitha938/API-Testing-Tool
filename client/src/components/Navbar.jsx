@@ -51,11 +51,11 @@ export const Navbar = ({
 
         <Link
           to="/"
-          className="text-xs text-slate-400 hover:text-slate-200 flex items-center gap-1 px-2 py-1 rounded hover:bg-slate-800 transition"
+          className="text-xs text-slate-200 hover:text-white flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 transition"
           title="Return to Landing Page"
         >
-          <Home className="w-3.5 h-3.5 text-sky-400" />
-          <span className="hidden sm:inline">Home</span>
+          <Home className="w-3.5 h-3.5 text-white" />
+          <span className="hidden sm:inline font-medium">Home</span>
         </Link>
 
         <div className="h-5 w-px bg-slate-800 mx-1" />

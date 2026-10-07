@@ -85,12 +85,12 @@ export default function RegisterPage() {
           to="/"
           className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition ${
             isDark
-              ? 'border-slate-800 bg-slate-900/80 text-slate-300 hover:text-white hover:bg-slate-800'
-              : 'border-slate-200 bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-100 shadow-xs'
+              ? 'border-slate-800 bg-slate-900 text-white hover:bg-slate-800'
+              : 'border-slate-800 bg-slate-900 text-white hover:bg-slate-800 shadow-xs'
           }`}
           title="Return to Home"
         >
-          <Home className="w-4 h-4 text-sky-500" />
+          <Home className="w-4 h-4 text-white" />
           <span>Home</span>
         </Link>
 

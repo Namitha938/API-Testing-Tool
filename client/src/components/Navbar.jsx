@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useApi } from '../context/ApiContext';
 import {
@@ -12,6 +13,7 @@ import {
   Zap,
   FolderOpen,
   Sparkles,
+  Home,
 } from 'lucide-react';
 
 export const Navbar = ({
@@ -34,9 +36,9 @@ export const Navbar = ({
 
   return (
     <header className="h-14 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-4 select-none shrink-0 z-20">
-      {/* Brand & Logo */}
+      {/* Brand & Logo with link to Home */}
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2 group hover:opacity-90 transition" title="Go to Landing Page">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white font-bold shadow-md shadow-sky-500/20">
             <Zap className="w-5 h-5 text-amber-300 fill-amber-300" />
           </div>
@@ -45,9 +47,18 @@ export const Navbar = ({
               APITester <span className="text-xs px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 font-mono">PRO</span>
             </span>
           </div>
-        </div>
+        </Link>
 
-        <div className="h-5 w-px bg-slate-800 mx-2" />
+        <Link
+          to="/"
+          className="text-xs text-slate-400 hover:text-slate-200 flex items-center gap-1 px-2 py-1 rounded hover:bg-slate-800 transition"
+          title="Return to Landing Page"
+        >
+          <Home className="w-3.5 h-3.5 text-sky-400" />
+          <span className="hidden sm:inline">Home</span>
+        </Link>
+
+        <div className="h-5 w-px bg-slate-800 mx-1" />
 
         <button
           onClick={newRequestTemplate}
@@ -167,13 +178,21 @@ export const Navbar = ({
             )}
           </div>
         ) : (
-          <button
-            onClick={onOpenAuth}
-            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-md bg-sky-600 hover:bg-sky-500 text-white transition shadow-sm"
-          >
-            <LogIn className="w-3.5 h-3.5" />
-            <span>Sign In / Register</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/login"
+              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-md bg-sky-600 hover:bg-sky-500 text-white transition shadow-sm"
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              <span>Sign In</span>
+            </Link>
+            <Link
+              to="/register"
+              className="hidden sm:flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/60 transition"
+            >
+              <span>Register</span>
+            </Link>
+          </div>
         )}
       </div>
     </header>

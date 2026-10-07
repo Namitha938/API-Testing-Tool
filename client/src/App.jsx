@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ApiProvider, useApi } from './context/ApiContext';
 import { Navbar } from './components/Navbar';
@@ -13,7 +14,11 @@ import { CollectionRunnerModal } from './components/CollectionRunnerModal';
 import { SaveRequestModal } from './components/SaveRequestModal';
 import { AuthModal } from './components/AuthModal';
 
-function MainApp() {
+import LandingPage from './pages/LandingPage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+
+function StudioWorkbench() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [adminModalOpen, setAdminModalOpen] = useState(false);
   const [collectionsModalOpen, setCollectionsModalOpen] = useState(false);
@@ -82,10 +87,20 @@ function MainApp() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <ApiProvider>
-        <MainApp />
-      </ApiProvider>
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <ApiProvider>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/app" element={<StudioWorkbench />} />
+            <Route path="/requests" element={<Navigate to="/app" replace />} />
+            <Route path="/studio" element={<Navigate to="/app" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </ApiProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }

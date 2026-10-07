@@ -84,6 +84,11 @@ async function executeRequest(requestConfig, environmentVariables = {}) {
     if (auth.type === 'bearer' && auth.token) {
       const token = interpolateVariables(auth.token, environmentVariables);
       headers['Authorization'] = `Bearer ${token}`;
+    } else if (auth.type === 'oauth2') {
+      const token = interpolateVariables(auth.oauth2Token || auth.token || '', environmentVariables);
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
     } else if (auth.type === 'basic') {
       const user = interpolateVariables(auth.username || '', environmentVariables);
       const pass = interpolateVariables(auth.password || '', environmentVariables);
@@ -145,6 +150,11 @@ async function executeRequest(requestConfig, environmentVariables = {}) {
       }
     } else if (bodyType === 'raw') {
       data = interpolateVariables(rawBody, environmentVariables);
+    } else if (bodyType === 'binary') {
+      data = rawBody ? Buffer.from(rawBody) : Buffer.alloc(0);
+      if (!headers['Content-Type'] && !headers['content-type']) {
+        headers['Content-Type'] = 'application/octet-stream';
+      }
     }
   }
 

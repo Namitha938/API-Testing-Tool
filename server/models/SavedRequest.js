@@ -61,7 +61,7 @@ const savedRequestSchema = new mongoose.Schema(
     auth: {
       type: {
         type: String,
-        enum: ['none', 'bearer', 'basic', 'apiKey'],
+        enum: ['none', 'bearer', 'basic', 'apiKey', 'oauth2'],
         default: 'none',
       },
       token: { type: String, default: '' },
@@ -74,10 +74,16 @@ const savedRequestSchema = new mongoose.Schema(
         enum: ['header', 'query'],
         default: 'header',
       },
+      oauth2Token: { type: String, default: '' },
+      oauth2GrantType: { type: String, default: 'client_credentials' },
+      oauth2TokenUrl: { type: String, default: '' },
+      oauth2ClientId: { type: String, default: '' },
+      oauth2ClientSecret: { type: String, default: '' },
+      oauth2Scope: { type: String, default: '' },
     },
     bodyType: {
       type: String,
-      enum: ['none', 'json', 'xml', 'form-data', 'x-www-form-urlencoded', 'raw'],
+      enum: ['none', 'json', 'xml', 'form-data', 'x-www-form-urlencoded', 'raw', 'binary'],
       default: 'none',
     },
     rawBody: {

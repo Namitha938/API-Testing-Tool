@@ -408,12 +408,13 @@ export const RequestTabs = () => {
               <label className="block text-xs font-semibold text-slate-300 mb-1.5">
                 Authentication Scheme
               </label>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-5 gap-2">
                 {[
                   { id: 'none', label: 'No Auth' },
                   { id: 'bearer', label: 'Bearer Token' },
                   { id: 'basic', label: 'Basic Auth' },
                   { id: 'apiKey', label: 'API Key' },
+                  { id: 'oauth2', label: 'OAuth 2.0' },
                 ].map((type) => (
                   <button
                     key={type.id}
@@ -424,7 +425,7 @@ export const RequestTabs = () => {
                         auth: { ...prev.auth, type: type.id },
                       }))
                     }
-                    className={`py-2 px-3 rounded-lg border text-xs font-medium text-center transition ${
+                    className={`py-2 px-2.5 rounded-lg border text-xs font-medium text-center transition ${
                       activeRequest.auth?.type === type.id
                         ? 'border-sky-500 bg-sky-500/10 text-sky-400'
                         : 'border-slate-800 bg-slate-900 text-slate-400 hover:text-slate-200'
@@ -566,6 +567,148 @@ export const RequestTabs = () => {
                 </div>
               </div>
             )}
+
+            {/* OAuth 2.0 Form */}
+            {activeRequest.auth?.type === 'oauth2' && (
+              <div className="space-y-3.5 p-4 bg-slate-900/60 border border-slate-800 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-slate-200">
+                    <Key className="w-4 h-4 text-purple-400" />
+                    <span>OAuth 2.0 Authorization</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.' + btoa(JSON.stringify({ sub: 'user_123', scope: 'read:all write:all', exp: Math.floor(Date.now() / 1000) + 3600 })) + '.simulatedSignature';
+                      setActiveRequest((prev) => ({
+                        ...prev,
+                        auth: { ...prev.auth, oauth2Token: mockToken, token: mockToken },
+                      }));
+                    }}
+                    className="px-2 py-1 rounded bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30 text-[11px] font-medium transition"
+                  >
+                    Generate Mock Token
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] text-slate-400 mb-1">Grant Type</label>
+                    <select
+                      value={activeRequest.auth?.oauth2GrantType || 'client_credentials'}
+                      onChange={(e) =>
+                        setActiveRequest((prev) => ({
+                          ...prev,
+                          auth: { ...prev.auth, oauth2GrantType: e.target.value },
+                        }))
+                      }
+                      className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-purple-500"
+                    >
+                      <option value="client_credentials">Client Credentials</option>
+                      <option value="authorization_code">Authorization Code</option>
+                      <option value="password">Password Credentials</option>
+                      <option value="implicit">Implicit</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] text-slate-400 mb-1">Header Prefix</label>
+                    <input
+                      type="text"
+                      defaultValue="Bearer"
+                      disabled
+                      className="w-full bg-slate-950/60 border border-slate-800/80 rounded px-2.5 py-1.5 text-xs text-slate-400 font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] text-slate-400 mb-1">Access Token (or {{token}} variable)</label>
+                  <input
+                    type="text"
+                    value={activeRequest.auth?.oauth2Token || activeRequest.auth?.token || ''}
+                    onChange={(e) =>
+                      setActiveRequest((prev) => ({
+                        ...prev,
+                        auth: { ...prev.auth, oauth2Token: e.target.value, token: e.target.value },
+                      }))
+                    }
+                    placeholder="eyJhbGciOi... or {{oauth_token}}"
+                    className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] text-slate-400 mb-1">Token Request URL (Optional)</label>
+                    <input
+                      type="text"
+                      value={activeRequest.auth?.oauth2TokenUrl || ''}
+                      onChange={(e) =>
+                        setActiveRequest((prev) => ({
+                          ...prev,
+                          auth: { ...prev.auth, oauth2TokenUrl: e.target.value },
+                        }))
+                      }
+                      placeholder="https://auth.example.com/oauth/token"
+                      className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-purple-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-slate-400 mb-1">Scope</label>
+                    <input
+                      type="text"
+                      value={activeRequest.auth?.oauth2Scope || ''}
+                      onChange={(e) =>
+                        setActiveRequest((prev) => ({
+                          ...prev,
+                          auth: { ...prev.auth, oauth2Scope: e.target.value },
+                        }))
+                      }
+                      placeholder="e.g. read:users write:orders"
+                      className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-purple-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] text-slate-400 mb-1">Client ID</label>
+                    <input
+                      type="text"
+                      value={activeRequest.auth?.oauth2ClientId || ''}
+                      onChange={(e) =>
+                        setActiveRequest((prev) => ({
+                          ...prev,
+                          auth: { ...prev.auth, oauth2ClientId: e.target.value },
+                        }))
+                      }
+                      placeholder="client_id_here"
+                      className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-purple-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-slate-400 mb-1">Client Secret</label>
+                    <input
+                      type="password"
+                      value={activeRequest.auth?.oauth2ClientSecret || ''}
+                      onChange={(e) =>
+                        setActiveRequest((prev) => ({
+                          ...prev,
+                          auth: { ...prev.auth, oauth2ClientSecret: e.target.value },
+                        }))
+                      }
+                      placeholder="client_secret_here"
+                      className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-purple-500"
+                    />
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-slate-500">
+                  Token is automatically injected into the <code>Authorization: Bearer &lt;token&gt;</code> request header.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -582,6 +725,7 @@ export const RequestTabs = () => {
                   { id: 'form-data', label: 'form-data' },
                   { id: 'x-www-form-urlencoded', label: 'x-www-form-urlencoded' },
                   { id: 'raw', label: 'raw text' },
+                  { id: 'binary', label: 'binary' },
                 ].map((b) => (
                   <label key={b.id} className="flex items-center gap-1.5 cursor-pointer">
                     <input
@@ -652,7 +796,8 @@ export const RequestTabs = () => {
                   <thead className="bg-slate-900 text-slate-400 font-semibold uppercase text-[10px]">
                     <tr>
                       <th className="p-2 w-10 text-center">Active</th>
-                      <th className="p-2 w-1/3">Key</th>
+                      <th className="p-2 w-1/4">Key</th>
+                      {activeRequest.bodyType === 'form-data' && <th className="p-2 w-20">Type</th>}
                       <th className="p-2 w-1/3">Value</th>
                       <th className="p-2 w-10 text-center"></th>
                     </tr>
@@ -685,18 +830,58 @@ export const RequestTabs = () => {
                             className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200 font-mono text-xs focus:outline-none focus:border-sky-500"
                           />
                         </td>
+                        {activeRequest.bodyType === 'form-data' && (
+                          <td className="p-1">
+                            <select
+                              value={row.type || 'text'}
+                              onChange={(e) => {
+                                const list = [...(activeRequest.formData || [])];
+                                list[idx].type = e.target.value;
+                                setActiveRequest((prev) => ({ ...prev, formData: list }));
+                              }}
+                              className="bg-slate-900 border border-slate-800 rounded px-1.5 py-1 text-slate-300 text-[11px] focus:outline-none focus:border-sky-500"
+                            >
+                              <option value="text">Text</option>
+                              <option value="file">File</option>
+                            </select>
+                          </td>
+                        )}
                         <td className="p-1">
-                          <input
-                            type="text"
-                            value={row.value}
-                            onChange={(e) => {
-                              const list = [...(activeRequest.formData || [])];
-                              list[idx].value = e.target.value;
-                              setActiveRequest((prev) => ({ ...prev, formData: list }));
-                            }}
-                            placeholder="Field Value"
-                            className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200 font-mono text-xs focus:outline-none focus:border-sky-500"
-                          />
+                          {row.type === 'file' ? (
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="file"
+                                id={`file-input-${idx}`}
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files[0];
+                                  if (file) {
+                                    const list = [...(activeRequest.formData || [])];
+                                    list[idx].value = file.name;
+                                    setActiveRequest((prev) => ({ ...prev, formData: list }));
+                                  }
+                                }}
+                              />
+                              <label
+                                htmlFor={`file-input-${idx}`}
+                                className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-sky-400 text-xs cursor-pointer border border-slate-700 truncate max-w-xs block"
+                              >
+                                {row.value ? `📎 ${row.value}` : 'Choose File...'}
+                              </label>
+                            </div>
+                          ) : (
+                            <input
+                              type="text"
+                              value={row.value}
+                              onChange={(e) => {
+                                const list = [...(activeRequest.formData || [])];
+                                list[idx].value = e.target.value;
+                                setActiveRequest((prev) => ({ ...prev, formData: list }));
+                              }}
+                              placeholder="Field Value"
+                              className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200 font-mono text-xs focus:outline-none focus:border-sky-500"
+                            />
+                          )}
                         </td>
                         <td className="p-1 text-center">
                           <button
@@ -719,13 +904,57 @@ export const RequestTabs = () => {
                   onClick={() => {
                     setActiveRequest((prev) => ({
                       ...prev,
-                      formData: [...(prev.formData || []), { key: '', value: '', enabled: true }],
+                      formData: [...(prev.formData || []), { key: '', value: '', type: 'text', enabled: true }],
                     }));
                   }}
                   className="text-xs text-sky-400 hover:text-sky-300 flex items-center gap-1"
                 >
                   <Plus className="w-3.5 h-3.5" /> Add form parameter
                 </button>
+              </div>
+            )}
+
+            {/* Binary Body Upload */}
+            {activeRequest.bodyType === 'binary' && (
+              <div className="p-6 rounded-lg border-2 border-dashed border-slate-800 bg-slate-900/40 text-center space-y-3">
+                <div className="w-12 h-12 mx-auto rounded-full bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400">
+                  <FileText className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-xs text-slate-200">Select Binary Payload</h4>
+                  <p className="text-[11px] text-slate-400 mt-1">Upload an image, audio, PDF, or binary data file to transmit</p>
+                </div>
+                <input
+                  type="file"
+                  id="binary-file-upload"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        setActiveRequest((prev) => ({
+                          ...prev,
+                          rawBody: event.target.result,
+                          binaryFileName: file.name,
+                          binaryFileSize: file.size,
+                        }));
+                      };
+                      reader.readAsText(file);
+                    }
+                  }}
+                />
+                <label
+                  htmlFor="binary-file-upload"
+                  className="inline-block px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs cursor-pointer shadow-md transition"
+                >
+                  Choose Binary File
+                </label>
+                {activeRequest.binaryFileName && (
+                  <div className="text-[11px] font-mono text-emerald-400 mt-2">
+                    Selected: {activeRequest.binaryFileName} ({Math.round(activeRequest.binaryFileSize / 1024)} KB)
+                  </div>
+                )}
               </div>
             )}
           </div>

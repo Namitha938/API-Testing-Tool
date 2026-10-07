@@ -28,7 +28,8 @@ const requestHistorySchema = new mongoose.Schema(
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
+      default: null,
+      required: false,
     },
     requestId: {
       type: mongoose.Schema.Types.ObjectId,

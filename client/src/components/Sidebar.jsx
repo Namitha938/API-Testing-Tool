@@ -76,20 +76,35 @@ export const Sidebar = ({ onOpenCollections, onOpenEnvironments, onRunCollection
     }
   };
 
-  // Add folder to collection
-  const handleAddFolder = async (e, collectionId) => {
+  // Add folder or subfolder to collection
+  const handleAddFolder = async (e, collectionId, parentId = null) => {
     e.stopPropagation();
-    const folderName = prompt('Enter folder name:');
+    const folderName = prompt(parentId ? 'Enter subfolder name:' : 'Enter folder name:');
     if (!folderName) return;
 
     try {
       await fetch(`/api/collections/${collectionId}/folders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: folderName }),
+        body: JSON.stringify({ name: folderName, parentId }),
       });
       fetchCollections();
       setOpenCollections((prev) => ({ ...prev, [collectionId]: true }));
+      if (parentId) {
+        setOpenFolders((prev) => ({ ...prev, [parentId]: true }));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Delete folder
+  const handleDeleteFolder = async (e, collectionId, folderId) => {
+    e.stopPropagation();
+    if (!confirm('Delete this folder and move its requests to root?')) return;
+    try {
+      await fetch(`/api/collections/${collectionId}/folders/${folderId}`, { method: 'DELETE' });
+      fetchCollections();
     } catch (err) {
       console.error(err);
     }
@@ -273,56 +288,28 @@ export const Sidebar = ({ onOpenCollections, onOpenEnvironments, onRunCollection
                     {/* Collection Content */}
                     {isOpen && (
                       <div className="pl-4 pr-1 py-1 space-y-0.5 border-t border-slate-800/40">
-                        {/* Folders */}
-                        {(col.folders || []).map((folder) => {
-                          const folderRequests = filteredRequests.filter((r) => r.folderId === folder.id);
-                          const isFolderOpen = openFolders[folder.id] ?? true;
-
-                          return (
-                            <div key={folder.id} className="my-0.5">
-                              <div
-                                onClick={() => toggleFolder(folder.id)}
-                                className="flex items-center justify-between px-2 py-1.5 hover:bg-slate-800/40 rounded cursor-pointer text-slate-300 group"
-                              >
-                                <div className="flex items-center gap-1.5 truncate">
-                                  {isFolderOpen ? (
-                                    <ChevronDown className="w-3 h-3 text-slate-400 shrink-0" />
-                                  ) : (
-                                    <ChevronRight className="w-3 h-3 text-slate-400 shrink-0" />
-                                  )}
-                                  <FolderOpen className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-                                  <span className="truncate">{folder.name}</span>
-                                  <span className="text-[10px] text-slate-500">({folderRequests.length})</span>
-                                </div>
-                                <button
-                                  onClick={(e) => handleAddRequestToCollection(e, col._id, folder.id)}
-                                  className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-slate-700 rounded text-slate-300 transition"
-                                  title="Add Request into Folder"
-                                >
-                                  <Plus className="w-3 h-3 text-sky-400" />
-                                </button>
-                              </div>
-
-                              {isFolderOpen && (
-                                <div className="pl-4 space-y-0.5">
-                                  {folderRequests.map((req) => (
-                                    <RequestItem
-                                      key={req._id}
-                                      req={req}
-                                      isActive={activeRequest._id === req._id}
-                                      onSelect={() => loadSavedRequest(req)}
-                                      onDelete={(e) => handleDeleteRequest(e, req._id)}
-                                      onDuplicate={(e) => handleDuplicateRequest(e, req._id)}
-                                    />
-                                  ))}
-                                  {folderRequests.length === 0 && (
-                                    <div className="text-[11px] text-slate-600 pl-4 py-1 italic">Empty folder</div>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
+                        {/* Hierarchical Nested Folders */}
+                        {(col.folders || [])
+                          .filter((folder) => !folder.parentId)
+                          .map((folder) => (
+                            <FolderTreeItem
+                              key={folder.id}
+                              folder={folder}
+                              allFolders={col.folders || []}
+                              requests={filteredRequests}
+                              collectionId={col._id}
+                              openFolders={openFolders}
+                              toggleFolder={toggleFolder}
+                              onAddRequest={handleAddRequestToCollection}
+                              onAddFolder={handleAddFolder}
+                              onDeleteFolder={handleDeleteFolder}
+                              activeRequestId={activeRequest._id}
+                              loadSavedRequest={loadSavedRequest}
+                              handleDeleteRequest={handleDeleteRequest}
+                              handleDuplicateRequest={handleDuplicateRequest}
+                              depth={0}
+                            />
+                          ))}
 
                         {/* Root Requests */}
                         {rootRequests.map((req) => (
@@ -461,6 +448,115 @@ export const Sidebar = ({ onOpenCollections, onOpenEnvironments, onRunCollection
         </div>
       )}
     </aside>
+  );
+};
+
+// Recursive sub-component for hierarchical nested folders
+const FolderTreeItem = ({
+  folder,
+  allFolders,
+  requests,
+  collectionId,
+  openFolders,
+  toggleFolder,
+  onAddRequest,
+  onAddFolder,
+  onDeleteFolder,
+  activeRequestId,
+  loadSavedRequest,
+  handleDeleteRequest,
+  handleDuplicateRequest,
+  depth = 0,
+}) => {
+  const isFolderOpen = openFolders[folder.id] ?? true;
+  const folderRequests = requests.filter((r) => r.folderId === folder.id);
+  const childFolders = allFolders.filter((f) => f.parentId === folder.id);
+
+  return (
+    <div className="my-0.5">
+      <div
+        onClick={() => toggleFolder(folder.id)}
+        className="flex items-center justify-between px-2 py-1.5 hover:bg-slate-800/40 rounded cursor-pointer text-slate-300 group"
+      >
+        <div className="flex items-center gap-1.5 truncate">
+          {isFolderOpen ? (
+            <ChevronDown className="w-3 h-3 text-slate-400 shrink-0" />
+          ) : (
+            <ChevronRight className="w-3 h-3 text-slate-400 shrink-0" />
+          )}
+          <FolderOpen className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+          <span className="truncate font-medium text-xs">{folder.name}</span>
+          <span className="text-[10px] text-slate-500">
+            ({folderRequests.length + childFolders.length})
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={(e) => onAddRequest(e, collectionId, folder.id)}
+            className="p-0.5 hover:bg-slate-700 rounded text-slate-300 transition"
+            title="Add Request into Folder"
+          >
+            <Plus className="w-3 h-3 text-sky-400" />
+          </button>
+          <button
+            onClick={(e) => onAddFolder(e, collectionId, folder.id)}
+            className="p-0.5 hover:bg-slate-700 rounded text-slate-300 transition"
+            title="Add Nested Subfolder"
+          >
+            <Folder className="w-3 h-3 text-indigo-400" />
+          </button>
+          <button
+            onClick={(e) => onDeleteFolder(e, collectionId, folder.id)}
+            className="p-0.5 hover:bg-slate-700 rounded text-slate-400 hover:text-rose-400 transition"
+            title="Delete Folder"
+          >
+            <Trash2 className="w-3 h-3" />
+          </button>
+        </div>
+      </div>
+
+      {isFolderOpen && (
+        <div className="pl-3.5 space-y-0.5 border-l border-slate-800/60 ml-2 my-0.5">
+          {/* Child nested subfolders */}
+          {childFolders.map((subFolder) => (
+            <FolderTreeItem
+              key={subFolder.id}
+              folder={subFolder}
+              allFolders={allFolders}
+              requests={requests}
+              collectionId={collectionId}
+              openFolders={openFolders}
+              toggleFolder={toggleFolder}
+              onAddRequest={onAddRequest}
+              onAddFolder={onAddFolder}
+              onDeleteFolder={onDeleteFolder}
+              activeRequestId={activeRequestId}
+              loadSavedRequest={loadSavedRequest}
+              handleDeleteRequest={handleDeleteRequest}
+              handleDuplicateRequest={handleDuplicateRequest}
+              depth={depth + 1}
+            />
+          ))}
+
+          {/* Requests in this folder */}
+          {folderRequests.map((req) => (
+            <RequestItem
+              key={req._id}
+              req={req}
+              isActive={activeRequestId === req._id}
+              onSelect={() => loadSavedRequest(req)}
+              onDelete={(e) => handleDeleteRequest(e, req._id)}
+              onDuplicate={(e) => handleDuplicateRequest(e, req._id)}
+            />
+          ))}
+
+          {folderRequests.length === 0 && childFolders.length === 0 && (
+            <div className="text-[11px] text-slate-600 pl-2 py-0.5 italic">Empty folder</div>
+          )}
+        </div>
+      )}
+    </div>
   );
 };
 

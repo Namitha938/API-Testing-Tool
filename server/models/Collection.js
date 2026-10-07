@@ -4,6 +4,7 @@ const folderSchema = new mongoose.Schema(
   {
     id: { type: String, required: true },
     name: { type: String, required: true },
+    parentId: { type: String, default: null },
     description: { type: String, default: '' },
   },
   { _id: false }

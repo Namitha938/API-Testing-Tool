@@ -93,7 +93,7 @@ router.delete('/:id', optionalAuth, async (req, res) => {
 // POST /api/collections/:id/folders - Add folder to collection
 router.post('/:id/folders', optionalAuth, async (req, res) => {
   try {
-    const { name, description = '' } = req.body;
+    const { name, description = '', parentId = null } = req.body;
     if (!name) return res.status(400).json({ message: 'Folder name is required' });
 
     const collection = await Collection.findById(req.params.id);
@@ -103,6 +103,7 @@ router.post('/:id/folders', optionalAuth, async (req, res) => {
       id: 'f-' + Date.now(),
       name,
       description,
+      parentId: parentId || null,
     };
 
     collection.folders.push(newFolder);
@@ -259,7 +260,7 @@ router.post('/import', optionalAuth, async (req, res) => {
       });
     }
 
-    // Check if Postman v2 or v2.1 Collection
+    // 2. Check if Postman v2 or v2.1 Collection
     if (importData.info && (importData.info.name || importData.info.schema)) {
       const colName = importData.info.name || 'Imported Postman Collection';
       const colDesc = typeof importData.info.description === 'string' ? importData.info.description : '';
@@ -267,7 +268,7 @@ router.post('/import', optionalAuth, async (req, res) => {
       const folders = [];
       const requestsToCreate = [];
 
-      // Recursive parser for Postman items
+      // Recursive parser for Postman items (preserves nested folder parentId)
       function parseItems(items, folderId = null) {
         if (!Array.isArray(items)) return;
 
@@ -279,6 +280,7 @@ router.post('/import', optionalAuth, async (req, res) => {
               id: newFId,
               name: item.name || 'Folder',
               description: typeof item.description === 'string' ? item.description : '',
+              parentId: folderId,
             });
             parseItems(item.item, newFId);
           } else if (item.request) {
@@ -308,6 +310,8 @@ router.post('/import', optionalAuth, async (req, res) => {
                 rawBody = reqObj.body.raw || '';
               } else if (reqObj.body.mode === 'urlencoded') {
                 bodyType = 'x-www-form-urlencoded';
+              } else if (reqObj.body.mode === 'formdata') {
+                bodyType = 'form-data';
               }
             }
 
@@ -350,7 +354,202 @@ router.post('/import', optionalAuth, async (req, res) => {
       });
     }
 
-    res.status(400).json({ message: 'Unrecognized collection format. Expected Postman v2.1 or native JSON format.' });
+    // 3. Check if OpenAPI 3.x or Swagger 2.0 Specification
+    if (importData.openapi || importData.swagger || importData.paths) {
+      const title = importData.info?.title || 'OpenAPI Specification';
+      const description = typeof importData.info?.description === 'string' ? importData.info.description : '';
+      const baseUrl =
+        importData.servers?.[0]?.url ||
+        (importData.schemes && importData.host
+          ? `${importData.schemes[0]}://${importData.host}${importData.basePath || ''}`
+          : 'http://localhost:5000');
+
+      const folders = [];
+      const tagFolderMap = {};
+      const requestsToCreate = [];
+
+      // Extract tags as folders
+      if (Array.isArray(importData.tags)) {
+        importData.tags.forEach(t => {
+          const fId = 'f-' + Math.random().toString(36).substring(2, 9);
+          tagFolderMap[t.name] = fId;
+          folders.push({
+            id: fId,
+            name: t.name,
+            description: t.description || '',
+            parentId: null,
+          });
+        });
+      }
+
+      const httpMethods = ['get', 'post', 'put', 'patch', 'delete', 'options', 'head'];
+      const paths = importData.paths || {};
+
+      Object.entries(paths).forEach(([pathKey, pathItem]) => {
+        if (!pathItem || typeof pathItem !== 'object') return;
+
+        httpMethods.forEach(method => {
+          const op = pathItem[method];
+          if (!op) return;
+
+          let folderId = null;
+          if (op.tags && op.tags.length > 0) {
+            const tagName = op.tags[0];
+            if (!tagFolderMap[tagName]) {
+              const newFId = 'f-' + Math.random().toString(36).substring(2, 9);
+              tagFolderMap[tagName] = newFId;
+              folders.push({ id: newFId, name: tagName, description: '', parentId: null });
+            }
+            folderId = tagFolderMap[tagName];
+          }
+
+          const reqName = op.summary || op.operationId || `${method.toUpperCase()} ${pathKey}`;
+          const fullUrl = baseUrl.replace(/\/$/, '') + (pathKey.startsWith('/') ? pathKey : '/' + pathKey);
+
+          const params = [];
+          const headers = [];
+
+          if (Array.isArray(op.parameters)) {
+            op.parameters.forEach(p => {
+              if (p.in === 'query') {
+                params.push({ key: p.name, value: p.example || p.default || '', enabled: !!p.required });
+              } else if (p.in === 'header') {
+                headers.push({ key: p.name, value: p.example || p.default || '', enabled: !!p.required });
+              }
+            });
+          }
+
+          let bodyType = 'none';
+          let rawBody = '';
+          if (op.requestBody && op.requestBody.content) {
+            if (op.requestBody.content['application/json']) {
+              bodyType = 'json';
+              const example = op.requestBody.content['application/json'].example;
+              rawBody = example ? JSON.stringify(example, null, 2) : '{\n  \n}';
+            } else if (op.requestBody.content['application/xml']) {
+              bodyType = 'xml';
+              rawBody = '<request></request>';
+            } else if (op.requestBody.content['multipart/form-data']) {
+              bodyType = 'form-data';
+            } else if (op.requestBody.content['application/x-www-form-urlencoded']) {
+              bodyType = 'x-www-form-urlencoded';
+            }
+          }
+
+          requestsToCreate.push({
+            name: reqName,
+            folderId,
+            method: method.toUpperCase(),
+            url: fullUrl,
+            params,
+            headers,
+            bodyType,
+            rawBody,
+            auth: { type: 'none' },
+            testCases: [{ name: 'Status code is 200', type: 'status', expectedValue: '200', enabled: true }],
+          });
+        });
+      });
+
+      const createdCol = await Collection.create({
+        name: title + ' (OpenAPI)',
+        description,
+        userId,
+        folders,
+      });
+
+      const docs = requestsToCreate.map(r => ({
+        ...r,
+        collectionId: createdCol._id,
+        userId,
+      }));
+
+      const createdRequests = await SavedRequest.insertMany(docs);
+      return res.status(201).json({
+        ...createdCol.toObject(),
+        requests: createdRequests,
+        message: `Successfully imported OpenAPI/Swagger spec with ${createdRequests.length} endpoints and ${folders.length} folders!`,
+      });
+    }
+
+    // 4. Check if cURL Command format
+    const curlInput = typeof importData === 'string' ? importData : importData.curl || importData.rawCurl;
+    if (curlInput && typeof curlInput === 'string' && curlInput.toLowerCase().includes('curl')) {
+      let str = curlInput.trim();
+      if (str.startsWith('curl ')) str = str.slice(5).trim();
+
+      let method = 'GET';
+      let url = '';
+      const headers = [];
+      let rawBody = '';
+      let bodyType = 'none';
+
+      const methodMatch = str.match(/(?:-X|--request)\s+([A-Z]+)/i);
+      if (methodMatch) method = methodMatch[1].toUpperCase();
+
+      const urlMatch = str.match(/(?:'|")?(https?:\/\/[^\s'"]+)(?:'|")?/i);
+      if (urlMatch) url = urlMatch[1];
+
+      const headerRegex = /(?:-H|--header)\s+['"]([^'"]+)['"]/gi;
+      let hMatch;
+      while ((hMatch = headerRegex.exec(str)) !== null) {
+        const headerStr = hMatch[1];
+        const colonIdx = headerStr.indexOf(':');
+        if (colonIdx > -1) {
+          headers.push({
+            key: headerStr.slice(0, colonIdx).trim(),
+            value: headerStr.slice(colonIdx + 1).trim(),
+            enabled: true,
+          });
+        }
+      }
+
+      const dataRegex = /(?:-d|--data|--data-raw|--data-binary)\s+(['"])([\s\S]*?)\1/i;
+      const dataMatch = str.match(dataRegex);
+      if (dataMatch) {
+        rawBody = dataMatch[2];
+        bodyType = 'raw';
+        if (!methodMatch) method = 'POST';
+        try {
+          JSON.parse(rawBody);
+          bodyType = 'json';
+        } catch (_) {
+          if (rawBody.trim().startsWith('<')) bodyType = 'xml';
+        }
+      }
+
+      const createdCol = await Collection.create({
+        name: 'cURL Imported (' + (url ? new URL(url).hostname : 'Request') + ')',
+        description: 'Imported from raw cURL command',
+        userId,
+        folders: [],
+      });
+
+      const doc = await SavedRequest.create({
+        name: `${method} ${url ? new URL(url).pathname : 'Endpoint'}`,
+        collectionId: createdCol._id,
+        folderId: null,
+        userId,
+        method,
+        url: url || 'http://localhost:5000/api/mock/users',
+        headers,
+        params: [],
+        bodyType,
+        rawBody,
+        auth: { type: 'none' },
+        testCases: [{ name: 'Status code is 200', type: 'status', expectedValue: '200', enabled: true }],
+      });
+
+      return res.status(201).json({
+        ...createdCol.toObject(),
+        requests: [doc],
+        message: 'Successfully imported cURL command as API request!',
+      });
+    }
+
+    res.status(400).json({
+      message: 'Unrecognized format. Please provide a valid Postman Collection (v2.1), OpenAPI/Swagger (JSON), or cURL command.',
+    });
   } catch (error) {
     res.status(500).json({ message: 'Collection import failed', error: error.message });
   }

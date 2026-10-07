@@ -162,15 +162,27 @@ export const ResponsePane = () => {
             <div className="flex bg-slate-950 rounded p-0.5 border border-slate-800 text-[11px]">
               <button
                 onClick={() => setViewMode('pretty')}
-                className={`px-2 py-0.5 rounded ${viewMode === 'pretty' ? 'bg-slate-800 text-sky-400 font-medium' : 'text-slate-400'}`}
+                className={`px-2.5 py-0.5 rounded transition ${
+                  viewMode === 'pretty' ? 'bg-slate-800 text-sky-400 font-semibold shadow-xs' : 'text-slate-400 hover:text-slate-200'
+                }`}
               >
                 Pretty
               </button>
               <button
                 onClick={() => setViewMode('raw')}
-                className={`px-2 py-0.5 rounded ${viewMode === 'raw' ? 'bg-slate-800 text-sky-400 font-medium' : 'text-slate-400'}`}
+                className={`px-2.5 py-0.5 rounded transition ${
+                  viewMode === 'raw' ? 'bg-slate-800 text-sky-400 font-semibold shadow-xs' : 'text-slate-400 hover:text-slate-200'
+                }`}
               >
                 Raw
+              </button>
+              <button
+                onClick={() => setViewMode('preview')}
+                className={`px-2.5 py-0.5 rounded transition ${
+                  viewMode === 'preview' ? 'bg-slate-800 text-sky-400 font-semibold shadow-xs' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                Preview
               </button>
             </div>
           </div>
@@ -182,9 +194,49 @@ export const ResponsePane = () => {
         {/* TAB 1: RESPONSE BODY */}
         {responseTab === 'body' && (
           <div className="h-full flex flex-col">
-            <pre className="flex-1 p-3 bg-slate-950 text-slate-200 font-mono text-xs rounded-lg border border-slate-800/80 overflow-auto whitespace-pre-wrap leading-relaxed select-text">
-              {viewMode === 'pretty' ? formattedBody : response.responseBody}
-            </pre>
+            {viewMode === 'preview' ? (
+              <div className="flex-1 flex flex-col bg-slate-950 rounded-lg border border-slate-800/80 overflow-hidden min-h-[300px]">
+                {/* HTML Preview */}
+                {(response.contentType?.includes('html') || response.responseBody?.trim().startsWith('<!DOCTYPE') || response.responseBody?.trim().startsWith('<html')) ? (
+                  <div className="flex-1 flex flex-col h-full">
+                    <div className="px-3 py-1.5 bg-slate-900 border-b border-slate-800 text-[11px] text-slate-400 flex items-center justify-between">
+                      <span className="font-semibold text-slate-300">HTML Web Page Render</span>
+                      <span className="text-[10px] text-slate-500">Sandboxed Environment</span>
+                    </div>
+                    <iframe
+                      title="HTML Response Preview"
+                      sandbox="allow-same-origin"
+                      srcDoc={response.responseBody}
+                      className="flex-1 w-full h-full bg-white min-h-[320px] border-0"
+                    />
+                  </div>
+                ) : response.contentType?.startsWith('image/') ? (
+                  /* Image Preview */
+                  <div className="flex-1 flex items-center justify-center p-6 bg-slate-900/50">
+                    <img
+                      src={`data:${response.contentType};base64,${response.responseBody}`}
+                      alt="Response Preview"
+                      className="max-h-80 max-w-full rounded shadow-md object-contain"
+                    />
+                  </div>
+                ) : (
+                  /* Formatted JSON / Text Tree Card Preview */
+                  <div className="flex-1 p-3 overflow-auto space-y-2">
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-800 text-[11px] text-slate-400">
+                      <span className="font-semibold text-slate-300">Structured Data Viewer</span>
+                      <span className="text-[10px] text-sky-400 uppercase font-mono">{response.contentType || 'text/plain'}</span>
+                    </div>
+                    <pre className="font-mono text-xs text-slate-200 whitespace-pre-wrap leading-relaxed select-text bg-slate-900/60 p-3 rounded-md border border-slate-800/60">
+                      {formattedBody}
+                    </pre>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <pre className="flex-1 p-3 bg-slate-950 text-slate-200 font-mono text-xs rounded-lg border border-slate-800/80 overflow-auto whitespace-pre-wrap leading-relaxed select-text">
+                {viewMode === 'pretty' ? formattedBody : response.responseBody}
+              </pre>
+            )}
           </div>
         )}
 

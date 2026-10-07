@@ -79,31 +79,29 @@ router.post('/execute', optionalAuth, async (req, res) => {
       envVars
     );
 
-    // Save to RequestHistory if user exists
-    if (userId) {
-      try {
-        await RequestHistory.create({
-          userId,
-          requestId: savedRequestId || null,
-          method,
-          url: executionResult.resolvedUrl || url,
-          status: executionResult.status,
-          statusText: executionResult.statusText,
-          responseTime: executionResult.responseTime,
-          responseSize: executionResult.responseSize,
-          timings: executionResult.timings,
-          requestHeaders: executionResult.requestHeaders,
-          requestBody: executionResult.requestBody,
-          responseHeaders: executionResult.responseHeaders,
-          responseBody: executionResult.responseBody ? executionResult.responseBody.slice(0, 50000) : '',
-          contentType: executionResult.contentType,
-          testResults: executionResult.testResults,
-          passedCount: executionResult.passedCount,
-          failedCount: executionResult.failedCount,
-        });
-      } catch (histErr) {
-        console.warn('[History] Could not save history:', histErr.message);
-      }
+    // Save to RequestHistory for telemetry and performance monitoring
+    try {
+      await RequestHistory.create({
+        userId: userId || null,
+        requestId: savedRequestId || null,
+        method,
+        url: executionResult.resolvedUrl || url,
+        status: executionResult.status,
+        statusText: executionResult.statusText,
+        responseTime: executionResult.responseTime,
+        responseSize: executionResult.responseSize,
+        timings: executionResult.timings,
+        requestHeaders: executionResult.requestHeaders,
+        requestBody: executionResult.requestBody,
+        responseHeaders: executionResult.responseHeaders,
+        responseBody: executionResult.responseBody ? executionResult.responseBody.slice(0, 50000) : '',
+        contentType: executionResult.contentType,
+        testResults: executionResult.testResults,
+        passedCount: executionResult.passedCount,
+        failedCount: executionResult.failedCount,
+      });
+    } catch (histErr) {
+      console.warn('[History] Could not save history:', histErr.message);
     }
 
     res.json(executionResult);

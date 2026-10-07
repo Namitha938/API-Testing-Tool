@@ -1,354 +1,630 @@
-import { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import {
+  Zap,
+  ArrowRight,
+  Code2,
+  FolderOpen,
+  Sliders,
+  PlayCircle,
+  ShieldCheck,
+  CheckCircle2,
+  Terminal,
+  Cpu,
+  Sparkles,
+  LogIn,
+  UserPlus,
+  Sun,
+  Moon,
+  ExternalLink,
+  Laptop,
+  Home
+} from 'lucide-react';
 
-const SAMPLES = {
-  GET: { url: 'https://api.example.com/users/42', status: '200 OK', time: '142 ms', size: '312 B',
-    body: `{\n  "id": 42,\n  "name": "Asha Rao",\n  "role": "admin",\n  "active": true\n}` },
-  POST: { url: 'https://api.example.com/users', status: '201 Created', time: '211 ms', size: '268 B',
-    body: `{\n  "id": 43,\n  "name": "Ravi Kumar",\n  "created": "2026-10-07T09:30:00Z"\n}` },
-  PUT: { url: 'https://api.example.com/users/42', status: '200 OK', time: '176 ms', size: '290 B',
-    body: `{\n  "id": 42,\n  "name": "Asha Rao",\n  "role": "editor",\n  "updated": true\n}` },
-  PATCH: { url: 'https://api.example.com/users/42', status: '200 OK', time: '98 ms', size: '154 B',
-    body: `{\n  "id": 42,\n  "active": false\n}` },
-  DELETE: { url: 'https://api.example.com/users/42', status: '404 Not Found', time: '64 ms', size: '58 B',
-    body: `{\n  "error": "User not found"\n}` },
-};
-
-const ALL_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
-
-const METHOD_TEXT = {
-  dark: { GET: 'text-emerald-400', POST: 'text-amber-400', PUT: 'text-sky-400', PATCH: 'text-violet-300', DELETE: 'text-rose-400' },
-  light: { GET: 'text-emerald-700', POST: 'text-amber-700', PUT: 'text-sky-700', PATCH: 'text-violet-700', DELETE: 'text-rose-700' },
-};
-
-// One accent colour (violet) on a neutral slate base, in two themes.
-const THEMES = {
-  dark: {
-    page: 'bg-slate-950 text-slate-100',
-    nav: 'bg-slate-950/80 border-slate-800',
-    surface: 'bg-slate-900 border-slate-800',
-    surfaceAlt: 'bg-slate-900/50 border-slate-800',
-    muted: 'text-slate-400',
-    faint: 'text-slate-500',
-    border: 'border-slate-800',
-    input: 'bg-slate-950 border-slate-800 text-slate-300',
-    tab: 'text-slate-300 hover:bg-slate-800',
-    iconBox: 'bg-violet-500/15 text-violet-300',
-    hoverCard: 'hover:border-violet-500/60',
-    ok: 'text-emerald-400',
-    bad: 'text-rose-400',
-    glow: 'bg-violet-600/20',
-    link: 'text-slate-300 hover:text-white',
-    toggle: 'border-slate-700 text-slate-300 hover:bg-slate-800',
-    ctaBox: 'bg-slate-900 border-slate-800',
-    ctaBtn: 'bg-violet-600 hover:bg-violet-500 text-white',
-    pill: 'bg-slate-900 border-slate-700 text-slate-200',
-  },
-  light: {
-    page: 'bg-white text-slate-900',
-    nav: 'bg-white/80 border-slate-200',
-    surface: 'bg-white border-slate-200',
-    surfaceAlt: 'bg-slate-50 border-slate-200',
-    muted: 'text-slate-600',
-    faint: 'text-slate-500',
-    border: 'border-slate-200',
-    input: 'bg-slate-50 border-slate-200 text-slate-700',
-    tab: 'text-slate-700 hover:bg-slate-100',
-    iconBox: 'bg-violet-100 text-violet-700',
-    hoverCard: 'hover:border-violet-400',
-    ok: 'text-emerald-700',
-    bad: 'text-rose-700',
-    glow: 'bg-violet-300/40',
-    link: 'text-slate-600 hover:text-slate-900',
-    toggle: 'border-slate-300 text-slate-700 hover:bg-slate-100',
-    ctaBox: 'bg-violet-50 border-violet-200',
-    ctaBtn: 'bg-violet-600 hover:bg-violet-700 text-white',
-    pill: 'bg-white border-slate-300 text-slate-700',
-  },
-};
-
-const FEATURES = [
-  { title: 'Send Requests', text: 'Support for GET, POST, PUT, PATCH, DELETE, HEAD, and OPTIONS methods.',
-    icon: 'M11 4a2 2 0 114 0v1a2 2 0 104 0v1a9 9 0 11-18 0 2 2 0 00-2-1V4a2 2 0 114 0' },
-  { title: 'Manage Headers & Params', text: 'Add custom headers, query parameters, and request bodies with ease.',
-    icon: 'M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
-  { title: 'Authentication', text: 'Support for Basic Auth, Bearer tokens, and API keys.',
-    icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
-  { title: 'View Responses', text: 'See the status code, response time, size, and formatted body for every request you send.',
-    icon: 'M4 6h16M4 12h16M4 18h10' },
-  { title: 'Validate Status & Data', text: 'Check that your API returns the status and data you expect before you ship.',
-    icon: 'M5 13l4 4L19 7' },
-  { title: 'Runs in Your Browser', text: 'A web-based tool with nothing to install. Open it and start testing.',
-    icon: 'M3 5h18v12H3zM8 21h8M12 17v4' },
-];
-
-const STEPS = [
-  { title: 'Choose a method and enter the URL', text: 'Pick GET, POST, PUT, PATCH, DELETE, HEAD, or OPTIONS and paste your endpoint.' },
-  { title: 'Add headers, params, body, and auth', text: 'Fill in only what your request needs, including Basic Auth, Bearer tokens, or API keys.' },
-  { title: 'Send and inspect the response', text: 'Review the status, timing, and data, then adjust the request and send it again.' },
-];
-
-const STACK = [
-  { name: 'React', text: 'A fast, responsive interface for building and sending requests.' },
-  { name: 'Express', text: 'A Node.js server that handles your requests reliably.' },
-  { name: 'MongoDB', text: 'A database that stores your data.' },
-];
-
-export default function Landing() {
-  const [mode, setMode] = useState(() => {
-    try {
-      return localStorage.getItem('landing-theme') === 'light' ? 'light' : 'dark';
-    } catch (e) {
-      return 'dark';
-    }
+export default function LandingPage() {
+  const { user } = useAuth();
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('theme') || 'dark';
   });
-  const [method, setMethod] = useState('GET');
 
   useEffect(() => {
-    try {
-      localStorage.setItem('landing-theme', mode);
-    } catch (e) {
-      /* storage unavailable, theme just won't persist */
-    }
-  }, [mode]);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
-  const t = THEMES[mode];
-  const mc = METHOD_TEXT[mode];
-  const sample = SAMPLES[method];
-  const ok = sample.status.startsWith('2');
-  const container = 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8';
-  const focus = 'focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400';
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
+  const isDark = theme === 'dark';
+
+  const features = [
+    {
+      icon: <Zap className="w-6 h-6 text-amber-500" />,
+      title: 'Lightning-Fast REST Client',
+      desc: 'Send GET, POST, PUT, DELETE, PATCH, and HEAD requests with real-time response timings, headers, and formatted JSON preview.',
+    },
+    {
+      icon: <FolderOpen className="w-6 h-6 text-sky-500" />,
+      title: 'Collections & Organization',
+      desc: 'Group requests into organized folders and collections. Export and import collections with one click.',
+    },
+    {
+      icon: <PlayCircle className="w-6 h-6 text-emerald-500" />,
+      title: 'Automated Collection Runner',
+      desc: 'Execute entire test suites sequentially with automated assertions, pass/fail reporting, and total duration metrics.',
+    },
+    {
+      icon: <Sliders className="w-6 h-6 text-purple-500" />,
+      title: 'Dynamic Environments & Variables',
+      desc: 'Define Global and environment-scoped variables (e.g., {{baseUrl}}, {{token}}) with automatic template substitution.',
+    },
+    {
+      icon: <ShieldCheck className="w-6 h-6 text-rose-500" />,
+      title: 'Role-Based Admin Dashboard',
+      desc: 'System administration console for user management, role privileges (Admin vs User), and activity telemetry.',
+    },
+    {
+      icon: <Terminal className="w-6 h-6 text-indigo-500" />,
+      title: 'Built-in Mock Endpoints & Proxy',
+      desc: 'Built-in CORS proxy engine and mock test APIs (/api/mock/users) so you can start testing immediately without external servers.',
+    },
+  ];
 
   return (
-    <div id="home" className={`min-h-screen relative overflow-hidden transition-colors duration-300 ${t.page}`}>
-      <div
-        aria-hidden="true"
-        className={`pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[480px] w-[860px] rounded-full blur-3xl ${t.glow}`}
-      />
-
-      <nav className={`sticky top-0 z-20 border-b backdrop-blur ${t.nav}`}>
-        <div className={container}>
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-600">
-                <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
+    <div
+      className={`min-h-screen flex flex-col transition-colors duration-300 ${
+        isDark
+          ? 'bg-slate-950 text-slate-100 selection:bg-sky-500/30 selection:text-sky-200'
+          : 'bg-slate-50 text-slate-900 selection:bg-sky-500/20 selection:text-sky-900'
+      }`}
+    >
+      {/* Header / Navbar */}
+      <header
+        className={`border-b sticky top-0 z-50 backdrop-blur-md transition-colors duration-300 ${
+          isDark
+            ? 'border-slate-800/80 bg-slate-950/80'
+            : 'border-slate-200/90 bg-white/80 shadow-xs'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          {/* Logo & Brand */}
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/20">
+              <Zap className="w-5 h-5 text-amber-300 fill-amber-300" />
+            </div>
+            <span className="font-bold text-lg tracking-tight flex items-center gap-2">
+              APITester{' '}
+              <span className="text-xs px-2 py-0.5 rounded bg-sky-500/10 text-sky-500 border border-sky-500/20 font-mono">
+                PRO
               </span>
-              <span className="ml-3 text-xl font-bold tracking-tight">API Testing Tool</span>
-            </div>
+            </span>
+          </div>
 
-            <div className="hidden md:flex items-center gap-6 text-sm font-medium">
-              <a href="#home" className={`transition ${t.link}`}>Home</a>
-              <a href="#features" className={`transition ${t.link}`}>Features</a>
-              <a href="#how-it-works" className={`transition ${t.link}`}>How it works</a>
-              <a href="#methods" className={`transition ${t.link}`}>Methods</a>
-              
-            </div>
+          {/* Links */}
+          <nav className="hidden md:flex items-center gap-7 text-sm font-medium">
+            <a
+              href="#"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-all duration-200 ${
+                isDark
+                  ? 'bg-slate-900 border-slate-700/80 text-white hover:bg-slate-800 hover:border-slate-600'
+                  : 'bg-slate-900 border-slate-800 text-white hover:bg-slate-800 shadow-sm'
+              }`}
+            >
+              <Home className="w-4 h-4 text-white shrink-0" />
+              <span className="text-white font-semibold">Home</span>
+            </a>
+            <a
+              href="#features"
+              className={`transition-colors hover:scale-105 transform duration-200 ${isDark ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-600'}`}
+            >
+              Features
+            </a>
+            <a
+              href="#demo"
+              className={`transition-colors hover:scale-105 transform duration-200 ${isDark ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-600'}`}
+            >
+              Interactive Preview
+            </a>
+            <a
+              href="#architecture"
+              className={`transition-colors hover:scale-105 transform duration-200 ${isDark ? 'text-slate-300 hover:text-sky-400' : 'text-slate-600 hover:text-sky-600'}`}
+            >
+              Architecture
+            </a>
+          </nav>
 
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setMode(mode === 'dark' ? 'light' : 'dark')}
-                aria-label={mode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-                title={mode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-                className={`h-9 w-9 inline-flex items-center justify-center rounded-lg border transition ${t.toggle} ${focus}`}
-              >
-                {mode === 'dark' ? (
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v2m0 14v2M5.6 5.6l1.4 1.4m10 10l1.4 1.4M3 12h2m14 0h2M5.6 18.4L7 17m10-10l1.4-1.4M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                  </svg>
-                ) : (
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 14.5A8 8 0 019.5 4 8 8 0 1020 14.5z" />
-                  </svg>
-                )}
-              </button>
-              <Link
-                to="/login"
-                className={`px-3 sm:px-4 py-2 rounded-lg text-sm font-medium border transition ${t.toggle} ${focus}`}
-              >
-                Login
-              </Link>
+          {/* Controls: Theme Toggle & Auth Buttons */}
+          <div className="flex items-center gap-3">
+            {/* Theme Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              className={`p-2 rounded-lg border transition-all duration-200 hover:scale-110 active:scale-95 ${
+                isDark
+                  ? 'border-slate-800 bg-slate-900 text-amber-400 hover:bg-slate-800'
+                  : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100 shadow-xs'
+              }`}
+              title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            >
+              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4 text-indigo-600" />}
+            </button>
 
-
-
-              <Link
-                to="/register"
-                className={`px-3 sm:px-4 py-2 rounded-lg text-sm font-medium border transition ${t.toggle} ${focus}`}
-              >
-                Sign Up
-              </Link>
-
-
-
-
-
-
-              <Link
-                to="/requests"
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${t.ctaBtn} ${focus}`}
-              >
-                Open App
-              </Link>
-            </div>
+            {user ? (
+              <div className="flex items-center gap-3">
+                <span className={`text-xs hidden sm:inline ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                  Welcome, <strong className={isDark ? 'text-slate-200' : 'text-slate-800'}>{user.name}</strong>
+                </span>
+                <Link
+                  to="/app"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold shadow-md shadow-sky-600/20 transition hover:scale-105 active:scale-95 duration-200"
+                >
+                  <span>Launch Studio</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/login"
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition duration-200 hover:scale-105 ${
+                    isDark
+                      ? 'text-slate-300 hover:text-white hover:bg-slate-800'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  }`}
+                >
+                  Sign In
+                </Link>
+                <Link
+                  to="/register"
+                  className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-sky-600 hover:bg-sky-500 text-white shadow-md shadow-sky-600/20 transition hover:scale-105 active:scale-95 duration-200 flex items-center gap-1.5"
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span>Get Started</span>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
-      </nav>
+      </header>
 
-      <main className="relative">
-        {/* Hero */}
-        <section className={`${container} pt-16 pb-16 lg:pt-24 lg:pb-24`}>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="text-center lg:text-left">
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight tracking-tight mb-6">
-                Test Your APIs with Ease
-              </h1>
-              <p className={`text-lg sm:text-xl mb-8 max-w-xl mx-auto lg:mx-0 ${t.muted}`}>
-                A powerful web-based tool for sending API requests, managing headers
-                and parameters, viewing responses, and validating API status and data.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
-                <Link
-                  to="/requests"
-                  className={`inline-flex items-center justify-center gap-2 px-8 py-4 rounded-lg text-lg font-medium transition shadow-lg shadow-violet-900/20 ${t.ctaBtn} ${focus}`}
-                >
-                  Get Started
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5-5 5M4 7l5 5" />
-                  </svg>
-                </Link>
-                <a
-                  href="#how-it-works"
-                  className={`inline-flex items-center justify-center px-8 py-4 rounded-lg text-lg font-medium border transition ${t.toggle} ${focus}`}
-                >
-                  See how it works
-                </a>
+      {/* Hero Section */}
+      <section className="relative overflow-hidden pt-16 pb-20 md:pt-24 md:pb-28 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full text-center">
+        {/* Animated Background Glowing Blobs */}
+        <div
+          className={`absolute top-1/4 left-1/2 -translate-x-1/2 w-[550px] h-[340px] blur-[130px] rounded-full pointer-events-none animate-blob ${
+            isDark
+              ? 'bg-gradient-to-tr from-sky-500/25 via-indigo-500/20 to-purple-600/15'
+              : 'bg-gradient-to-tr from-sky-300/35 via-indigo-200/25 to-purple-200/25'
+          }`}
+        />
+        <div
+          className={`absolute top-1/3 left-1/4 w-[400px] h-[280px] blur-[120px] rounded-full pointer-events-none animate-blob animation-delay-2000 ${
+            isDark
+              ? 'bg-gradient-to-tr from-cyan-500/15 via-sky-500/15 to-transparent'
+              : 'bg-gradient-to-tr from-cyan-300/25 via-sky-200/20 to-transparent'
+          }`}
+        />
+        <div
+          className={`absolute top-1/4 right-1/4 w-[420px] h-[300px] blur-[120px] rounded-full pointer-events-none animate-blob animation-delay-4000 ${
+            isDark
+              ? 'bg-gradient-to-tr from-purple-500/15 via-rose-500/10 to-transparent'
+              : 'bg-gradient-to-tr from-purple-300/25 via-rose-200/15 to-transparent'
+          }`}
+        />
+
+        <div
+          className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium mb-6 shadow-xs border transition-transform duration-300 hover:scale-105 ${
+            isDark
+              ? 'bg-slate-900 border-slate-700/60 text-sky-400 shadow-sky-500/5'
+              : 'bg-white border-slate-200 text-sky-700 shadow-xs'
+          }`}
+        >
+          <Sparkles className="w-3.5 h-3.5 text-sky-500 animate-pulse" />
+          <span>Full-Stack Modern API Development & Automation Platform</span>
+        </div>
+
+        <h1
+          className={`text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight max-w-4xl mx-auto leading-tight ${
+            isDark ? 'text-slate-100' : 'text-slate-900'
+          }`}
+        >
+          Test, Inspect & Automate APIs{' '}
+          <span className="animate-gradient-x bg-gradient-to-r from-sky-400 via-indigo-400 via-cyan-400 to-sky-400 bg-clip-text text-transparent">
+            Without Friction
+          </span>
+        </h1>
+
+        <p
+          className={`mt-6 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed ${
+            isDark ? 'text-slate-400' : 'text-slate-600'
+          }`}
+        >
+          The ultimate developer tool for debugging endpoints, managing environment variables, running automated test suites, and simulating mock backends in one unified workspace.
+        </p>
+
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+          <Link
+            to="/app"
+            className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl bg-gradient-to-r from-sky-600 via-indigo-600 to-sky-600 hover:from-sky-500 hover:to-indigo-500 text-white font-semibold text-sm shadow-xl shadow-sky-600/30 transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 active:scale-95"
+          >
+            <Zap className="w-4 h-4 fill-white animate-pulse" />
+            <span>Open API Studio</span>
+            <ArrowRight className="w-4 h-4 ml-1" />
+          </Link>
+
+          {!user && (
+            <Link
+              to="/login"
+              className={`inline-flex items-center gap-2 px-6 py-3.5 rounded-xl border font-semibold text-sm transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 active:scale-95 ${
+                isDark
+                  ? 'bg-slate-900 hover:bg-slate-800 border-slate-700 text-slate-200 shadow-md'
+                  : 'bg-white hover:bg-slate-50 border-slate-300 text-slate-800 shadow-sm'
+              }`}
+            >
+              <LogIn className="w-4 h-4 text-sky-600" />
+              <span>Sign In with Demo Account</span>
+            </Link>
+          )}
+        </div>
+
+        {/* Feature Highlights */}
+        <div className="mt-12 flex flex-wrap items-center justify-center gap-6 text-xs">
+          <div className={`flex items-center gap-1.5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+            <span>Zero Config Required</span>
+          </div>
+          <div className={`flex items-center gap-1.5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+            <span>CORS Proxy Built-in</span>
+          </div>
+          <div className={`flex items-center gap-1.5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+            <span>MongoDB Persistence</span>
+          </div>
+          <div className={`flex items-center gap-1.5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+            <span>Role-Based Access Control</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Interactive Studio Preview Mockup */}
+      <section id="demo" className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-24 w-full">
+        <div
+          className={`rounded-2xl border shadow-2xl overflow-hidden transition-all duration-500 animate-float ${
+            isDark
+              ? 'border-slate-800 bg-slate-900/90 shadow-black/60 hover:shadow-sky-500/10 hover:border-slate-700'
+              : 'border-slate-200 bg-white shadow-xl hover:shadow-2xl hover:border-slate-300'
+          }`}
+        >
+          {/* Mock Window Title Bar */}
+          <div
+            className={`px-4 py-3 border-b flex items-center justify-between ${
+              isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-100 border-slate-200'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-rose-500 transition-transform duration-200 hover:scale-125" />
+              <div className="w-3 h-3 rounded-full bg-amber-500 transition-transform duration-200 hover:scale-125" />
+              <div className="w-3 h-3 rounded-full bg-emerald-500 transition-transform duration-200 hover:scale-125" />
+              <span className={`text-xs ml-2 font-mono ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                APITester Studio - Request Workbench
+              </span>
+            </div>
+            <Link
+              to="/app"
+              className="text-xs text-sky-600 hover:text-sky-500 font-semibold flex items-center gap-1 transition duration-200 hover:translate-x-1"
+            >
+              <span>Click to Enter Fullscreen</span>
+              <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+
+          {/* Interactive Mock UI */}
+          <div className={`p-4 sm:p-6 font-mono text-xs space-y-4 ${isDark ? 'bg-slate-900/60' : 'bg-slate-50/70'}`}>
+            <div
+              className={`flex flex-wrap sm:flex-nowrap items-center gap-2 p-2.5 rounded-xl border transition-all duration-300 ${
+                isDark ? 'bg-slate-950 border-slate-800 hover:border-slate-700' : 'bg-white border-slate-200 shadow-xs hover:border-slate-300'
+              }`}
+            >
+              <span className="px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/30">
+                GET
+              </span>
+              <div
+                className={`flex-1 px-3 py-1.5 rounded-lg border truncate ${
+                  isDark ? 'bg-slate-900 border-slate-800 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-700'
+                }`}
+              >
+                http://localhost:5000/api/mock/users
               </div>
-              <p className={`mt-6 text-sm ${t.faint}`}>
-                Pick a method on the right to preview a sample request and response.
-              </p>
+              <Link
+                to="/app"
+                className="px-4 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg font-bold flex items-center gap-1.5 transition-all duration-200 hover:scale-105 active:scale-95 text-xs shrink-0 shadow-md shadow-sky-600/30"
+              >
+                <PlayCircle className="w-3.5 h-3.5" />
+                <span>Send</span>
+              </Link>
             </div>
 
-            <div className={`rounded-xl border shadow-2xl shadow-violet-950/20 overflow-hidden ${t.surface}`}>
-              <div className={`flex gap-1 overflow-x-auto border-b p-2 ${t.border} ${t.surfaceAlt}`}>
-                {Object.keys(SAMPLES).map((m) => (
-                  <button
-                    key={m}
-                    type="button"
-                    onClick={() => setMethod(m)}
-                    aria-pressed={method === m}
-                    className={`px-3 py-1.5 rounded-md text-sm font-mono font-semibold transition ${focus} ${
-                      method === m ? 'bg-violet-600 text-white' : `${mc[m]} ${t.tab}`
-                    }`}
-                  >
-                    {m}
-                  </button>
-                ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Request Parameters Card */}
+              <div
+                className={`border rounded-xl p-4 transition-all duration-200 hover:border-slate-700 ${
+                  isDark ? 'bg-slate-950/70 border-slate-800' : 'bg-white border-slate-200 shadow-xs'
+                }`}
+              >
+                <div className="font-semibold mb-2 flex items-center justify-between">
+                  <span className={isDark ? 'text-slate-400' : 'text-slate-600'}>HEADERS & AUTH</span>
+                  <span className="text-[10px] text-sky-600 bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/30">
+                    Bearer Token Active
+                  </span>
+                </div>
+                <div className={`space-y-1.5 text-[11px] ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                  <div className={`flex justify-between border-b pb-1 ${isDark ? 'border-slate-900' : 'border-slate-100'}`}>
+                    <span className={isDark ? 'text-slate-500' : 'text-slate-400'}>Content-Type</span>
+                    <span>application/json</span>
+                  </div>
+                  <div className={`flex justify-between border-b pb-1 ${isDark ? 'border-slate-900' : 'border-slate-100'}`}>
+                    <span className={isDark ? 'text-slate-500' : 'text-slate-400'}>Authorization</span>
+                    <span className="text-sky-600 dark:text-sky-400">Bearer eyJhbGciOi...</span>
+                  </div>
+                  <div className="flex justify-between pb-1">
+                    <span className={isDark ? 'text-slate-500' : 'text-slate-400'}>Environment</span>
+                    <span className="text-indigo-600 dark:text-indigo-400">&#123;&#123;baseUrl&#125;&#125; (Development)</span>
+                  </div>
+                </div>
               </div>
-              <div className="p-4">
-                <div className={`flex items-center gap-2 rounded-lg border px-3 py-2 ${t.input}`}>
-                  <span className={`font-mono text-sm font-bold ${mc[method]}`}>{method}</span>
-                  <span className="font-mono text-sm truncate">{sample.url}</span>
+
+              {/* Response Inspector Card */}
+              <div
+                className={`border rounded-xl p-4 transition-all duration-200 hover:border-slate-700 ${
+                  isDark ? 'bg-slate-950/70 border-slate-800' : 'bg-white border-slate-200 shadow-xs'
+                }`}
+              >
+                <div className="font-semibold mb-2 flex items-center justify-between">
+                  <span className={isDark ? 'text-slate-400' : 'text-slate-600'}>RESPONSE INSPECTOR</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30 font-bold flex items-center gap-1.5">
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                      </span>
+                      200 OK
+                    </span>
+                    <span className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>18 ms</span>
+                  </div>
                 </div>
-                <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-                  <span className={`font-semibold ${ok ? t.ok : t.bad}`}>{sample.status}</span>
-                  <span className={t.muted}>{sample.time}</span>
-                  <span className={t.muted}>{sample.size}</span>
-                </div>
-                <pre className="mt-3 rounded-lg bg-slate-900 border border-slate-800 p-4 text-sm leading-relaxed font-mono text-slate-100 overflow-x-auto">
-{sample.body}
+                <pre
+                  className={`text-[11px] leading-relaxed overflow-x-auto ${
+                    isDark ? 'text-sky-300/90' : 'text-sky-800'
+                  }`}
+                >
+{`{
+  "status": "online",
+  "users": [
+    { "id": 1, "name": "System Admin", "role": "admin" },
+    { "id": 2, "name": "Developer", "role": "user" }
+  ],
+  "latency": "18ms"
+}`}
                 </pre>
               </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Features */}
-        <section id="features" className={`${container} py-16 scroll-mt-20`}>
-          <div className="max-w-2xl mb-10">
-            <h2 className="text-3xl font-bold tracking-tight mb-3">Everything you need to test an API</h2>
-            <p className={`text-lg ${t.muted}`}>
-              Build a request, send it, and check the result without leaving one page.
+      {/* Feature Grid */}
+      <section
+        id="features"
+        className={`py-20 border-t transition-colors duration-300 ${
+          isDark ? 'border-slate-800/80 bg-slate-900/30' : 'border-slate-200 bg-slate-100/60'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className={`text-3xl font-bold tracking-tight sm:text-4xl ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
+              Engineered for Developers
+            </h2>
+            <p className={`mt-4 text-base ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+              Everything you need to build, test, and maintain APIs in modern microservice and web architectures.
             </p>
           </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {FEATURES.map((f) => (
-              <div key={f.title} className={`border rounded-xl p-6 transition ${t.surface} ${t.hoverCard}`}>
-                <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg ${t.iconBox}`}>
-                  <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={f.icon} />
-                  </svg>
+            {features.map((item, idx) => (
+              <div
+                key={idx}
+                className={`border p-6 rounded-2xl transition-all duration-300 transform hover:-translate-y-2 group ${
+                  isDark
+                    ? 'bg-slate-900/80 border-slate-800 hover:border-sky-500/40 hover:bg-slate-900 hover:shadow-xl hover:shadow-sky-500/5'
+                    : 'bg-white border-slate-200 hover:border-sky-400 hover:shadow-xl'
+                }`}
+              >
+                <div
+                  className={`p-3 rounded-xl border inline-block mb-4 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 ${
+                    isDark ? 'bg-slate-950 border-slate-800 group-hover:border-sky-500/30' : 'bg-slate-50 border-slate-200 group-hover:border-sky-300'
+                  }`}
+                >
+                  {item.icon}
                 </div>
-                <h3 className="text-lg font-semibold mb-2">{f.title}</h3>
-                <p className={`text-sm leading-relaxed ${t.muted}`}>{f.text}</p>
+                <h3 className={`text-base font-semibold mb-2 transition-colors duration-200 group-hover:text-sky-400 ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
+                  {item.title}
+                </h3>
+                <p className={`text-sm leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                  {item.desc}
+                </p>
               </div>
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* How it works */}
-        <section id="how-it-works" className={`border-y scroll-mt-20 ${t.border} ${t.surfaceAlt}`}>
-          <div className={`${container} py-16`}>
-            <div className="max-w-2xl mb-10">
-              <h2 className="text-3xl font-bold tracking-tight mb-3">From URL to response in three steps</h2>
-              <p className={`text-lg ${t.muted}`}>No setup, no scripts. Just build the request and send it.</p>
-            </div>
-            <ol className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {STEPS.map((s, i) => (
-                <li key={s.title} className={`border rounded-xl p-6 ${t.surface}`}>
-                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-violet-600 text-white font-semibold mb-4">
-                    {i + 1}
-                  </span>
-                  <h3 className="text-lg font-semibold mb-2">{s.title}</h3>
-                  <p className={`text-sm leading-relaxed ${t.muted}`}>{s.text}</p>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
-
-        {/* Methods */}
-        <section id="methods" className={`${container} py-16 scroll-mt-20`}>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+      {/* Architecture & Stack Section */}
+      <section id="architecture" className={`py-20 border-t ${isDark ? 'border-slate-800/80' : 'border-slate-200'}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold tracking-tight mb-3">All the HTTP methods you use</h2>
-              <p className={`text-lg ${t.muted}`}>
-                Test reads, writes, updates, deletes, and metadata checks with the same simple form.
+              <div
+                className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold mb-4 border ${
+                  isDark
+                    ? 'bg-indigo-950/60 border-indigo-700/50 text-indigo-300'
+                    : 'bg-indigo-50 border-indigo-200 text-indigo-700'
+                }`}
+              >
+                <Cpu className="w-3.5 h-3.5 text-indigo-500" />
+                <span>Robust Technology Stack</span>
+              </div>
+              <h2 className={`text-3xl font-bold tracking-tight sm:text-4xl ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
+                React 19 + Node Express + MongoDB
+              </h2>
+              <p className={`mt-4 text-sm sm:text-base leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                Architected with a decoupled frontend/backend topology. The client uses fast reactive state management and Tailwind CSS, while the Node backend dispatches proxy requests with server-side caching and persistence in MongoDB.
               </p>
+
+              <div className="mt-6 space-y-3">
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-sky-500 shrink-0 mt-0.5" />
+                  <div>
+                    <strong className={`text-sm ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
+                      Full Request History & Audit Logs
+                    </strong>
+                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                      Stores historical request executions with responses, headers, and status codes.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-sky-500 shrink-0 mt-0.5" />
+                  <div>
+                    <strong className={`text-sm ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
+                      Automated Test Case Runner
+                    </strong>
+                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                      Assert HTTP 200/201 status, response time under 500ms, and JSON body keys.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 flex gap-3">
+                <Link
+                  to="/app"
+                  className="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs transition flex items-center gap-2 shadow-md shadow-sky-600/20"
+                >
+                  <span>Launch Application</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+                <Link
+                  to="/register"
+                  className={`px-5 py-2.5 rounded-xl border font-semibold text-xs transition ${
+                    isDark
+                      ? 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200'
+                      : 'bg-white hover:bg-slate-50 border-slate-300 text-slate-800 shadow-xs'
+                  }`}
+                >
+                  Create Account
+                </Link>
+              </div>
             </div>
-            <div className="flex flex-wrap gap-3">
-              {ALL_METHODS.map((m) => (
-                <span key={m} className={`px-4 py-2 rounded-lg border font-mono text-sm font-semibold ${t.pill}`}>
-                  {m}
-                </span>
-              ))}
+
+            <div
+              className={`border rounded-2xl p-6 shadow-xl ${
+                isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-lg'
+              }`}
+            >
+              <div
+                className={`text-xs font-semibold uppercase tracking-wider mb-4 flex items-center gap-2 ${
+                  isDark ? 'text-slate-400' : 'text-slate-500'
+                }`}
+              >
+                <Code2 className="w-4 h-4 text-sky-500" />
+                <span>Ready Default Credentials</span>
+              </div>
+              <div className="space-y-3">
+                <div
+                  className={`p-4 rounded-xl border flex items-center justify-between ${
+                    isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
+                  }`}
+                >
+                  <div>
+                    <div className="text-xs font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4" />
+                      <span>Admin Account</span>
+                    </div>
+                    <div className={`text-xs mt-1 font-mono ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                      admin@apitester.io
+                    </div>
+                    <div className={`text-[11px] font-mono ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                      Password: admin123
+                    </div>
+                  </div>
+                  <Link
+                    to="/login"
+                    className="px-3 py-1.5 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-600 dark:text-purple-300 text-xs font-medium transition"
+                  >
+                    Login
+                  </Link>
+                </div>
+
+                <div
+                  className={`p-4 rounded-xl border flex items-center justify-between ${
+                    isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
+                  }`}
+                >
+                  <div>
+                    <div className="text-xs font-bold text-sky-600 dark:text-sky-400 flex items-center gap-1.5">
+                      <Zap className="w-4 h-4" />
+                      <span>Demo Developer</span>
+                    </div>
+                    <div className={`text-xs mt-1 font-mono ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                      demo@apitester.io
+                    </div>
+                    <div className={`text-[11px] font-mono ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                      Password: user123
+                    </div>
+                  </div>
+                  <Link
+                    to="/login"
+                    className="px-3 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 text-sky-600 dark:text-sky-300 text-xs font-medium transition"
+                  >
+                    Login
+                  </Link>
+                </div>
+              </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-       
+      {/* Footer */}
+      <footer
+        className={`mt-auto border-t py-8 px-4 sm:px-6 lg:px-8 transition-colors duration-300 ${
+          isDark ? 'border-slate-800/80 bg-slate-950' : 'border-slate-200 bg-white'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+          <div className={`flex items-center gap-2 ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
+            <Zap className="w-4 h-4 text-sky-500" />
+            <span className={`font-semibold ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>APITester PRO</span>
+            <span>&copy; {new Date().getFullYear()} All Rights Reserved.</span>
+          </div>
 
-        {/* Final CTA */}
-        <section className={`${container} pb-20`}>
-          <div className={`rounded-2xl border p-8 sm:p-12 text-center ${t.ctaBox}`}>
-            <h2 className="text-2xl sm:text-3xl font-bold mb-3">Send your first request</h2>
-            <p className={`mb-6 max-w-xl mx-auto ${t.muted}`}>
-              Enter a URL, pick a method, and check the status and data that comes back.
-            </p>
-            <Link
-              to="/requests"
-              className={`inline-flex items-center justify-center px-8 py-3 rounded-lg font-semibold transition ${t.ctaBtn} ${focus}`}
-            >
-              Open App
+          <div className="flex items-center gap-6">
+            <a href="#" className={`flex items-center gap-1.5 ${isDark ? 'text-slate-300 hover:text-white' : 'text-slate-700 hover:text-slate-900'}`}>
+              <Home className="w-3.5 h-3.5 text-white" />
+              <span>Home</span>
+            </a>
+            <Link to="/app" className={isDark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-800'}>
+              Studio
+            </Link>
+            <Link to="/login" className={isDark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-800'}>
+              Login
+            </Link>
+            <Link to="/register" className={isDark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-800'}>
+              Register
             </Link>
           </div>
-        </section>
-      </main>
-
-      <footer className={`relative border-t py-6 ${t.border}`}>
-        <div className={`${container} text-center text-sm ${t.faint}`}>
-          API Testing Tool - Built with React, Express, and MongoDB
         </div>
       </footer>
     </div>

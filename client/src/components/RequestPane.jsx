@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useApi } from '../context/ApiContext';
 import { getMethodColor } from '../utils/formatters';
-import { Send, Save, Loader2, Sparkles, ChevronDown } from 'lucide-react';
+import { Send, Save, Loader2, Sparkles, ChevronDown, Code2 } from 'lucide-react';
+import { CodeSnippetModal } from './CodeSnippetModal';
 
 const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
 
@@ -16,6 +17,7 @@ export const RequestPane = ({ onOpenSaveModal }) => {
 
   const [nameEditing, setNameEditing] = useState(false);
   const [urlPresetsOpen, setUrlPresetsOpen] = useState(false);
+  const [codeModalOpen, setCodeModalOpen] = useState(false);
 
   const handleMethodChange = (e) => {
     setActiveRequest((prev) => ({ ...prev, method: e.target.value }));
@@ -172,6 +174,16 @@ export const RequestPane = ({ onOpenSaveModal }) => {
           <span>Send</span>
         </button>
 
+        {/* Code Snippets Button */}
+        <button
+          onClick={() => setCodeModalOpen(true)}
+          className="h-10 px-3.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs flex items-center gap-1.5 border border-slate-700 transition"
+          title="Generate code snippet (cURL, Python, JS, Go)"
+        >
+          <Code2 className="w-4 h-4 text-sky-400" />
+          <span>Code</span>
+        </button>
+
         {/* Save Button */}
         <button
           onClick={onOpenSaveModal}
@@ -182,6 +194,13 @@ export const RequestPane = ({ onOpenSaveModal }) => {
           <span>Save</span>
         </button>
       </div>
+
+      {/* Code Snippet Modal */}
+      <CodeSnippetModal
+        isOpen={codeModalOpen}
+        onClose={() => setCodeModalOpen(false)}
+        request={activeRequest}
+      />
     </div>
   );
 };

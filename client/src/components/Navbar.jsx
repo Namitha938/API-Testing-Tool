@@ -14,6 +14,8 @@ import {
   FolderOpen,
   Sparkles,
   Home,
+  Sun,
+  Moon,
 } from 'lucide-react';
 
 export const Navbar = ({
@@ -22,6 +24,8 @@ export const Navbar = ({
   onOpenEnvironments,
   onOpenRunner,
   onOpenCollections,
+  theme,
+  onToggleTheme,
 }) => {
   const { user, logout, isAdmin } = useAuth();
   const {
@@ -124,6 +128,15 @@ export const Navbar = ({
             <span>Admin Dashboard</span>
           </button>
         )}
+
+        {/* Theme Toggle Button */}
+        <button
+          onClick={onToggleTheme}
+          className="p-1.5 rounded-lg border border-slate-700 bg-slate-800 text-amber-400 hover:bg-slate-700 transition hover:scale-105 active:scale-95"
+          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+        >
+          {theme === 'dark' ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5 text-indigo-400" />}
+        </button>
 
         {/* User Account / Auth */}
         {user ? (

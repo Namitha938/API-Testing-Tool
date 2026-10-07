@@ -2,17 +2,39 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
-  Zap,
   UserPlus,
   AlertCircle,
   Eye,
   EyeOff,
-  ArrowLeft,
   Sun,
   Moon,
-  CheckCircle2,
   Home
 } from 'lucide-react';
+
+// PASTE YOUR IMAGE URL HERE (leave empty to show the built-in illustration)
+const REGISTER_IMAGE = '';
+
+function Illustration() {
+  return (
+    <svg viewBox="0 0 480 360" className="h-full w-full" role="img" aria-label="Create account illustration">
+      <rect x="40" y="40" width="400" height="280" rx="24" fill="#ffffff" stroke="#ddd6fe" strokeWidth="2" />
+      <rect x="40" y="40" width="400" height="48" rx="24" fill="#ede9fe" />
+      <rect x="40" y="64" width="400" height="24" fill="#ede9fe" />
+      <circle cx="72" cy="64" r="6" fill="#c4b5fd" />
+      <circle cx="92" cy="64" r="6" fill="#c4b5fd" />
+      <circle cx="112" cy="64" r="6" fill="#c4b5fd" />
+      <rect x="72" y="116" width="150" height="14" rx="7" fill="#ddd6fe" />
+      <rect x="72" y="144" width="230" height="10" rx="5" fill="#ede9fe" />
+      <rect x="72" y="166" width="190" height="10" rx="5" fill="#ede9fe" />
+      <rect x="72" y="204" width="110" height="40" rx="12" fill="#7c3aed" />
+      <rect x="196" y="204" width="110" height="40" rx="12" fill="#ede9fe" />
+      <rect x="72" y="266" width="320" height="10" rx="5" fill="#ede9fe" />
+      <circle cx="372" cy="140" r="56" fill="#7c3aed" />
+      <circle cx="372" cy="128" r="14" fill="#ffffff" />
+      <path d="M346 166a26 22 0 0152 0z" fill="#ffffff" />
+    </svg>
+  );
+}
 
 export default function RegisterPage() {
   const { register, user } = useAuth();
@@ -73,189 +95,226 @@ export default function RegisterPage() {
     }
   };
 
+  const labelCls = `block text-sm font-medium mb-2 ${isDark ? 'text-slate-300' : 'text-slate-700'}`;
+  const inputCls = `w-full rounded-xl px-4 py-3 border text-sm outline-none transition-all focus:border-violet-500 focus:ring-4 focus:ring-violet-500/15 ${
+    isDark
+      ? 'bg-slate-950 border-slate-800 text-slate-100 placeholder-slate-500'
+      : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'
+  }`;
+
   return (
     <div
-      className={`min-h-screen flex flex-col items-center justify-center p-4 transition-colors duration-300 ${
-        isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'
+      className={`flex min-h-screen w-full transition-colors duration-300 ${
+        isDark ? 'bg-slate-950 text-slate-100' : 'bg-white text-slate-900'
       }`}
     >
-      {/* Top Bar for Back & Theme Toggle */}
-      <div className="w-full max-w-md flex items-center justify-between mb-6">
-        <Link
-          to="/"
-          className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition ${
-            isDark
-              ? 'border-slate-800 bg-slate-900 text-white hover:bg-slate-800'
-              : 'border-slate-800 bg-slate-900 text-white hover:bg-slate-800 shadow-xs'
-          }`}
-          title="Return to Home"
-        >
-          <Home className="w-4 h-4 text-white" />
-          <span>Home</span>
-        </Link>
-
-        <button
-          onClick={toggleTheme}
-          className={`p-1.5 rounded-lg border transition ${
-            isDark
-              ? 'border-slate-800 bg-slate-900 text-amber-400 hover:bg-slate-800'
-              : 'border-slate-200 bg-white text-indigo-600 hover:bg-slate-100 shadow-xs'
-          }`}
-          title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-        >
-          {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-        </button>
-      </div>
-
-      {/* Main Card */}
+      {/* LEFT - IMAGE (50%) */}
       <div
-        className={`w-full max-w-md rounded-2xl border p-8 shadow-2xl transition-colors duration-300 ${
+        className={`relative hidden w-1/2 overflow-hidden lg:flex ${
           isDark
-            ? 'bg-slate-900/90 border-slate-800 shadow-black/50'
-            : 'bg-white border-slate-200 shadow-xl'
+            ? 'bg-gradient-to-br from-slate-900 via-violet-950 to-slate-900'
+            : 'bg-gradient-to-br from-violet-50 via-violet-100 to-violet-50'
         }`}
       >
-        {/* Header */}
-        <div className="text-center mb-6">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white mx-auto mb-3 shadow-lg shadow-sky-500/25">
-            <UserPlus className="w-6 h-6 text-white" />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">Create Account</h1>
-          <p className={`text-xs mt-1.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-            Start testing endpoints, building collections, and automating tests
-          </p>
-        </div>
-
-        {/* Error Banner */}
-        {error && (
-          <div className="mb-4 p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
-          <div>
-            <label className={`block font-medium mb-1.5 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-              Full Name
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              placeholder="Alex Johnson"
-              className={`w-full rounded-lg px-3.5 py-2.5 border text-xs focus:outline-none focus:ring-2 focus:ring-sky-500 transition ${
-                isDark
-                  ? 'bg-slate-950 border-slate-800 text-slate-100 placeholder-slate-500'
-                  : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'
-              }`}
+        {REGISTER_IMAGE ? (
+          <>
+            {/* full half-page image */}
+            <img
+              src={REGISTER_IMAGE}
+              alt="Create account illustration"
+              className="absolute inset-0 h-full w-full object-cover"
             />
-          </div>
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/70 to-transparent p-10 pt-24">
+              <h2 className="text-2xl font-bold text-white">Start testing in minutes</h2>
+              <p className="mt-2 max-w-md text-sm leading-relaxed text-slate-200">
+                Create your free account and send your first request today.
+              </p>
+            </div>
+          </>
+        ) : (
+          <div className="relative flex h-full w-full flex-col items-center justify-center p-12">
+            <div className="absolute top-10 left-10 h-72 w-72 rounded-full bg-violet-400/25 blur-[90px]"></div>
+            <div className="absolute bottom-10 right-10 h-72 w-72 rounded-full bg-violet-500/20 blur-[90px]"></div>
 
-          <div>
-            <label className={`block font-medium mb-1.5 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-              Email Address
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              placeholder="alex@company.com"
-              className={`w-full rounded-lg px-3.5 py-2.5 border text-xs focus:outline-none focus:ring-2 focus:ring-sky-500 transition ${
-                isDark
-                  ? 'bg-slate-950 border-slate-800 text-slate-100 placeholder-slate-500'
-                  : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'
-              }`}
-            />
-          </div>
+            <div className="relative flex h-[60%] w-[85%] items-center justify-center">
+              <Illustration />
+            </div>
 
-          <div>
-            <label className={`block font-medium mb-1.5 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-              Password
-            </label>
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                placeholder="At least 6 characters"
-                className={`w-full rounded-lg pl-3.5 pr-10 py-2.5 border text-xs focus:outline-none focus:ring-2 focus:ring-sky-500 transition ${
-                  isDark
-                    ? 'bg-slate-950 border-slate-800 text-slate-100 placeholder-slate-500'
-                    : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'
-                }`}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className={`absolute right-3 top-1/2 -translate-y-1/2 p-1 ${
-                  isDark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
+            <div className="relative mt-8 max-w-md text-center">
+              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                Start testing in minutes
+              </h2>
+              <p className={`mt-2 text-sm leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                Create your free account and send your first request today.
+              </p>
             </div>
           </div>
+        )}
+      </div>
 
-          <div>
-            <label className={`block font-medium mb-1.5 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-              Confirm Password
-            </label>
-            <input
-              type={showPassword ? 'text' : 'password'}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              placeholder="Confirm your password"
-              className={`w-full rounded-lg px-3.5 py-2.5 border text-xs focus:outline-none focus:ring-2 focus:ring-sky-500 transition ${
-                isDark
-                  ? 'bg-slate-950 border-slate-800 text-slate-100 placeholder-slate-500'
-                  : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'
-              }`}
-            />
-          </div>
+      {/* RIGHT - REGISTER FORM (50%) */}
+      <div className="flex w-full flex-col px-6 py-6 sm:px-10 lg:w-1/2 lg:px-16 xl:px-24">
+        {/* Top Bar for Back & Theme Toggle */}
+        <div className="w-full flex items-center justify-between">
+          <Link
+            to="/"
+            className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition ${
+              isDark
+                ? 'border-slate-800 bg-slate-900 text-white hover:bg-slate-800'
+                : 'border-slate-800 bg-slate-900 text-white hover:bg-slate-800'
+            }`}
+            title="Return to Home"
+          >
+            <Home className="w-4 h-4 text-white" />
+            <span>Home</span>
+          </Link>
 
           <button
-            type="submit"
-            disabled={loading}
-            className="w-full mt-3 py-2.5 px-4 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-semibold transition disabled:opacity-50 shadow-md shadow-sky-600/20 flex items-center justify-center gap-2"
+            type="button"
+            onClick={toggleTheme}
+            className={`p-1.5 rounded-lg border transition ${
+              isDark
+                ? 'border-slate-800 bg-slate-900 text-amber-400 hover:bg-slate-800'
+                : 'border-slate-200 bg-white text-violet-600 hover:bg-slate-100'
+            }`}
+            title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            aria-label={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           >
-            {loading ? (
-              <span className="inline-block animate-pulse">Creating Account...</span>
-            ) : (
-              <>
-                <UserPlus className="w-4 h-4" />
-                <span>Create Free Account</span>
-              </>
-            )}
+            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
-        </form>
+        </div>
 
-        {/* Footer Navigation */}
-        <div className={`mt-6 pt-6 border-t text-center text-xs ${isDark ? 'border-slate-800' : 'border-slate-100'}`}>
-          <p className={isDark ? 'text-slate-400' : 'text-slate-600'}>
-            Already have an account?{' '}
-            <Link to="/login" className="text-sky-500 hover:text-sky-400 font-semibold ml-1">
-              Sign in
-            </Link>
-          </p>
+        <div className="flex flex-1 flex-col justify-center py-8 w-full max-w-md mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <div className="w-11 h-11 rounded-xl bg-violet-600 flex items-center justify-center text-white mb-6 shadow-lg shadow-violet-500/30">
+              <UserPlus className="w-5 h-5 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight">Create Account</h1>
+            <p className={`text-sm mt-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              Start testing endpoints, building collections, and automating tests
+            </p>
+          </div>
 
-          <div className="mt-3">
-            <Link
-              to="/app"
-              className={`text-[11px] underline ${isDark ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-slate-600'}`}
+          {/* Error Banner */}
+          {error && (
+            <div
+              className={`mb-5 p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-xs flex items-center gap-2 ${
+                isDark ? 'text-rose-400' : 'text-rose-600'
+              }`}
             >
-              Continue without signing in (Guest Mode) &rarr;
-            </Link>
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label htmlFor="name" className={labelCls}>Full Name</label>
+              <input
+                id="name"
+                type="text"
+                autoComplete="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                placeholder="Alex Johnson"
+                className={inputCls}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="email" className={labelCls}>Email Address</label>
+              <input
+                id="email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="alex@company.com"
+                className={inputCls}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="password" className={labelCls}>Password</label>
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  placeholder="At least 6 characters"
+                  className={`${inputCls} pr-11`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  className={`absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 ${
+                    isDark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="confirmPassword" className={labelCls}>Confirm Password</label>
+              <input
+                id="confirmPassword"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                placeholder="Confirm your password"
+                className={inputCls}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full mt-2 py-3 px-4 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-50 shadow-lg shadow-violet-500/25 flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-4 focus-visible:ring-violet-400/40"
+            >
+              {loading ? (
+                <span className="inline-block animate-pulse">Creating Account...</span>
+              ) : (
+                <>
+                  <UserPlus className="w-4 h-4" />
+                  <span>Create Free Account</span>
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Footer Navigation */}
+          <div className={`mt-8 pt-6 border-t text-center text-sm ${isDark ? 'border-slate-800' : 'border-slate-100'}`}>
+            <p className={isDark ? 'text-slate-400' : 'text-slate-600'}>
+              Already have an account?{' '}
+              <Link to="/login" className="text-violet-500 hover:text-violet-400 font-semibold ml-1">
+                Sign in
+              </Link>
+            </p>
+
+            <div className="mt-3">
+              <Link
+                to="/app"
+                className={`text-xs underline ${isDark ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-slate-600'}`}
+              >
+                Continue without signing in (Guest Mode) &rarr;
+              </Link>
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
 }
-

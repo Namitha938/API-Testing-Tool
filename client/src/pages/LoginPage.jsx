@@ -1,265 +1,155 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import {
-  Zap,
-  LogIn,
-  Shield,
-  User,
-  AlertCircle,
-  Eye,
-  EyeOff,
-  ArrowLeft,
-  Sun,
-  Moon,
-  Sparkles,
-  Home
-} from 'lucide-react';
+import { useState } from "react";
+import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 
-export default function LoginPage() {
-  const { login, user } = useAuth();
-  const navigate = useNavigate();
+// PASTE YOUR IMAGE URL HERE (leave empty to show the built-in illustration)
+const LOGIN_IMAGE = "https://img.magnific.com/free-vector/gradient-api-illustration_23-2149368725.jpg?semt=ais_hybrid&w=740&q=80";
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+function Illustration() {
+  return (
+    <svg viewBox="0 0 480 360" className="h-full w-full" role="img" aria-label="Secure login illustration">
+      <rect x="40" y="40" width="400" height="280" rx="24" fill="#ffffff" stroke="#ddd6fe" strokeWidth="2" />
+      <rect x="40" y="40" width="400" height="48" rx="24" fill="#ede9fe" />
+      <rect x="40" y="64" width="400" height="24" fill="#ede9fe" />
+      <circle cx="72" cy="64" r="6" fill="#c4b5fd" />
+      <circle cx="92" cy="64" r="6" fill="#c4b5fd" />
+      <circle cx="112" cy="64" r="6" fill="#c4b5fd" />
+      <rect x="72" y="116" width="150" height="14" rx="7" fill="#ddd6fe" />
+      <rect x="72" y="144" width="230" height="10" rx="5" fill="#ede9fe" />
+      <rect x="72" y="166" width="190" height="10" rx="5" fill="#ede9fe" />
+      <rect x="72" y="204" width="110" height="40" rx="12" fill="#7c3aed" />
+      <rect x="196" y="204" width="110" height="40" rx="12" fill="#ede9fe" />
+      <rect x="72" y="266" width="320" height="10" rx="5" fill="#ede9fe" />
+      <circle cx="372" cy="140" r="56" fill="#7c3aed" />
+      <rect x="348" y="136" width="48" height="38" rx="8" fill="#ffffff" />
+      <path d="M358 136v-10a14 14 0 0128 0v10" fill="none" stroke="#ffffff" strokeWidth="6" strokeLinecap="round" />
+      <circle cx="372" cy="154" r="5" fill="#7c3aed" />
+    </svg>
+  );
+}
 
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('theme') || 'dark';
-  });
+export default function Login() {
+  const [showPass, setShowPass] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  useEffect(() => {
-    localStorage.setItem('theme', theme);
-  }, [theme]);
-
-  // If already logged in, redirect to app
-  useEffect(() => {
-    if (user) {
-      navigate('/app');
-    }
-  }, [user, navigate]);
-
-  const toggleTheme = () => {
-    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
-  };
-
-  const isDark = theme === 'dark';
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
-      await login(email, password);
-      navigate('/app');
-    } catch (err) {
-      setError(err.message || 'Login failed. Please check your credentials.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleQuickLogin = async (quickEmail, quickPass) => {
-    setEmail(quickEmail);
-    setPassword(quickPass);
-    setError('');
-    setLoading(true);
-
-    try {
-      await login(quickEmail, quickPass);
-      navigate('/app');
-    } catch (err) {
-      setError(err.message || 'Quick login failed');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const inputBase =
+    "w-full rounded-xl border border-slate-200 bg-white py-3.5 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10";
 
   return (
-    <div
-      className={`min-h-screen flex flex-col items-center justify-center p-4 transition-colors duration-300 ${
-        isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'
-      }`}
-    >
-      {/* Top Bar for Back & Theme Toggle */}
-      <div className="w-full max-w-md flex items-center justify-between mb-6">
-        <Link
-          to="/"
-          className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition ${
-            isDark
-              ? 'border-slate-800 bg-slate-900 text-white hover:bg-slate-800'
-              : 'border-slate-800 bg-slate-900 text-white hover:bg-slate-800 shadow-xs'
-          }`}
-          title="Return to Home"
-        >
-          <Home className="w-4 h-4 text-white" />
-          <span>Home</span>
-        </Link>
+    <div className="flex min-h-screen w-full bg-white">
 
-        <button
-          onClick={toggleTheme}
-          className={`p-1.5 rounded-lg border transition ${
-            isDark
-              ? 'border-slate-800 bg-slate-900 text-amber-400 hover:bg-slate-800'
-              : 'border-slate-200 bg-white text-indigo-600 hover:bg-slate-100 shadow-xs'
-          }`}
-          title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-        >
-          {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-        </button>
-      </div>
+      {/* LEFT - IMAGE (50%) */}
+      <div className="relative hidden w-1/2 overflow-hidden bg-gradient-to-br from-violet-50 via-violet-100 to-violet-50 lg:flex">
+        {LOGIN_IMAGE ? (
+          <>
+            {/* full half-page image */}
+            <img
+              src={LOGIN_IMAGE}
+              alt="Login illustration"
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/70 to-transparent p-10 pt-24">
+              <h2 className="text-2xl font-bold text-white">Everything in one secure place</h2>
+              <p className="mt-2 max-w-md text-sm leading-relaxed text-slate-200">
+                Sign in to pick up right where you left off.
+              </p>
+            </div>
+          </>
+        ) : (
+          <div className="relative flex h-full w-full flex-col items-center justify-center p-12">
+            {/* soft blobs */}
+            <div className="absolute top-10 left-10 h-72 w-72 rounded-full bg-violet-300/30 blur-[90px]"></div>
+            <div className="absolute bottom-10 right-10 h-72 w-72 rounded-full bg-violet-400/20 blur-[90px]"></div>
 
-      {/* Main Card */}
-      <div
-        className={`w-full max-w-md rounded-2xl border p-8 shadow-2xl transition-colors duration-300 ${
-          isDark
-            ? 'bg-slate-900/90 border-slate-800 shadow-black/50'
-            : 'bg-white border-slate-200 shadow-xl'
-        }`}
-      >
-        {/* Header */}
-        <div className="text-center mb-6">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white mx-auto mb-3 shadow-lg shadow-sky-500/25">
-            <Zap className="w-6 h-6 text-amber-300 fill-amber-300" />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">Welcome Back</h1>
-          <p className={`text-xs mt-1.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-            Sign in to access your API collections, history, and test environments
-          </p>
-        </div>
+            <div className="relative flex h-[60%] w-[85%] items-center justify-center">
+              <Illustration />
+            </div>
 
-        {/* 1-Click Demo Accounts */}
-        <div
-          className={`p-3 rounded-xl border mb-6 space-y-2 ${
-            isDark ? 'bg-slate-950/80 border-slate-800' : 'bg-slate-50 border-slate-200'
-          }`}
-        >
-          <div className="flex items-center justify-between text-[11px] font-semibold">
-            <span className={isDark ? 'text-slate-400' : 'text-slate-600'}>Quick 1-Click Evaluation Login</span>
-            <span className="text-sky-500 flex items-center gap-1">
-              <Sparkles className="w-3 h-3" />
-              <span>Instant</span>
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              disabled={loading}
-              onClick={() => handleQuickLogin('admin@apitester.io', 'admin123')}
-              className="py-2 px-2.5 rounded-lg border font-medium text-xs flex items-center justify-center gap-1.5 transition bg-purple-500/10 hover:bg-purple-500/20 border-purple-500/30 text-purple-600 dark:text-purple-300 disabled:opacity-50"
-            >
-              <Shield className="w-3.5 h-3.5" />
-              <span>Admin</span>
-            </button>
-            <button
-              type="button"
-              disabled={loading}
-              onClick={() => handleQuickLogin('demo@apitester.io', 'user123')}
-              className="py-2 px-2.5 rounded-lg border font-medium text-xs flex items-center justify-center gap-1.5 transition bg-sky-500/10 hover:bg-sky-500/20 border-sky-500/30 text-sky-600 dark:text-sky-300 disabled:opacity-50"
-            >
-              <User className="w-3.5 h-3.5" />
-              <span>Demo User</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Error Banner */}
-        {error && (
-          <div className="mb-4 p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{error}</span>
+            <div className="relative mt-8 max-w-md text-center">
+              <h2 className="text-2xl font-bold text-slate-900">Everything in one secure place</h2>
+              <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                Sign in to pick up right where you left off.
+              </p>
+            </div>
           </div>
         )}
+      </div>
+
+      {/* RIGHT - LOGIN FORM (50%) */}
+      <div className="flex w-full flex-col justify-center px-6 py-10 sm:px-10 lg:w-1/2 lg:px-16 xl:px-24">
+
+        {/* Logo / Title */}
+        <div className="mb-10">
+          <div className="mb-6 flex h-11 w-11 items-center justify-center rounded-xl bg-violet-600 text-white shadow-lg shadow-violet-500/30">
+            <Lock size={20} />
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">API Testing Tool</h1>
+          <p className="mt-2 text-sm text-slate-500">Welcome back! Please login to your account.</p>
+        </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+        <form className="space-y-6">
+
           <div>
-            <label className={`block font-medium mb-1.5 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-              Email Address
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              placeholder="you@example.com"
-              className={`w-full rounded-lg px-3.5 py-2.5 border text-xs focus:outline-none focus:ring-2 focus:ring-sky-500 transition ${
-                isDark
-                  ? 'bg-slate-950 border-slate-800 text-slate-100 placeholder-slate-500'
-                  : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'
-              }`}
-            />
+            <label htmlFor="email" className="mb-2 block text-sm font-medium text-slate-700">Email Address</label>
+            <div className="relative">
+              <Mail size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                id="email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className={`${inputBase} pl-11 pr-4`}
+              />
+            </div>
           </div>
 
           <div>
-            <label className={`block font-medium mb-1.5 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-              Password
-            </label>
+            <div className="mb-2 flex items-center justify-between">
+              <label htmlFor="password" className="block text-sm font-medium text-slate-700">Password</label>
+              <a href="#" className="text-xs font-medium text-violet-600 hover:text-violet-700">Forgot password?</a>
+            </div>
             <div className="relative">
+              <Lock size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
-                type={showPassword ? 'text' : 'password'}
+                id="password"
+                type={showPass ? "text" : "password"}
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required
                 placeholder="••••••••"
-                className={`w-full rounded-lg pl-3.5 pr-10 py-2.5 border text-xs focus:outline-none focus:ring-2 focus:ring-sky-500 transition ${
-                  isDark
-                    ? 'bg-slate-950 border-slate-800 text-slate-100 placeholder-slate-500'
-                    : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'
-                }`}
+                className={`${inputBase} pl-11 pr-12`}
               />
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className={`absolute right-3 top-1/2 -translate-y-1/2 p-1 ${
-                  isDark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-700'
-                }`}
+                onClick={() => setShowPass(!showPass)}
+                aria-label={showPass ? "Hide password" : "Show password"}
+                className="absolute right-4 top-1/2 -translate-y-1/2 rounded text-slate-400 transition hover:text-slate-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
               >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
 
+          <div className="flex items-center gap-2">
+            <input type="checkbox" id="remember" className="h-4 w-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500" />
+            <label htmlFor="remember" className="text-sm text-slate-600">Remember me</label>
+          </div>
+
           <button
             type="submit"
-            disabled={loading}
-            className="w-full mt-2 py-2.5 px-4 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-semibold transition disabled:opacity-50 shadow-md shadow-sky-600/20 flex items-center justify-center gap-2"
+            className="w-full rounded-xl bg-violet-600 py-3.5 text-sm font-semibold text-white shadow-lg shadow-violet-500/25 transition-all hover:bg-violet-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-violet-400/40 active:scale-[0.98]"
           >
-            {loading ? (
-              <span className="inline-block animate-pulse">Authenticating...</span>
-            ) : (
-              <>
-                <LogIn className="w-4 h-4" />
-                <span>Sign In</span>
-              </>
-            )}
+            Sign In
           </button>
-        </form>
 
-        {/* Footer Navigation */}
-        <div className={`mt-6 pt-6 border-t text-center text-xs ${isDark ? 'border-slate-800' : 'border-slate-100'}`}>
-          <p className={isDark ? 'text-slate-400' : 'text-slate-600'}>
-            Don't have an account?{' '}
-            <Link to="/register" className="text-sky-500 hover:text-sky-400 font-semibold ml-1">
-              Create an account
-            </Link>
+          <p className="text-center text-sm text-slate-500">
+            Don't have an account? <a href="/register" className="font-semibold text-violet-600 hover:text-violet-700">Sign up</a>
           </p>
-
-          <div className="mt-3">
-            <Link
-              to="/app"
-              className={`text-[11px] underline ${isDark ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-slate-600'}`}
-            >
-              Continue without signing in (Guest Mode) &rarr;
-            </Link>
-          </div>
-        </div>
+        </form>
       </div>
     </div>
   );
 }
-

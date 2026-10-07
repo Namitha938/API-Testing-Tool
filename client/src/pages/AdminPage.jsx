@@ -32,7 +32,10 @@ import {
   Plus,
   BarChart3,
   TrendingUp,
-  HardDrive
+  HardDrive,
+  LogOut,
+  Camera,
+  User
 } from 'lucide-react';
 import { GoogleIcon } from '../components/GoogleIcon';
 import { ProfileModal } from '../components/ProfileModal';
@@ -318,6 +321,42 @@ export default function AdminPage() {
                 Sign Out
               </button>
             </div>
+          ) : user ? (
+            <div className="flex items-center gap-2.5">
+              <button
+                onClick={() => setProfileModalOpen(true)}
+                className={`flex items-center gap-2 px-2.5 py-1 rounded-lg border transition cursor-pointer hover:scale-[1.02] ${
+                  isDark
+                    ? 'border-rose-500/30 bg-rose-950/30 hover:bg-rose-900/40 text-slate-200'
+                    : 'border-rose-300 bg-rose-50 hover:bg-rose-100 text-slate-800'
+                }`}
+                title="Edit Profile and Upload Picture"
+              >
+                {user?.photoURL ? (
+                  <img
+                    src={user.photoURL}
+                    alt={user.name}
+                    className="w-6 h-6 rounded-full border border-rose-400/40 object-cover"
+                  />
+                ) : (
+                  <div className="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center text-[10px] font-bold">
+                    {(user?.name || 'U').charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <span className={`text-xs hidden md:inline ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                  Signed in as <strong className="text-rose-400 font-semibold">{user?.name}</strong>{' '}
+                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 border border-rose-500/40 font-mono font-semibold">
+                    UNAUTHORIZED
+                  </span>
+                </span>
+              </button>
+              <button
+                onClick={logout}
+                className="px-2.5 py-1 rounded text-xs text-rose-400 hover:bg-rose-500/10 transition cursor-pointer"
+              >
+                Sign Out
+              </button>
+            </div>
           ) : (
             <Link
               to="/login"
@@ -336,50 +375,147 @@ export default function AdminPage() {
       <main className="flex-1 max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-8 space-y-6">
         {/* UNAUTHENTICATED / NOT ADMIN GATEWAY */}
         {!isAdmin ? (
-          <div className="max-w-md mx-auto my-12 p-8 rounded-2xl border text-center shadow-xl transition-colors duration-200 bg-slate-900/90 border-slate-800">
-            <div className="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 mx-auto mb-4">
-              <ShieldAlert className="w-7 h-7" />
-            </div>
-            <h2 className="text-xl font-bold mb-2">Administrator Access Required</h2>
-            <p className="text-xs text-slate-400 mb-6 leading-relaxed">
-              This console provides high-privilege operations including user role elevation, access control, and telemetry. Sign in with an administrator account to continue.
-            </p>
-
-            {quickLoginError && (
-              <div className="mb-4 p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs">
-                {quickLoginError}
+          user ? (
+            /* 403 Forbidden: Signed in with unauthorized account */
+            <div className="max-w-xl mx-auto my-8 p-8 rounded-2xl border text-center shadow-2xl transition-colors duration-200 bg-slate-900/95 border-rose-500/40">
+              <div className="relative inline-block mx-auto mb-4">
+                <div className="w-16 h-16 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400">
+                  <ShieldAlert className="w-8 h-8" />
+                </div>
+                <span className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded bg-rose-600 text-white font-mono text-[10px] font-bold shadow">
+                  403
+                </span>
               </div>
-            )}
 
-            <button
-              onClick={handleGoogleAdminLogin}
-              disabled={quickLoginLoading}
-              className={`w-full py-2.5 px-4 rounded-xl border font-semibold text-xs transition shadow-sm flex items-center justify-center gap-2 mb-2.5 cursor-pointer hover:scale-[1.02] active:scale-95 ${
-                isDark
-                  ? 'border-slate-700 bg-slate-800 hover:bg-slate-750 text-slate-100'
-                  : 'border-slate-300 bg-white hover:bg-slate-50 text-slate-800'
-              }`}
-            >
-              <GoogleIcon className="w-4 h-4" />
-              <span>{quickLoginLoading ? 'Connecting...' : 'Continue with Google (Admin Access)'}</span>
-            </button>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-400 text-xs font-semibold uppercase tracking-wider mb-3">
+                <ShieldAlert className="w-3.5 h-3.5" />
+                <span>Access Denied • Unauthorized Account</span>
+              </div>
 
-            <button
-              onClick={handleQuickAdminLogin}
-              disabled={quickLoginLoading}
-              className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-xs transition shadow-lg shadow-purple-600/20 flex items-center justify-center gap-2 mb-3 cursor-pointer hover:scale-[1.02] active:scale-95"
-            >
-              <Key className="w-4 h-4" />
-              <span>{quickLoginLoading ? 'Unlocking Admin...' : '1-Click Unlock with Default Admin (admin@apitester.io)'}</span>
-            </button>
+              <h2 className="text-2xl font-bold mb-2 text-white">403 — Unauthorized Account</h2>
+              <p className="text-xs text-slate-300 mb-6 leading-relaxed max-w-md mx-auto">
+                You are currently signed in, but your account is <strong>not authorized</strong> to access the Administrator Dashboard.
+              </p>
 
-            <div className="text-[11px] text-slate-500">
-              Or sign in with custom credentials on the{' '}
-              <Link to="/login" className="text-sky-400 hover:underline">
-                Login Page &rarr;
-              </Link>
+              {/* Account Diagnostics Card */}
+              <div className="text-left p-4 rounded-xl border border-slate-800 bg-slate-950/80 mb-6 space-y-2.5 text-xs">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
+                  <span className="text-slate-400">Signed-in User:</span>
+                  <div className="flex items-center gap-2">
+                    {user.photoURL ? (
+                      <img src={user.photoURL} alt={user.name} className="w-5 h-5 rounded-full object-cover border border-slate-700" />
+                    ) : (
+                      <div className="w-5 h-5 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center text-[10px] font-bold">
+                        {user.name?.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <span className="text-white font-medium">{user.name}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
+                  <span className="text-slate-400">Email Address:</span>
+                  <span className="text-slate-200 font-mono text-[11px]">{user.email}</span>
+                </div>
+
+                <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
+                  <span className="text-slate-400">Account Role:</span>
+                  <span className="px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 font-mono text-[10px] uppercase font-bold">
+                    {user.role || 'user'} (Standard User)
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400">Access Status:</span>
+                  <span className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/40 font-mono text-[10px] uppercase font-bold">
+                    DENIED • UNAUTHORIZED
+                  </span>
+                </div>
+              </div>
+
+              {/* Whitelist Info Box */}
+              <div className="p-3.5 rounded-xl bg-slate-950/50 border border-slate-800 text-[11px] text-slate-400 mb-6 text-left space-y-1">
+                <div className="font-semibold text-slate-300">Authorized Administrator Whitelist:</div>
+                <p className="text-slate-400 text-[11px] leading-relaxed">
+                  Only designated administrator accounts (<code className="text-purple-300 font-mono">singunamitha@gmail.com</code> and <code className="text-purple-300 font-mono">s.v.padmavathi2005@gmail.com</code>) have access to system administration and latency telemetry.
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="space-y-2.5">
+                <button
+                  onClick={() => setProfileModalOpen(true)}
+                  className="w-full py-2.5 px-4 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs transition shadow-md shadow-sky-600/20 flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.01] active:scale-95"
+                >
+                  <Camera className="w-4 h-4" />
+                  <span>Upload Profile Picture & Edit Profile</span>
+                </button>
+
+                <button
+                  onClick={logout}
+                  className="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-rose-300 border border-rose-500/30 font-semibold text-xs transition flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.01] active:scale-95"
+                >
+                  <LogOut className="w-4 h-4 text-rose-400" />
+                  <span>Sign Out / Switch to Authorized Account</span>
+                </button>
+
+                <div className="pt-2 flex items-center justify-center gap-4 text-xs text-slate-400">
+                  <Link to="/app" className="text-sky-400 hover:underline flex items-center gap-1">
+                    <span>Go to API Studio Workbench &rarr;</span>
+                  </Link>
+                  <Link to="/" className="text-slate-400 hover:text-white hover:underline">
+                    Back to Home
+                  </Link>
+                </div>
+              </div>
             </div>
-          </div>
+          ) : (
+            /* Unauthenticated Gateway */
+            <div className="max-w-md mx-auto my-12 p-8 rounded-2xl border text-center shadow-xl transition-colors duration-200 bg-slate-900/90 border-slate-800">
+              <div className="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 mx-auto mb-4">
+                <ShieldAlert className="w-7 h-7" />
+              </div>
+              <h2 className="text-xl font-bold mb-2">Administrator Access Required</h2>
+              <p className="text-xs text-slate-400 mb-6 leading-relaxed">
+                This console provides high-privilege operations including user role elevation, access control, and telemetry. Sign in with an administrator account to continue.
+              </p>
+
+              {quickLoginError && (
+                <div className="mb-4 p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs">
+                  {quickLoginError}
+                </div>
+              )}
+
+              <button
+                onClick={handleGoogleAdminLogin}
+                disabled={quickLoginLoading}
+                className={`w-full py-2.5 px-4 rounded-xl border font-semibold text-xs transition shadow-sm flex items-center justify-center gap-2 mb-2.5 cursor-pointer hover:scale-[1.02] active:scale-95 ${
+                  isDark
+                    ? 'border-slate-700 bg-slate-800 hover:bg-slate-750 text-slate-100'
+                    : 'border-slate-300 bg-white hover:bg-slate-50 text-slate-800'
+                }`}
+              >
+                <GoogleIcon className="w-4 h-4" />
+                <span>{quickLoginLoading ? 'Connecting...' : 'Continue with Google (Admin Access)'}</span>
+              </button>
+
+              <button
+                onClick={handleQuickAdminLogin}
+                disabled={quickLoginLoading}
+                className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-xs transition shadow-lg shadow-purple-600/20 flex items-center justify-center gap-2 mb-3 cursor-pointer hover:scale-[1.02] active:scale-95"
+              >
+                <Key className="w-4 h-4" />
+                <span>{quickLoginLoading ? 'Unlocking Admin...' : '1-Click Unlock with Default Admin (admin@apitester.io)'}</span>
+              </button>
+
+              <div className="text-[11px] text-slate-500">
+                Or sign in with custom credentials on the{' '}
+                <Link to="/login" className="text-sky-400 hover:underline">
+                  Login Page &rarr;
+                </Link>
+              </div>
+            </div>
+          )
         ) : (
           <>
             {/* Top Stat Cards */}

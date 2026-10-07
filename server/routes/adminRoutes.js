@@ -142,5 +142,46 @@ router.delete('/users/:id', async (req, res) => {
   }
 });
 
+// GET /api/admin/history - Get system-wide audit telemetry & execution history
+router.get('/history', async (req, res) => {
+  try {
+    const history = await RequestHistory.find()
+      .populate('userId', 'name email role')
+      .sort({ createdAt: -1 })
+      .limit(100);
+
+    const formattedHistory = history.map(h => ({
+      _id: h._id,
+      method: h.method,
+      url: h.url,
+      status: h.status,
+      statusText: h.statusText || (h.status === 200 ? 'OK' : 'Completed'),
+      responseTime: h.responseTime || 0,
+      responseSize: h.responseSize || 0,
+      headers: h.headers || {},
+      responseBody: h.responseBody || null,
+      error: h.error || null,
+      passedCount: h.passedCount || 0,
+      failedCount: h.failedCount || 0,
+      user: h.userId ? { name: h.userId.name, email: h.userId.email, role: h.userId.role } : null,
+      createdAt: h.createdAt,
+    }));
+
+    res.json(formattedHistory);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch admin history', error: error.message });
+  }
+});
+
+// DELETE /api/admin/history/clear - Clear all execution history
+router.delete('/history/clear', async (req, res) => {
+  try {
+    await RequestHistory.deleteMany({});
+    res.json({ message: 'System request history cleared successfully.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to clear history', error: error.message });
+  }
+});
+
 module.exports = router;
 

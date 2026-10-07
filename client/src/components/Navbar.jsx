@@ -21,6 +21,7 @@ import {
 export const Navbar = ({
   onOpenAuth,
   onOpenAdmin,
+  onOpenProfile,
   onOpenEnvironments,
   onOpenRunner,
   onOpenCollections,
@@ -140,55 +141,91 @@ export const Navbar = ({
 
         {/* User Account / Auth */}
         {user ? (
-          <div className="relative">
+          <div className="flex items-center gap-2">
             <button
-              onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-              className="flex items-center gap-2 text-xs font-medium px-2.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/60 transition"
+              onClick={onOpenProfile}
+              className="hidden md:flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/60 transition cursor-pointer hover:border-sky-500/50"
+              title="Upload profile picture and edit details"
             >
-              <div className="w-5 h-5 rounded-full bg-sky-600 text-white flex items-center justify-center font-bold text-[10px]">
-                {user.name.charAt(0).toUpperCase()}
-              </div>
-              <span className="max-w-[100px] truncate">{user.name}</span>
-              {user.role === 'admin' && (
-                <span className="text-[10px] px-1 py-0.2 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 font-semibold">
-                  Admin
-                </span>
-              )}
+              <User className="w-3.5 h-3.5 text-sky-400" />
+              <span>Profile & Avatar</span>
             </button>
 
-            {userDropdownOpen && (
-              <div
-                className="absolute right-0 mt-2 w-48 bg-slate-900 border border-slate-800 rounded-lg shadow-xl py-1 z-30 text-xs"
-                onMouseLeave={() => setUserDropdownOpen(false)}
+            <div className="relative">
+              <button
+                onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                className="flex items-center gap-2 text-xs font-medium px-2.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/60 transition cursor-pointer"
               >
-                <div className="px-3 py-2 border-b border-slate-800 text-slate-400">
-                  <p className="font-semibold text-slate-200 truncate">{user.name}</p>
-                  <p className="text-[11px] truncate text-slate-400">{user.email}</p>
-                </div>
-                {isAdmin && (
+                {user.photoURL ? (
+                  <img
+                    src={user.photoURL}
+                    alt={user.name}
+                    className="w-5 h-5 rounded-full object-cover border border-sky-400/50"
+                  />
+                ) : (
+                  <div className="w-5 h-5 rounded-full bg-sky-600 text-white flex items-center justify-center font-bold text-[10px]">
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <span className="max-w-[100px] truncate">{user.name}</span>
+                {user.role === 'admin' ? (
+                  <span className="text-[10px] px-1 py-0.2 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 font-semibold font-mono">
+                    Admin
+                  </span>
+                ) : (
+                  <span className="text-[9px] px-1 py-0.2 rounded bg-slate-700/60 text-slate-300 border border-slate-600 font-mono">
+                    User
+                  </span>
+                )}
+              </button>
+
+              {userDropdownOpen && (
+                <div
+                  className="absolute right-0 mt-2 w-52 bg-slate-900 border border-slate-800 rounded-lg shadow-xl py-1 z-30 text-xs"
+                  onMouseLeave={() => setUserDropdownOpen(false)}
+                >
+                  <div className="px-3 py-2 border-b border-slate-800 text-slate-400">
+                    <p className="font-semibold text-slate-200 truncate">{user.name}</p>
+                    <p className="text-[11px] truncate text-slate-400 font-mono">{user.email}</p>
+                  </div>
+
                   <button
                     onClick={() => {
                       setUserDropdownOpen(false);
-                      onOpenAdmin();
+                      onOpenProfile?.();
                     }}
-                    className="w-full text-left px-3 py-2 text-slate-300 hover:bg-slate-800 flex items-center gap-2"
+                    className="w-full text-left px-3 py-2 text-slate-200 hover:bg-slate-800 flex items-center gap-2 cursor-pointer transition"
                   >
-                    <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
-                    Admin Panel
+                    <User className="w-3.5 h-3.5 text-sky-400" />
+                    <span>Upload Photo & Profile</span>
                   </button>
-                )}
-                <button
-                  onClick={() => {
-                    setUserDropdownOpen(false);
-                    logout();
-                  }}
-                  className="w-full text-left px-3 py-2 text-rose-400 hover:bg-slate-800 flex items-center gap-2"
-                >
-                  <LogOut className="w-3.5 h-3.5" />
-                  Sign Out
-                </button>
-              </div>
-            )}
+
+                  {isAdmin && (
+                    <button
+                      onClick={() => {
+                        setUserDropdownOpen(false);
+                        onOpenAdmin();
+                      }}
+                      className="w-full text-left px-3 py-2 text-purple-300 hover:bg-slate-800 flex items-center gap-2 cursor-pointer transition"
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
+                      <span>Admin Dashboard</span>
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => {
+                      setUserDropdownOpen(false);
+                      logout();
+                    }}
+                    className="w-full text-left px-3 py-2 text-rose-400 hover:bg-slate-800 flex items-center gap-2 cursor-pointer transition border-t border-slate-800/80"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         ) : (
           <div className="flex items-center gap-2">

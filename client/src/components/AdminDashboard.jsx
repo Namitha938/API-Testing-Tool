@@ -12,16 +12,17 @@ import {
   UserX,
   Trash2,
   RefreshCw,
+  ShieldAlert,
 } from 'lucide-react';
 
 export const AdminDashboard = ({ isOpen, onClose }) => {
-  const { token, user: currentUser } = useAuth();
+  const { token, user: currentUser, isAdmin } = useAuth();
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchAdminData = async () => {
-    if (!token) return;
+    if (!token || !isAdmin) return;
     setLoading(true);
     try {
       const [statsRes, usersRes] = await Promise.all([
@@ -84,6 +85,34 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
   };
 
   if (!isOpen) return null;
+
+  if (!isAdmin) {
+    return (
+      <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="bg-slate-900 border border-rose-500/30 rounded-2xl w-full max-w-md p-6 shadow-2xl text-center space-y-4">
+          <div className="w-14 h-14 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 mx-auto">
+            <ShieldAlert className="w-7 h-7" />
+          </div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-400 text-xs font-semibold uppercase font-mono">
+            403 UNAUTHORIZED
+          </div>
+          <h3 className="text-xl font-bold text-white">Access Denied</h3>
+          <p className="text-xs text-slate-300 leading-relaxed">
+            Signed in as <strong className="text-white font-mono">{currentUser?.email || 'User'}</strong> (Role: <span className="text-amber-400 uppercase font-mono">{currentUser?.role || 'user'}</span>).
+          </p>
+          <p className="text-[11px] text-slate-400 leading-relaxed bg-slate-950/70 p-3 rounded-xl border border-slate-800 text-left">
+            Administrator privileges are restricted to whitelisted accounts (<code className="text-purple-300 font-mono">singunamitha@gmail.com</code> and <code className="text-purple-300 font-mono">s.v.padmavathi2005@gmail.com</code>).
+          </p>
+          <button
+            onClick={onClose}
+            className="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold cursor-pointer transition"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">

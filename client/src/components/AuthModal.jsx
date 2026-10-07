@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { GoogleIcon } from './GoogleIcon';
 import { LogIn, UserPlus, X, Shield, User, AlertCircle } from 'lucide-react';
 
 export const AuthModal = ({ isOpen, onClose }) => {
-  const { login, register } = useAuth();
+  const { login, register, loginWithGoogle } = useAuth();
   const [isRegister, setIsRegister] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   if (!isOpen) return null;
 
@@ -29,6 +31,19 @@ export const AuthModal = ({ isOpen, onClose }) => {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setError('');
+    setGoogleLoading(true);
+    try {
+      await loginWithGoogle();
+      onClose();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
@@ -69,6 +84,26 @@ export const AuthModal = ({ isOpen, onClose }) => {
               <span>{error}</span>
             </div>
           )}
+
+          {/* Continue with Google */}
+          <button
+            type="button"
+            onClick={handleGoogleSignIn}
+            disabled={googleLoading}
+            className="w-full py-2.5 px-3 rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-100 font-semibold text-xs flex items-center justify-center gap-2.5 transition cursor-pointer shadow-sm active:scale-95"
+          >
+            <GoogleIcon className="w-4 h-4" />
+            <span>{googleLoading ? 'Connecting to Google...' : 'Continue with Google'}</span>
+          </button>
+
+          <div className="relative text-center my-2">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-800" />
+            </div>
+            <span className="relative px-2 bg-slate-900 text-[10px] text-slate-500 uppercase tracking-wider">
+              or continue below
+            </span>
+          </div>
 
           {/* Quick Login Presets for testing */}
           <div className="p-3 bg-slate-950 border border-slate-800 rounded-lg space-y-2">

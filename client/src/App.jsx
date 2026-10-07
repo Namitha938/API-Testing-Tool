@@ -17,6 +17,9 @@ import { AuthModal } from './components/AuthModal';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import AdminPage from './pages/AdminPage';
+import ProfilePage from './pages/ProfilePage';
+import { ProfileModal } from './components/ProfileModal';
 
 function StudioWorkbench() {
   const [theme, setTheme] = useState(() => {
@@ -33,6 +36,7 @@ function StudioWorkbench() {
 
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [adminModalOpen, setAdminModalOpen] = useState(false);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [collectionsModalOpen, setCollectionsModalOpen] = useState(false);
   const [environmentModalOpen, setEnvironmentModalOpen] = useState(false);
   const [runnerModalOpen, setRunnerModalOpen] = useState(false);
@@ -50,6 +54,7 @@ function StudioWorkbench() {
       <Navbar
         onOpenAuth={() => setAuthModalOpen(true)}
         onOpenAdmin={() => setAdminModalOpen(true)}
+        onOpenProfile={() => setProfileModalOpen(true)}
         onOpenEnvironments={() => setEnvironmentModalOpen(true)}
         onOpenRunner={() => {
           setRunnerCollection(null);
@@ -87,6 +92,7 @@ function StudioWorkbench() {
       {/* Modals */}
       <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
       <AdminDashboard isOpen={adminModalOpen} onClose={() => setAdminModalOpen(false)} />
+      <ProfileModal isOpen={profileModalOpen} onClose={() => setProfileModalOpen(false)} />
       <CollectionsModal isOpen={collectionsModalOpen} onClose={() => setCollectionsModalOpen(false)} />
       <EnvironmentModal isOpen={environmentModalOpen} onClose={() => setEnvironmentModalOpen(false)} />
       <CollectionRunnerModal
@@ -108,6 +114,11 @@ export default function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/settings" element={<ProfilePage />} />
+            <Route path="/admin" element={<AdminPage />} />
+            <Route path="/admin-dashboard" element={<AdminPage />} />
+            <Route path="/admin-console" element={<AdminPage />} />
             <Route path="/app" element={<StudioWorkbench />} />
             <Route path="/requests" element={<Navigate to="/app" replace />} />
             <Route path="/studio" element={<Navigate to="/app" replace />} />

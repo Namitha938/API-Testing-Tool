@@ -16,7 +16,35 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
+      required: false,
+    },
+    photoURL: {
+      type: String,
+      default: '',
+    },
+    bio: {
+      type: String,
+      default: '',
+    },
+    company: {
+      type: String,
+      default: '',
+    },
+    githubUsername: {
+      type: String,
+      default: '',
+    },
+    googleId: {
+      type: String,
+      default: '',
+    },
+    resetToken: {
+      type: String,
+      default: '',
+    },
+    resetTokenExpiry: {
+      type: Date,
+      default: null,
     },
     role: {
       type: String,

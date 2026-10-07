@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { GoogleIcon } from '../components/GoogleIcon';
 import {
   UserPlus,
   AlertCircle,
@@ -8,11 +9,13 @@ import {
   EyeOff,
   Sun,
   Moon,
-  Home
+  Home,
+  Sparkles,
+  CheckCircle2
 } from 'lucide-react';
 
 // PASTE YOUR IMAGE URL HERE (leave empty to show the built-in illustration)
-const REGISTER_IMAGE = '';
+const REGISTER_IMAGE = 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=1400&auto=format&fit=crop';
 
 function Illustration() {
   return (
@@ -37,7 +40,7 @@ function Illustration() {
 }
 
 export default function RegisterPage() {
-  const { register, user } = useAuth();
+  const { register, loginWithGoogle, user } = useAuth();
   const navigate = useNavigate();
 
   const [name, setName] = useState('');
@@ -47,6 +50,7 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('theme') || 'dark';
@@ -95,6 +99,19 @@ export default function RegisterPage() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    setError('');
+    try {
+      await loginWithGoogle();
+      navigate('/app');
+    } catch (err) {
+      setError(err.message || 'Google sign-up failed');
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
   const labelCls = `block text-sm font-medium mb-2 ${isDark ? 'text-slate-300' : 'text-slate-700'}`;
   const inputCls = `w-full rounded-xl px-4 py-3 border text-sm outline-none transition-all focus:border-violet-500 focus:ring-4 focus:ring-violet-500/15 ${
     isDark
@@ -122,12 +139,58 @@ export default function RegisterPage() {
             <img
               src={REGISTER_IMAGE}
               alt="Create account illustration"
-              className="absolute inset-0 h-full w-full object-cover"
+              className="absolute inset-0 h-full w-full object-cover opacity-80"
             />
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/70 to-transparent p-10 pt-24">
-              <h2 className="text-2xl font-bold text-white">Start testing in minutes</h2>
-              <p className="mt-2 max-w-md text-sm leading-relaxed text-slate-200">
-                Create your free account and send your first request today.
+            <div className="absolute inset-0 bg-slate-950/45 backdrop-blur-[1px]" />
+
+            {/* Top Badge */}
+            <div className="absolute top-6 left-6 z-10">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/85 backdrop-blur-md text-sky-300 text-xs font-semibold border border-slate-700/60 shadow-lg">
+                <Sparkles className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
+                <span>APITester Pro</span>
+              </div>
+            </div>
+
+            {/* Center Floating Card */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85%] max-w-md rounded-2xl bg-slate-900/90 border border-slate-700/70 p-5 shadow-2xl backdrop-blur-md z-10">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-rose-500" />
+                  <div className="w-3 h-3 rounded-full bg-amber-500" />
+                  <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                  <span className="text-xs font-mono text-slate-400 ml-1">api.workbench.live</span>
+                </div>
+                <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded border border-emerald-500/30 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                  201 Created • 22ms
+                </span>
+              </div>
+
+              <div className="mt-3 flex items-center gap-2 font-mono text-xs bg-slate-950/80 px-3 py-2 rounded-xl border border-slate-800 text-slate-200">
+                <span className="text-indigo-400 font-bold px-1.5 py-0.5 rounded bg-indigo-500/10 text-[10px]">POST</span>
+                <span className="truncate text-slate-300 font-mono text-[11px]">https://api.tester.io/v1/workspaces/init</span>
+              </div>
+
+              <div className="mt-3 p-3 rounded-xl bg-slate-950/70 font-mono text-[11px] text-sky-300/90 leading-relaxed border border-slate-800/80">
+                <p className="text-slate-500">{'{'}</p>
+                <p className="pl-4"><span className="text-purple-300">"workspace"</span>: <span className="text-emerald-300">"Production"</span>,</p>
+                <p className="pl-4"><span className="text-purple-300">"collections"</span>: <span className="text-amber-300">12</span>,</p>
+                <p className="pl-4"><span className="text-purple-300">"encryptedSync"</span>: <span className="text-sky-300">true</span></p>
+                <p className="text-slate-500">{'}'}</p>
+              </div>
+
+              <div className="mt-3 flex items-center justify-between text-[10px] font-medium text-slate-400">
+                <span className="flex items-center gap-1 text-emerald-400">
+                  <CheckCircle2 className="w-3 h-3" /> Ready in Seconds
+                </span>
+                <span className="text-slate-500 font-mono">Sync Enabled</span>
+              </div>
+            </div>
+
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950 via-slate-950/90 to-transparent p-10 pt-28 z-10">
+              <h2 className="text-2xl font-bold text-white">Start Testing in Minutes</h2>
+              <p className="mt-2 max-w-md text-xs sm:text-sm leading-relaxed text-slate-300">
+                Create your free account and launch automated collection test suites today.
               </p>
             </div>
           </>
@@ -186,14 +249,40 @@ export default function RegisterPage() {
 
         <div className="flex flex-1 flex-col justify-center py-8 w-full max-w-md mx-auto">
           {/* Header */}
-          <div className="mb-8">
-            <div className="w-11 h-11 rounded-xl bg-violet-600 flex items-center justify-center text-white mb-6 shadow-lg shadow-violet-500/30">
+          <div className="mb-6">
+            <div className="w-11 h-11 rounded-xl bg-violet-600 flex items-center justify-center text-white mb-4 shadow-lg shadow-violet-500/30">
               <UserPlus className="w-5 h-5 text-white" />
             </div>
             <h1 className="text-2xl font-bold tracking-tight">Create Account</h1>
-            <p className={`text-sm mt-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+            <p className={`text-sm mt-1.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
               Start testing endpoints, building collections, and automating tests
             </p>
+          </div>
+
+          {/* Continue with Google */}
+          <div className="mb-5">
+            <button
+              type="button"
+              onClick={handleGoogleSignIn}
+              disabled={googleLoading}
+              className={`w-full py-3 px-4 rounded-xl border font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-3 cursor-pointer shadow-sm hover:scale-[1.01] active:scale-[0.99] ${
+                isDark
+                  ? 'bg-slate-900 hover:bg-slate-800 border-slate-700 text-slate-100 hover:border-violet-500/50'
+                  : 'bg-white hover:bg-slate-50 border-slate-300 text-slate-800 hover:border-violet-500/50'
+              }`}
+            >
+              <GoogleIcon className="w-5 h-5" />
+              <span>{googleLoading ? 'Connecting to Google...' : 'Continue with Google'}</span>
+            </button>
+          </div>
+
+          <div className="relative mb-5 text-center">
+            <div className={`absolute inset-0 flex items-center ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
+              <div className={`w-full border-t ${isDark ? 'border-slate-800' : 'border-slate-200'}`} />
+            </div>
+            <span className={`relative px-3 text-xs uppercase font-semibold tracking-wider ${isDark ? 'bg-slate-950 text-slate-500' : 'bg-white text-slate-400'}`}>
+              or register with email
+            </span>
           </div>
 
           {/* Error Banner */}
@@ -209,7 +298,7 @@ export default function RegisterPage() {
           )}
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="name" className={labelCls}>Full Name</label>
               <input

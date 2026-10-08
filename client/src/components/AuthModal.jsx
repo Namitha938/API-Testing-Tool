@@ -173,9 +173,9 @@ export const AuthModal = ({ isOpen, onClose }) => {
                 <div className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center mx-auto">
                   <Shield className="w-5 h-5" />
                 </div>
-                <h4 className="font-bold text-xs text-slate-100">Enter Security Code</h4>
+                <h4 className="font-bold text-xs text-slate-100">Authenticator Verification (2FA)</h4>
                 <p className="text-[11px] text-slate-400 leading-relaxed">
-                  Enter the 6-digit verification code associated with{' '}
+                  Open your <strong>Google Authenticator</strong> or <strong>Microsoft Authenticator</strong> app and enter the current 6-digit security code for{' '}
                   <strong className="text-purple-300 font-mono">{twoFactorEmail}</strong>.
                 </p>
 

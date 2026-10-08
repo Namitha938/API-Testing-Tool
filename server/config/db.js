@@ -21,19 +21,40 @@ async function seedInitialData() {
     const Environment = require('../models/Environment');
 
     // Seed default admin if no users exist
-    const userCount = await User.countDocuments();
-    let adminUser;
-    let demoUser;
-
-    if (userCount === 0) {
-      const adminPassword = await bcrypt.hash('admin123', 10);
-      adminUser = await User.create({
-        name: 'System Admin',
-        email: 'admin@apitester.io',
-        password: adminPassword,
+    // Ensure authorized admins have admin role and demo user exists
+    const admin1 = await User.findOne({ email: 'singunamitha@gmail.com' });
+    if (!admin1) {
+      const defaultAdminPass = await bcrypt.hash('Admin@2026!', 10);
+      await User.create({
+        name: 'Namitha Singun',
+        email: 'singunamitha@gmail.com',
+        password: defaultAdminPass,
         role: 'admin',
       });
+    } else if (admin1.role !== 'admin') {
+      admin1.role = 'admin';
+      await admin1.save();
+    }
 
+    const admin2 = await User.findOne({ email: 's.v.padmavathi2005@gmail.com' });
+    if (!admin2) {
+      const defaultAdminPass = await bcrypt.hash('Admin@2026!', 10);
+      await User.create({
+        name: 'Padmavathi S.V.',
+        email: 's.v.padmavathi2005@gmail.com',
+        password: defaultAdminPass,
+        role: 'admin',
+      });
+    } else if (admin2.role !== 'admin') {
+      admin2.role = 'admin';
+      await admin2.save();
+    }
+
+    // Clean up admin@apitester.io if it exists with admin role
+    await User.deleteMany({ email: 'admin@apitester.io' });
+
+    let demoUser = await User.findOne({ email: 'demo@apitester.io' });
+    if (!demoUser) {
       const demoPassword = await bcrypt.hash('user123', 10);
       demoUser = await User.create({
         name: 'Demo Developer',
@@ -41,11 +62,8 @@ async function seedInitialData() {
         password: demoPassword,
         role: 'user',
       });
-      console.log('[Database] Seeded default Admin (admin@apitester.io) and Demo user (demo@apitester.io)');
-    } else {
-      adminUser = await User.findOne({ role: 'admin' });
-      demoUser = await User.findOne({ email: 'demo@apitester.io' }) || adminUser;
     }
+    const adminUser = await User.findOne({ email: 'singunamitha@gmail.com' });
 
     // Seed default Environment if none exist
     const envCount = await Environment.countDocuments();

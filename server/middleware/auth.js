@@ -56,10 +56,12 @@ const optionalAuth = async (req, res, next) => {
   next();
 };
 
+const ALLOWED_ADMIN_EMAILS = ['singunamitha@gmail.com', 's.v.padmavathi2005@gmail.com'];
+
 // Admin Only Middleware
 const requireAdmin = (req, res, next) => {
-  if (!req.user || req.user.role !== 'admin') {
-    return res.status(403).json({ message: 'Access denied: Administrator privileges required.' });
+  if (!req.user || req.user.role !== 'admin' || !ALLOWED_ADMIN_EMAILS.includes((req.user.email || '').toLowerCase().trim())) {
+    return res.status(403).json({ message: 'Access denied: Administrator privileges required for authorized accounts only.' });
   }
   next();
 };

@@ -75,22 +75,14 @@ export const AuthModal = ({ isOpen, onClose }) => {
             <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
               Quick 1-Click Evaluation Login
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('admin@apitester.io', 'admin123')}
-                className="py-1.5 px-2 bg-purple-950/40 hover:bg-purple-900/60 border border-purple-700/60 text-purple-300 rounded font-medium flex items-center justify-center gap-1.5 transition text-[11px]"
-              >
-                <Shield className="w-3.5 h-3.5 text-purple-400" />
-                <span>Admin Login</span>
-              </button>
+            <div className="flex flex-col gap-2">
               <button
                 type="button"
                 onClick={() => handleQuickLogin('demo@apitester.io', 'user123')}
-                className="py-1.5 px-2 bg-sky-950/40 hover:bg-sky-900/60 border border-sky-700/60 text-sky-300 rounded font-medium flex items-center justify-center gap-1.5 transition text-[11px]"
+                className="py-1.5 px-3 bg-sky-950/40 hover:bg-sky-900/60 border border-sky-700/60 text-sky-300 rounded font-medium flex items-center justify-center gap-1.5 transition text-[11px]"
               >
                 <User className="w-3.5 h-3.5 text-sky-400" />
-                <span>Demo User</span>
+                <span>Demo User (demo@apitester.io)</span>
               </button>
             </div>
           </div>

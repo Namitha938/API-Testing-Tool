@@ -109,17 +109,6 @@ export default function AdminPage() {
     }
   }, [isAdmin, token]);
 
-  const handleQuickAdminLogin = async () => {
-    setQuickLoginLoading(true);
-    setQuickLoginError('');
-    try {
-      await login('admin@apitester.io', 'admin123');
-    } catch (err) {
-      setQuickLoginError(err.message || 'Quick admin login failed');
-    } finally {
-      setQuickLoginLoading(false);
-    }
-  };
 
   const handleGoogleAdminLogin = async () => {
     setQuickLoginLoading(true);
@@ -499,14 +488,9 @@ export default function AdminPage() {
                 <span>{quickLoginLoading ? 'Connecting...' : 'Continue with Google (Admin Access)'}</span>
               </button>
 
-              <button
-                onClick={handleQuickAdminLogin}
-                disabled={quickLoginLoading}
-                className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-xs transition shadow-lg shadow-purple-600/20 flex items-center justify-center gap-2 mb-3 cursor-pointer hover:scale-[1.02] active:scale-95"
-              >
-                <Key className="w-4 h-4" />
-                <span>{quickLoginLoading ? 'Unlocking Admin...' : '1-Click Unlock with Default Admin (admin@apitester.io)'}</span>
-              </button>
+              <div className="mb-3 p-2.5 rounded-xl bg-sky-500/10 border border-sky-500/20 text-[11px] text-sky-400 text-center font-medium">
+                Authorized Admin Accounts: <span className="font-mono text-white">singunamitha@gmail.com</span>, <span className="font-mono text-white">s.v.padmavathi2005@gmail.com</span>
+              </div>
 
               <div className="text-[11px] text-slate-500">
                 Or sign in with custom credentials on the{' '}

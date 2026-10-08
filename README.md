@@ -106,15 +106,15 @@ The application uses **MongoDB** with Mongoose:
 
 ---
 
-## 🔑 Default Seeded Accounts
+## 🔑 Seeded & Authorized Accounts
 
-The database is pre-seeded with two ready-to-use accounts:
-| Role | Email | Password |
-|---|---|---|
-| **System Admin** | `admin@apitester.io` | `admin123` |
-| **Demo User** | `demo@apitester.io` | `user123` |
+| Role | Email | Password | Access |
+|---|---|---|---|
+| **Authorized Admin** | `singunamitha@gmail.com` | `Admin@2026!` (or Google Sign-In) | Admin Dashboard & Full Platform Access |
+| **Authorized Admin** | `s.v.padmavathi2005@gmail.com` | `Admin@2026!` (or Google Sign-In) | Admin Dashboard & Full Platform Access |
+| **Demo User** | `demo@apitester.io` | `user123` | Platform User Access |
 
-*(You can also use the 1-click quick login buttons in the Sign In modal.)*
+*(Admin Dashboard access is strictly protected and restricted to `singunamitha@gmail.com` and `s.v.padmavathi2005@gmail.com`.)*
 
 ---
 

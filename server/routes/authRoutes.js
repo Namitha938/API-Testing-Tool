@@ -22,14 +22,13 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'A user with this email address already exists.' });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    // If first user, make admin, otherwise standard user
-    const totalUsers = await User.countDocuments();
-    const role = totalUsers === 0 ? 'admin' : 'user';
+    const ALLOWED_ADMIN_EMAILS = ['singunamitha@gmail.com', 's.v.padmavathi2005@gmail.com'];
+    const cleanEmail = email.toLowerCase().trim();
+    const role = ALLOWED_ADMIN_EMAILS.includes(cleanEmail) ? 'admin' : 'user';
 
     const newUser = await User.create({
       name,
-      email: email.toLowerCase(),
+      email: cleanEmail,
       password: hashedPassword,
       role,
     });
@@ -223,7 +222,7 @@ router.post('/google', async (req, res) => {
     const cleanEmail = email.toLowerCase().trim();
     let user = await User.findOne({ email: cleanEmail });
 
-    const ADMIN_EMAILS = ['singunamitha@gmail.com', 's.v.padmavathi2005@gmail.com', 'admin@apitester.io'];
+    const ADMIN_EMAILS = ['singunamitha@gmail.com', 's.v.padmavathi2005@gmail.com'];
     const isAdmin = ADMIN_EMAILS.includes(cleanEmail);
 
     if (user) {
@@ -236,8 +235,7 @@ router.post('/google', async (req, res) => {
       if (isAdmin && user.role !== 'admin') user.role = 'admin';
       await user.save();
     } else {
-      const totalUsers = await User.countDocuments();
-      const role = isAdmin || totalUsers === 0 ? 'admin' : 'user';
+      const role = isAdmin ? 'admin' : 'user';
 
       user = await User.create({
         name: name || cleanEmail.split('@')[0],

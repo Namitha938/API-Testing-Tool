@@ -417,24 +417,15 @@ export default function LoginPage() {
               </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                disabled={loading}
-                onClick={() => handleQuickLogin('admin@apitester.io', 'admin123')}
-                className="py-2 px-2.5 rounded-lg border font-semibold text-xs flex items-center justify-center gap-1.5 transition bg-purple-500/10 hover:bg-purple-500/20 border-purple-500/30 text-purple-600 dark:text-purple-300 disabled:opacity-50 cursor-pointer"
-              >
-                <Shield className="w-3.5 h-3.5" />
-                <span>Admin</span>
-              </button>
+            <div className="flex flex-col gap-2">
               <button
                 type="button"
                 disabled={loading}
                 onClick={() => handleQuickLogin('demo@apitester.io', 'user123')}
-                className="py-2 px-2.5 rounded-lg border font-semibold text-xs flex items-center justify-center gap-1.5 transition bg-sky-500/10 hover:bg-sky-500/20 border-sky-500/30 text-sky-600 dark:text-sky-300 disabled:opacity-50 cursor-pointer"
+                className="w-full py-2 px-3 rounded-lg border font-semibold text-xs flex items-center justify-center gap-2 transition bg-sky-500/10 hover:bg-sky-500/20 border-sky-500/30 text-sky-600 dark:text-sky-300 disabled:opacity-50 cursor-pointer"
               >
                 <User className="w-3.5 h-3.5" />
-                <span>Demo User</span>
+                <span>1-Click Demo User (demo@apitester.io)</span>
               </button>
             </div>
           </div>

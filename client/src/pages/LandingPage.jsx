@@ -647,13 +647,13 @@ export default function LandingPage() {
                   <div>
                     <div className="text-xs font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
                       <ShieldCheck className="w-4 h-4" />
-                      <span>Admin Account</span>
+                      <span>Authorized Admin</span>
                     </div>
                     <div className={`text-xs mt-1 font-mono ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                      admin@apitester.io
+                      singunamitha@gmail.com
                     </div>
                     <div className={`text-[11px] font-mono ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-                      Password: admin123
+                      Password: Admin@2026! (or Google Auth)
                     </div>
                   </div>
                   <Link

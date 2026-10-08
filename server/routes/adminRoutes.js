@@ -90,10 +90,20 @@ router.put('/users/:id/role', async (req, res) => {
       return res.status(400).json({ message: 'Invalid role' });
     }
 
-    const user = await User.findByIdAndUpdate(req.params.id, { role }, { new: true });
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    const targetUser = await User.findById(req.params.id);
+    if (!targetUser) return res.status(404).json({ message: 'User not found' });
 
-    res.json({ message: 'User role updated successfully', user: user.toJSON() });
+    const ALLOWED_ADMIN_EMAILS = ['singunamitha@gmail.com', 's.v.padmavathi2005@gmail.com'];
+    if (role === 'admin' && !ALLOWED_ADMIN_EMAILS.includes((targetUser.email || '').toLowerCase().trim())) {
+      return res.status(403).json({
+        message: 'Only authorized accounts (singunamitha@gmail.com, s.v.padmavathi2005@gmail.com) can be granted admin privileges.'
+      });
+    }
+
+    targetUser.role = role;
+    await targetUser.save();
+
+    res.json({ message: 'User role updated successfully', user: targetUser.toJSON() });
   } catch (error) {
     res.status(500).json({ message: 'Failed to update user role', error: error.message });
   }

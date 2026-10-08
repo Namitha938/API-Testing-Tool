@@ -119,10 +119,10 @@ export const RequestTabs = () => {
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-slate-950">
       {/* Sub Tabs Bar */}
-      <div className="flex border-b border-slate-800 bg-slate-900/60 px-3 text-xs font-medium">
+      <div className="flex overflow-x-auto border-b border-slate-800 bg-slate-900/60 px-2 sm:px-3 text-xs font-medium shrink-0 scrollbar-none">
         <button
           onClick={() => setActiveTab('params')}
-          className={`py-2 px-3 border-b-2 transition ${
+          className={`py-2 px-2.5 sm:px-3 border-b-2 transition whitespace-nowrap shrink-0 cursor-pointer ${
             activeTab === 'params'
               ? 'border-sky-500 text-sky-400 font-semibold'
               : 'border-transparent text-slate-400 hover:text-slate-200'
@@ -138,7 +138,7 @@ export const RequestTabs = () => {
 
         <button
           onClick={() => setActiveTab('headers')}
-          className={`py-2 px-3 border-b-2 transition ${
+          className={`py-2 px-2.5 sm:px-3 border-b-2 transition whitespace-nowrap shrink-0 cursor-pointer ${
             activeTab === 'headers'
               ? 'border-sky-500 text-sky-400 font-semibold'
               : 'border-transparent text-slate-400 hover:text-slate-200'
@@ -154,7 +154,7 @@ export const RequestTabs = () => {
 
         <button
           onClick={() => setActiveTab('auth')}
-          className={`py-2 px-3 border-b-2 transition ${
+          className={`py-2 px-2.5 sm:px-3 border-b-2 transition whitespace-nowrap shrink-0 cursor-pointer ${
             activeTab === 'auth'
               ? 'border-sky-500 text-sky-400 font-semibold'
               : 'border-transparent text-slate-400 hover:text-slate-200'
@@ -168,7 +168,7 @@ export const RequestTabs = () => {
 
         <button
           onClick={() => setActiveTab('body')}
-          className={`py-2 px-3 border-b-2 transition ${
+          className={`py-2 px-2.5 sm:px-3 border-b-2 transition whitespace-nowrap shrink-0 cursor-pointer ${
             activeTab === 'body'
               ? 'border-sky-500 text-sky-400 font-semibold'
               : 'border-transparent text-slate-400 hover:text-slate-200'
@@ -184,7 +184,7 @@ export const RequestTabs = () => {
 
         <button
           onClick={() => setActiveTab('tests')}
-          className={`py-2 px-3 border-b-2 transition ${
+          className={`py-2 px-2.5 sm:px-3 border-b-2 transition whitespace-nowrap shrink-0 cursor-pointer ${
             activeTab === 'tests'
               ? 'border-sky-500 text-sky-400 font-semibold'
               : 'border-transparent text-slate-400 hover:text-slate-200'

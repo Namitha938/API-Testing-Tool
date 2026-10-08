@@ -19,7 +19,13 @@ import {
   FileCode,
 } from 'lucide-react';
 
-export const Sidebar = ({ onOpenCollections, onOpenEnvironments, onRunCollection }) => {
+export const Sidebar = ({
+  onOpenCollections,
+  onOpenEnvironments,
+  onRunCollection,
+  isOpen = true,
+  onClose,
+}) => {
   const {
     collections,
     loadSavedRequest,
@@ -134,7 +140,20 @@ export const Sidebar = ({ onOpenCollections, onOpenEnvironments, onRunCollection
   };
 
   return (
-    <aside className="w-80 bg-slate-950 border-r border-slate-800 flex flex-col shrink-0 select-none overflow-hidden h-[calc(100vh-3.5rem)]">
+    <>
+      {/* Mobile backdrop overlay */}
+      {isOpen && (
+        <div
+          onClick={onClose}
+          className="fixed inset-0 bg-black/60 z-30 lg:hidden backdrop-blur-xs transition-opacity"
+        />
+      )}
+
+      <aside
+        className={`fixed lg:static top-14 bottom-0 left-0 z-30 lg:z-10 w-80 max-w-[85vw] bg-slate-950 border-r border-slate-800/90 flex flex-col shrink-0 select-none overflow-hidden h-[calc(100vh-3.5rem)] transition-transform duration-300 ease-in-out shadow-2xl lg:shadow-none ${
+          isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        }`}
+      >
       {/* Sidebar Tabs */}
       <div className="flex border-b border-slate-800 text-xs font-semibold bg-slate-900/60">
         <button
@@ -448,7 +467,8 @@ export const Sidebar = ({ onOpenCollections, onOpenEnvironments, onRunCollection
         </div>
       )}
     </aside>
-  );
+  </>
+);
 };
 
 // Recursive sub-component for hierarchical nested folders

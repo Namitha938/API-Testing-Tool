@@ -128,71 +128,77 @@ export const RequestPane = ({ onOpenSaveModal }) => {
       </div>
 
       {/* Method + URL Input + Send / Save Bar */}
-      <div className="flex items-center gap-2.5">
-        {/* Method selector */}
-        <div className="relative">
-          <select
-            value={activeRequest.method}
-            onChange={handleMethodChange}
-            className={`h-10 px-3.5 pr-8 rounded-xl font-bold text-xs border appearance-none focus:outline-none cursor-pointer tracking-wider font-mono shadow-xs transition-colors ${getMethodColor(
-              activeRequest.method
-            )}`}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2.5">
+        {/* Top input group on mobile: Method + URL */}
+        <div className="flex items-center gap-2 flex-1">
+          {/* Method selector */}
+          <div className="relative shrink-0">
+            <select
+              value={activeRequest.method}
+              onChange={handleMethodChange}
+              className={`h-10 px-3 pr-7 sm:px-3.5 sm:pr-8 rounded-xl font-bold text-xs border appearance-none focus:outline-none cursor-pointer tracking-wider font-mono shadow-xs transition-colors ${getMethodColor(
+                activeRequest.method
+              )}`}
+            >
+              {HTTP_METHODS.map((m) => (
+                <option key={m} value={m} className="bg-slate-900 text-slate-200">
+                  {m}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="w-3.5 h-3.5 absolute right-2 top-3.5 pointer-events-none opacity-60" />
+          </div>
+
+          {/* URL Input */}
+          <div className="flex-1 relative group min-w-0">
+            <input
+              type="text"
+              value={activeRequest.url}
+              onChange={handleUrlChange}
+              onKeyDown={handleKeyDown}
+              placeholder="Enter request URL (e.g. {{baseUrl}}/users or https://api.github.com/users/octocat)"
+              className="w-full h-10 bg-slate-950/90 border border-slate-700/80 rounded-xl px-3 sm:px-4 text-xs text-slate-100 placeholder-slate-500 font-mono focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all shadow-inner truncate"
+            />
+          </div>
+        </div>
+
+        {/* Action buttons (Send, Code, Save) */}
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Send Button */}
+          <button
+            onClick={sendRequest}
+            disabled={isLoading || !activeRequest.url}
+            className="flex-1 sm:flex-none h-10 px-5 sm:px-6 rounded-xl bg-gradient-to-r from-sky-500 via-sky-600 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 disabled:opacity-50 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-sky-600/30 hover:shadow-sky-500/40 active:scale-95 cursor-pointer"
+            title="Send Request (Ctrl + Enter)"
           >
-            {HTTP_METHODS.map((m) => (
-              <option key={m} value={m} className="bg-slate-900 text-slate-200">
-                {m}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-3.5 pointer-events-none opacity-60" />
+            {isLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin text-white" />
+            ) : (
+              <Send className="w-4 h-4 fill-white drop-shadow" />
+            )}
+            <span>Send</span>
+          </button>
+
+          {/* Code Snippets Button */}
+          <button
+            onClick={() => setCodeModalOpen(true)}
+            className="h-10 px-3 sm:px-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-750 text-slate-200 font-medium text-xs flex items-center justify-center gap-1.5 border border-slate-700/80 hover:border-sky-500/40 transition shadow-xs cursor-pointer active:scale-95"
+            title="Generate code snippet (cURL, Python, JS, Go)"
+          >
+            <Code2 className="w-4 h-4 text-sky-400" />
+            <span className="hidden sm:inline">Code</span>
+          </button>
+
+          {/* Save Button */}
+          <button
+            onClick={onOpenSaveModal}
+            className="h-10 px-3 sm:px-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-750 text-slate-200 font-medium text-xs flex items-center justify-center gap-1.5 border border-slate-700/80 hover:border-slate-600 transition shadow-xs cursor-pointer active:scale-95"
+            title="Save request to collection"
+          >
+            <Save className="w-4 h-4 text-slate-400" />
+            <span className="hidden sm:inline">Save</span>
+          </button>
         </div>
-
-        {/* URL Input */}
-        <div className="flex-1 relative group">
-          <input
-            type="text"
-            value={activeRequest.url}
-            onChange={handleUrlChange}
-            onKeyDown={handleKeyDown}
-            placeholder="Enter request URL (e.g. {{baseUrl}}/users or https://api.github.com/users/octocat)"
-            className="w-full h-10 bg-slate-950/90 border border-slate-700/80 rounded-xl px-4 text-xs text-slate-100 placeholder-slate-500 font-mono focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all shadow-inner"
-          />
-        </div>
-
-        {/* Send Button */}
-        <button
-          onClick={sendRequest}
-          disabled={isLoading || !activeRequest.url}
-          className="h-10 px-6 rounded-xl bg-gradient-to-r from-sky-500 via-sky-600 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 disabled:opacity-50 text-white font-bold text-xs flex items-center gap-2 transition-all shadow-md shadow-sky-600/30 hover:shadow-sky-500/40 active:scale-95 cursor-pointer"
-          title="Send Request (Ctrl + Enter)"
-        >
-          {isLoading ? (
-            <Loader2 className="w-4 h-4 animate-spin text-white" />
-          ) : (
-            <Send className="w-4 h-4 fill-white drop-shadow" />
-          )}
-          <span>Send</span>
-        </button>
-
-        {/* Code Snippets Button */}
-        <button
-          onClick={() => setCodeModalOpen(true)}
-          className="h-10 px-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-750 text-slate-200 font-medium text-xs flex items-center gap-1.5 border border-slate-700/80 hover:border-sky-500/40 transition shadow-xs cursor-pointer active:scale-95"
-          title="Generate code snippet (cURL, Python, JS, Go)"
-        >
-          <Code2 className="w-4 h-4 text-sky-400" />
-          <span>Code</span>
-        </button>
-
-        {/* Save Button */}
-        <button
-          onClick={onOpenSaveModal}
-          className="h-10 px-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-750 text-slate-200 font-medium text-xs flex items-center gap-1.5 border border-slate-700/80 hover:border-slate-600 transition shadow-xs cursor-pointer active:scale-95"
-          title="Save request to collection"
-        >
-          <Save className="w-4 h-4 text-slate-400" />
-          <span>Save</span>
-        </button>
       </div>
 
       {/* Code Snippet Modal */}

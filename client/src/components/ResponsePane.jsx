@@ -92,26 +92,26 @@ export const ResponsePane = () => {
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-slate-900 border-t border-slate-800">
       {/* Response Status Bar */}
-      <div className="h-11 px-3 border-b border-slate-800 flex items-center justify-between bg-slate-950/80 shrink-0 text-xs">
+      <div className="h-auto min-h-11 px-3 py-1.5 sm:py-0 border-b border-slate-800 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 bg-slate-950/80 shrink-0 text-xs">
         {/* Status / Timing / Size badges */}
-        <div className="flex items-center gap-3">
-          <div className={`px-2.5 py-1 rounded font-bold font-mono text-xs ${getStatusColor(response.status)}`}>
+        <div className="flex items-center flex-wrap gap-2 sm:gap-3">
+          <div className={`px-2.5 py-1 rounded-lg font-bold font-mono text-xs ${getStatusColor(response.status)} shrink-0`}>
             {response.status || '0'} {response.statusText || 'Error'}
           </div>
 
-          <div className="flex items-center gap-1 text-slate-400 font-mono text-xs">
+          <div className="flex items-center gap-1 text-slate-400 font-mono text-xs shrink-0">
             <Clock className="w-3.5 h-3.5 text-slate-500" />
             <span>{formatDuration(response.responseTime)}</span>
           </div>
 
-          <div className="flex items-center gap-1 text-slate-400 font-mono text-xs">
+          <div className="flex items-center gap-1 text-slate-400 font-mono text-xs shrink-0">
             <HardDrive className="w-3.5 h-3.5 text-slate-500" />
             <span>{formatBytes(response.responseSize)}</span>
           </div>
 
           {response.testResults?.length > 0 && (
             <div
-              className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-semibold ${
+              className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-xs font-semibold shrink-0 ${
                 response.failedCount === 0
                   ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                   : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
@@ -132,7 +132,7 @@ export const ResponsePane = () => {
         {/* Copy button */}
         <button
           onClick={handleCopyBody}
-          className="flex items-center gap-1 px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-[11px]"
+          className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-[11px] cursor-pointer shrink-0 ml-auto sm:ml-0"
           title="Copy response body"
         >
           {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
@@ -158,11 +158,11 @@ export const ResponsePane = () => {
       )}
 
       {/* Response Navigation Subtabs */}
-      <div className="flex border-b border-slate-800 bg-slate-900/60 px-3 text-xs font-medium justify-between items-center">
-        <div className="flex">
+      <div className="flex border-b border-slate-800 bg-slate-900/60 px-2 sm:px-3 text-xs font-medium justify-between items-center overflow-x-auto scrollbar-none">
+        <div className="flex shrink-0">
           <button
             onClick={() => setResponseTab('body')}
-            className={`py-2 px-3 border-b-2 transition ${
+            className={`py-2 px-2.5 sm:px-3 border-b-2 transition whitespace-nowrap cursor-pointer ${
               responseTab === 'body'
                 ? 'border-sky-500 text-sky-400 font-semibold'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
@@ -173,7 +173,7 @@ export const ResponsePane = () => {
 
           <button
             onClick={() => setResponseTab('headers')}
-            className={`py-2 px-3 border-b-2 transition ${
+            className={`py-2 px-2.5 sm:px-3 border-b-2 transition whitespace-nowrap cursor-pointer shrink-0 ${
               responseTab === 'headers'
                 ? 'border-sky-500 text-sky-400 font-semibold'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
@@ -184,29 +184,29 @@ export const ResponsePane = () => {
 
           <button
             onClick={() => setResponseTab('timings')}
-            className={`py-2 px-3 border-b-2 transition ${
+            className={`py-2 px-2.5 sm:px-3 border-b-2 transition whitespace-nowrap cursor-pointer shrink-0 ${
               responseTab === 'timings'
                 ? 'border-sky-500 text-sky-400 font-semibold'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
-            Performance & Latency
+            Timings & SLA
           </button>
 
           <button
             onClick={() => setResponseTab('tests')}
-            className={`py-2 px-3 border-b-2 transition ${
+            className={`py-2 px-2.5 sm:px-3 border-b-2 transition whitespace-nowrap cursor-pointer shrink-0 ${
               responseTab === 'tests'
                 ? 'border-sky-500 text-sky-400 font-semibold'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
-            Test Results ({response.testResults?.length || 0})
+            Tests ({response.testResults?.length || 0})
           </button>
 
           <button
             onClick={() => setResponseTab('ai')}
-            className={`py-2 px-3 border-b-2 transition flex items-center gap-1.5 ${
+            className={`py-2 px-2.5 sm:px-3 border-b-2 transition whitespace-nowrap cursor-pointer shrink-0 flex items-center gap-1.5 ${
               responseTab === 'ai'
                 ? 'border-purple-500 text-purple-400 font-semibold'
                 : (response.status >= 400 || (response.testResults || []).some((t) => !t.passed))
@@ -215,7 +215,7 @@ export const ResponsePane = () => {
             }`}
           >
             <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-            <span>AI Diagnostics & Suggestions</span>
+            <span>AI Diagnostics</span>
             {(response.status >= 400 || (response.testResults || []).some((t) => !t.passed)) && (
               <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
             )}

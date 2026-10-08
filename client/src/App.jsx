@@ -42,6 +42,9 @@ function StudioWorkbench() {
   const [runnerModalOpen, setRunnerModalOpen] = useState(false);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
   const [runnerCollection, setRunnerCollection] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    return typeof window !== 'undefined' ? window.innerWidth >= 1024 : true;
+  });
 
   const handleRunCollection = (col) => {
     setRunnerCollection(col);
@@ -63,27 +66,30 @@ function StudioWorkbench() {
         onOpenCollections={() => setCollectionsModalOpen(true)}
         theme={theme}
         onToggleTheme={toggleTheme}
+        onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
       />
 
       {/* Main Studio Area */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden relative">
         {/* Left Sidebar */}
         <Sidebar
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
           onOpenCollections={() => setCollectionsModalOpen(true)}
           onOpenEnvironments={() => setEnvironmentModalOpen(true)}
           onRunCollection={handleRunCollection}
         />
 
         {/* Center / Right Workbench */}
-        <main className="flex-1 flex flex-col overflow-hidden bg-slate-900/40">
+        <main className="flex-1 flex flex-col overflow-y-auto lg:overflow-hidden bg-slate-900/40 min-w-0">
           {/* Top Half: Request Builder */}
-          <div className="h-1/2 flex flex-col border-b border-slate-800 overflow-hidden">
+          <div className="min-h-[380px] lg:h-1/2 flex flex-col border-b border-slate-800 overflow-hidden shrink-0">
             <RequestPane onOpenSaveModal={() => setSaveModalOpen(true)} />
             <RequestTabs />
           </div>
 
           {/* Bottom Half: Response Inspector */}
-          <div className="h-1/2 flex flex-col overflow-hidden">
+          <div className="min-h-[400px] lg:h-1/2 flex flex-col overflow-hidden flex-1">
             <ResponsePane />
           </div>
         </main>

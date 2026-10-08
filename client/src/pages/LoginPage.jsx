@@ -180,7 +180,7 @@ export default function LoginPage() {
 
   return (
     <div
-      className={`flex min-h-screen w-full transition-colors duration-300 ${
+  className={`min-h-screen w-full flex transition-colors duration-300 ${
         isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'
       }`}
     >
@@ -271,21 +271,10 @@ export default function LoginPage() {
       </div>
 
       {/* RIGHT - LOGIN FORM (50%) */}
-      <div className="flex w-full flex-col justify-between px-6 py-8 sm:px-10 lg:w-1/2 lg:px-16 xl:px-24">
+      <div className="flex min-h-screen w-full flex-col px-6 py-4 sm:px-10 lg:w-1/2 lg:px-12 xl:px-16">
         {/* Top Navbar */}
-        <div className="w-full flex items-center justify-between mb-6">
-          <Link
-            to="/"
-            className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition ${
-              isDark
-                ? 'border-slate-800 bg-slate-900 text-slate-200 hover:bg-slate-800'
-                : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100 shadow-xs'
-            }`}
-            title="Return to Home"
-          >
-            <Home className="w-4 h-4 text-sky-500" />
-            <span>Home</span>
-          </Link>
+        <div className="w-full flex items-center justify-between mb-3">
+          
 
           <button
             type="button"
@@ -302,20 +291,25 @@ export default function LoginPage() {
         </div>
 
         {/* Center Content */}
-        <div className="my-auto max-w-md w-full mx-auto">
+        <div className="max-w-md w-full mx-auto">
           {/* Logo / Header */}
-          <div className="mb-6">
-            <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white shadow-lg shadow-sky-500/25">
-              <Lock size={20} />
-            </div>
-            <h1 className="text-2xl font-bold tracking-tight">Sign In to APITester</h1>
-            <p className={`mt-1.5 text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-              Access your collections, environment variables, and telemetry dashboard
-            </p>
-          </div>
+          <div className="mb-6 flex items-center gap-3">
+  {/* Logo */}
+  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 text-white">
+    <Lock size={20} />
+  </div>
+
+  {/* Text group - This wrapper is MOST IMPORTANT */}
+  <div className="flex flex-col text-left">
+    <h1 className="text-2xl font-bold leading-tight">Sign In to APITester</h1>
+    <p className={`text-xs leading-snug ${isDark? 'text-slate-400' : 'text-slate-500'}`}>
+      Access your collections, environment variables, and telemetry dashboard
+    </p>
+  </div>
+</div>
 
           {/* Continue with Google Button */}
-          <div className="mb-5">
+          <div className="mb-3">
             <button
               type="button"
               onClick={handleGoogleSignIn}
@@ -331,7 +325,7 @@ export default function LoginPage() {
             </button>
           </div>
 
-          <div className="relative mb-5 text-center">
+          <div className="relative mb-3 text-center">
             <div className={`absolute inset-0 flex items-center ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
               <div className={`w-full border-t ${isDark ? 'border-slate-800' : 'border-slate-200'}`} />
             </div>
@@ -342,7 +336,7 @@ export default function LoginPage() {
 
           {/* Quick Demo Login Presets */}
           <div
-            className={`p-3 rounded-xl border mb-5 space-y-2 ${
+            className={`p-2.5 rounded-xl border mb-3 space-y-2 ${
               isDark ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-200 shadow-xs'
             }`}
           >
@@ -385,7 +379,7 @@ export default function LoginPage() {
           )}
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3">
             <div>
               <label htmlFor="email" className={`mb-1.5 block text-xs font-semibold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                 Email Address
@@ -466,14 +460,14 @@ export default function LoginPage() {
           </form>
 
           {/* Footer Info */}
-          <p className="text-center text-xs mt-6 text-slate-500">
+          <p className="text-center text-xs mt-3 text-slate-500">
             Don't have an account?{' '}
             <Link to="/register" className="font-semibold text-sky-500 hover:text-sky-400">
               Create an account
             </Link>
           </p>
 
-          <div className="text-center mt-3">
+          <div className="text-center mt-2">
             <Link
               to="/app"
               className={`text-[11px] underline ${isDark ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-slate-600'}`}
@@ -483,10 +477,8 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Bottom copyright */}
-        <div className="text-center text-[11px] text-slate-500 pt-4">
-          &copy; {new Date().getFullYear()} APITester Pro. All rights reserved.
-        </div>
+        
+        
       </div>
 
       {/* Forgot Password Modal */}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { ApiProvider, useApi } from './context/ApiContext';
 import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
@@ -105,12 +105,33 @@ function StudioWorkbench() {
   );
 }
 
+function StudioRoute() {
+  const { user, loading } = useAuth();
+  const guestAllowed = typeof window !== 'undefined' && sessionStorage.getItem('guestMode') === 'true';
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-xs text-slate-400">
+        Loading API Testing Studio...
+      </div>
+    );
+  }
+
+  // If not logged in and didn't click guest mode, ALWAYS show the first page (LoginPage)
+  if (!user && !guestAllowed) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <StudioWorkbench />;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <ApiProvider>
           <Routes>
+            {/* FIRST PAGE: Login Page */}
             <Route path="/" element={<LoginPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
@@ -122,12 +143,12 @@ export default function App() {
             <Route path="/admin-dashboard" element={<AdminPage />} />
             <Route path="/admin-console" element={<AdminPage />} />
 
-            {/* Studio Workbench */}
-            <Route path="/app" element={<StudioWorkbench />} />
-            <Route path="/workbench" element={<StudioWorkbench />} />
+            {/* SECOND PAGE: Studio Workbench */}
+            <Route path="/app" element={<StudioRoute />} />
+            <Route path="/workbench" element={<StudioRoute />} />
             <Route path="/requests" element={<Navigate to="/app" replace />} />
             <Route path="/studio" element={<Navigate to="/app" replace />} />
-            <Route path="*" element={<LoginPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </ApiProvider>
       </AuthProvider>

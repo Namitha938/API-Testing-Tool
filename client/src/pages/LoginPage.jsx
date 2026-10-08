@@ -46,7 +46,7 @@ const IMAGE_PRESETS = [
 ];
 
 export default function LoginPage() {
-  const { login, verifyLogin2FA, loginWithGoogle, forgotPassword, resetPassword, user } = useAuth();
+  const { login, verifyLogin2FA, loginWithGoogle, forgotPassword, resetPassword, user, logout } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
@@ -81,13 +81,6 @@ export default function LoginPage() {
   useEffect(() => {
     localStorage.setItem('theme', theme);
   }, [theme]);
-
-  // If already logged in, redirect
-  useEffect(() => {
-    if (user) {
-      navigate('/app');
-    }
-  }, [user, navigate]);
 
   const toggleTheme = () => {
     setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
@@ -341,6 +334,49 @@ export default function LoginPage() {
   </div>
 </div>
 
+          {/* Active Session Notice if logged in */}
+          {user && (
+            <div
+              className={`p-3.5 rounded-xl border mb-3 space-y-2.5 ${
+                isDark ? 'bg-purple-950/30 border-purple-500/40' : 'bg-purple-50 border-purple-200'
+              }`}
+            >
+              <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span className="font-semibold text-slate-100">
+                    Signed in as {user.name}
+                  </span>
+                </div>
+                <span className="text-[10px] font-mono font-bold text-purple-300 uppercase px-2 py-0.5 rounded bg-purple-500/20 border border-purple-500/30">
+                  {user.role || 'user'}
+                </span>
+              </div>
+              <p className={`text-[11px] leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                Active account: <strong className="text-purple-300 font-mono">{user.email}</strong>
+              </p>
+              <div className="flex items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => navigate('/app')}
+                  className="flex-1 py-2 px-3 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer shadow-md shadow-sky-600/20"
+                >
+                  <span>Open API Studio Workbench &rarr;</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    sessionStorage.removeItem('guestMode');
+                    logout();
+                  }}
+                  className="py-2 px-3 rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300 text-xs font-medium transition cursor-pointer"
+                >
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Continue with Google Button */}
           <div className="mb-3">
             <button
@@ -564,12 +600,16 @@ export default function LoginPage() {
           </p>
 
           <div className="text-center mt-2">
-            <Link
-              to="/app"
-              className={`text-[11px] underline ${isDark ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-slate-600'}`}
+            <button
+              type="button"
+              onClick={() => {
+                sessionStorage.setItem('guestMode', 'true');
+                navigate('/app');
+              }}
+              className={`text-[11px] underline cursor-pointer transition ${isDark ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-slate-600'}`}
             >
               Continue without signing in (Guest Mode) &rarr;
-            </Link>
+            </button>
           </div>
         </div>
 

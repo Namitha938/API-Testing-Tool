@@ -128,13 +128,13 @@ export const RequestPane = ({ onOpenSaveModal }) => {
       </div>
 
       {/* Method + URL Input + Send / Save Bar */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2.5">
         {/* Method selector */}
         <div className="relative">
           <select
             value={activeRequest.method}
             onChange={handleMethodChange}
-            className={`h-10 px-3 pr-8 rounded-lg font-bold text-xs border appearance-none focus:outline-none cursor-pointer tracking-wider font-mono ${getMethodColor(
+            className={`h-10 px-3.5 pr-8 rounded-xl font-bold text-xs border appearance-none focus:outline-none cursor-pointer tracking-wider font-mono shadow-xs transition-colors ${getMethodColor(
               activeRequest.method
             )}`}
           >
@@ -148,14 +148,14 @@ export const RequestPane = ({ onOpenSaveModal }) => {
         </div>
 
         {/* URL Input */}
-        <div className="flex-1 relative">
+        <div className="flex-1 relative group">
           <input
             type="text"
             value={activeRequest.url}
             onChange={handleUrlChange}
             onKeyDown={handleKeyDown}
-            placeholder="Enter request URL (e.g. {{baseUrl}}/users or http://localhost:5000/api/mock/users)"
-            className="w-full h-10 bg-slate-950 border border-slate-700/80 rounded-lg px-3.5 text-xs text-slate-100 placeholder-slate-500 font-mono focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition shadow-inner"
+            placeholder="Enter request URL (e.g. {{baseUrl}}/users or https://api.github.com/users/octocat)"
+            className="w-full h-10 bg-slate-950/90 border border-slate-700/80 rounded-xl px-4 text-xs text-slate-100 placeholder-slate-500 font-mono focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all shadow-inner"
           />
         </div>
 
@@ -163,13 +163,13 @@ export const RequestPane = ({ onOpenSaveModal }) => {
         <button
           onClick={sendRequest}
           disabled={isLoading || !activeRequest.url}
-          className="h-10 px-5 rounded-lg bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white font-semibold text-xs flex items-center gap-2 transition shadow-md shadow-sky-600/20 active:scale-95"
+          className="h-10 px-6 rounded-xl bg-gradient-to-r from-sky-500 via-sky-600 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 disabled:opacity-50 text-white font-bold text-xs flex items-center gap-2 transition-all shadow-md shadow-sky-600/30 hover:shadow-sky-500/40 active:scale-95 cursor-pointer"
           title="Send Request (Ctrl + Enter)"
         >
           {isLoading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Loader2 className="w-4 h-4 animate-spin text-white" />
           ) : (
-            <Send className="w-4 h-4 fill-white" />
+            <Send className="w-4 h-4 fill-white drop-shadow" />
           )}
           <span>Send</span>
         </button>
@@ -177,7 +177,7 @@ export const RequestPane = ({ onOpenSaveModal }) => {
         {/* Code Snippets Button */}
         <button
           onClick={() => setCodeModalOpen(true)}
-          className="h-10 px-3.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs flex items-center gap-1.5 border border-slate-700 transition"
+          className="h-10 px-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-750 text-slate-200 font-medium text-xs flex items-center gap-1.5 border border-slate-700/80 hover:border-sky-500/40 transition shadow-xs cursor-pointer active:scale-95"
           title="Generate code snippet (cURL, Python, JS, Go)"
         >
           <Code2 className="w-4 h-4 text-sky-400" />
@@ -187,7 +187,7 @@ export const RequestPane = ({ onOpenSaveModal }) => {
         {/* Save Button */}
         <button
           onClick={onOpenSaveModal}
-          className="h-10 px-3.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs flex items-center gap-1.5 border border-slate-700 transition"
+          className="h-10 px-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-750 text-slate-200 font-medium text-xs flex items-center gap-1.5 border border-slate-700/80 hover:border-slate-600 transition shadow-xs cursor-pointer active:scale-95"
           title="Save request to collection"
         >
           <Save className="w-4 h-4 text-slate-400" />

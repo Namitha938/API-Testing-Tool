@@ -49,7 +49,7 @@ function StudioWorkbench() {
   };
 
   return (
-    <div className={`flex flex-col h-screen w-screen overflow-hidden font-sans transition-colors duration-200 ${theme === 'dark' ? 'bg-slate-950 text-slate-100' : 'bg-slate-100 text-slate-900'}`}>
+    <div className={`flex flex-col h-screen w-screen overflow-hidden font-sans transition-colors duration-200 ${theme === 'dark' ? 'bg-[#0b0f17] text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
       {/* Top Navigation */}
       <Navbar
         onOpenAuth={() => setAuthModalOpen(true)}

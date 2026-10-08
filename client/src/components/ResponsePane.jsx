@@ -41,40 +41,40 @@ export const ResponsePane = () => {
 
   if (!response) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-slate-900/40 p-8 text-center text-xs select-none">
-        <div className="w-14 h-14 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 mb-4 shadow-lg shadow-sky-500/5">
-          <Zap className="w-7 h-7 text-sky-400" />
+      <div className="flex-1 flex flex-col items-center justify-center bg-slate-900/30 p-8 text-center text-xs select-none">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-sky-500/15 to-indigo-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400 mb-4 shadow-xl shadow-sky-500/10 ring-1 ring-sky-500/20">
+          <Zap className="w-8 h-8 text-sky-400 fill-sky-400/20" />
         </div>
-        <h3 className="text-slate-200 font-bold text-sm mb-1">No response yet</h3>
-        <p className="text-slate-400 text-xs max-w-sm mb-4 leading-relaxed">
-          Execute this request to inspect status codes, network timings, headers, and formatted response payloads.
+        <h3 className="text-slate-100 font-extrabold text-base mb-1 tracking-tight">Ready for API Execution</h3>
+        <p className="text-slate-400 text-xs max-w-md mb-5 leading-relaxed">
+          Hit <span className="text-sky-300 font-semibold font-mono">Send</span> to inspect response headers, network latency, real-time status codes, and test assertions.
         </p>
 
         <button
           onClick={sendRequest}
-          className="px-5 py-2.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-semibold rounded-lg shadow-md hover:shadow-sky-500/20 transition flex items-center gap-2 text-xs"
+          className="px-6 py-2.5 bg-gradient-to-r from-sky-500 via-sky-600 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-sky-600/25 hover:shadow-sky-500/35 transition flex items-center gap-2 text-xs active:scale-95 cursor-pointer"
         >
           <Zap className="w-4 h-4 fill-current" />
           <span>Send Request Now</span>
-          <span className="text-[10px] opacity-75 font-mono ml-1 px-1.5 py-0.5 rounded bg-black/30">Ctrl + Enter</span>
+          <span className="text-[10px] opacity-80 font-mono ml-1 px-1.5 py-0.5 rounded-md bg-black/30 border border-white/10">Ctrl + Enter</span>
         </button>
 
-        <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-md text-left">
-          <div className="p-2 rounded bg-slate-950/60 border border-slate-800 text-[10px]">
-            <span className="text-slate-500 block font-semibold uppercase">Status & Size</span>
-            <span className="text-slate-300 font-mono">200 OK &bull; Bytes</span>
+        <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-lg text-left">
+          <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800/80 text-[10px] shadow-xs">
+            <span className="text-slate-500 block font-semibold uppercase tracking-wider">Status & Size</span>
+            <span className="text-slate-200 font-mono font-medium mt-0.5 block">200 OK &bull; Bytes</span>
           </div>
-          <div className="p-2 rounded bg-slate-950/60 border border-slate-800 text-[10px]">
-            <span className="text-slate-500 block font-semibold uppercase">Latency</span>
-            <span className="text-emerald-400 font-mono">TTFB &bull; DNS breakdown</span>
+          <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800/80 text-[10px] shadow-xs">
+            <span className="text-slate-500 block font-semibold uppercase tracking-wider">Latency</span>
+            <span className="text-emerald-400 font-mono font-medium mt-0.5 block">DNS &bull; TTFB &bull; TLS</span>
           </div>
-          <div className="p-2 rounded bg-slate-950/60 border border-slate-800 text-[10px]">
-            <span className="text-slate-500 block font-semibold uppercase">View Modes</span>
-            <span className="text-sky-400 font-mono">Pretty &bull; Raw &bull; Preview</span>
+          <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800/80 text-[10px] shadow-xs">
+            <span className="text-slate-500 block font-semibold uppercase tracking-wider">AI Diagnostics</span>
+            <span className="text-purple-400 font-mono font-medium mt-0.5 block">Automated Fixes</span>
           </div>
-          <div className="p-2 rounded bg-slate-950/60 border border-slate-800 text-[10px]">
-            <span className="text-slate-500 block font-semibold uppercase">Payloads</span>
-            <span className="text-amber-400 font-mono">JSON &bull; XML &bull; HTML</span>
+          <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800/80 text-[10px] shadow-xs">
+            <span className="text-slate-500 block font-semibold uppercase tracking-wider">Payloads</span>
+            <span className="text-amber-400 font-mono font-medium mt-0.5 block">JSON &bull; XML &bull; HTML</span>
           </div>
         </div>
       </div>

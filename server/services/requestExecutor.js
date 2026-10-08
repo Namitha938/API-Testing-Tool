@@ -20,7 +20,16 @@ function interpolateVariables(content, variables = {}) {
     }),
   };
 
-  const allVars = { ...dynamicVars, ...variables };
+  const normalizedVars = Array.isArray(variables)
+    ? variables.reduce((acc, v) => {
+        if (v && v.key && (v.enabled === undefined || v.enabled)) {
+          acc[v.key] = v.value;
+        }
+        return acc;
+      }, {})
+    : (variables || {});
+
+  const allVars = { ...dynamicVars, ...normalizedVars };
 
   return content.replace(/\{\{([^}]+)\}\}/g, (match, key) => {
     const trimmedKey = key.trim();

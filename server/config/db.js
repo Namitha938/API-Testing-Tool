@@ -71,8 +71,11 @@ async function seedInitialData() {
         description: 'Comprehensive suite of sample API requests demonstrating GET, POST, PUT, DELETE, XML, and Auth.',
         userId: adminUser._id,
         folders: [
-          { id: 'f-users', name: 'User Management', description: 'User CRUD operations' },
-          { id: 'f-advanced', name: 'Advanced & Auth', description: 'Authentication and XML formats' },
+          { id: 'f-users', name: 'User Management', description: 'User CRUD operations', parentId: null },
+          { id: 'f-admin-users', name: 'Admin Controls', description: 'Privileged user actions', parentId: 'f-users' },
+          { id: 'f-advanced', name: 'Advanced & Auth', description: 'Authentication and XML formats', parentId: null },
+          { id: 'f-security', name: 'Security Protocols', description: 'Token and bearer authentication', parentId: 'f-advanced' },
+          { id: 'f-xml-data', name: 'Data Formats (XML)', description: 'XML serialization endpoints', parentId: 'f-advanced' },
         ],
       });
 
@@ -119,7 +122,7 @@ async function seedInitialData() {
         {
           name: '3. Update User (PUT)',
           collectionId: starterCollection._id,
-          folderId: 'f-users',
+          folderId: 'f-admin-users',
           userId: adminUser._id,
           method: 'PUT',
           url: '{{baseUrl}}/users/1',
@@ -137,7 +140,7 @@ async function seedInitialData() {
         {
           name: '4. Delete User (DELETE)',
           collectionId: starterCollection._id,
-          folderId: 'f-users',
+          folderId: 'f-admin-users',
           userId: adminUser._id,
           method: 'DELETE',
           url: '{{baseUrl}}/users/1',
@@ -148,7 +151,7 @@ async function seedInitialData() {
         {
           name: '5. Bearer Protected Endpoint (Auth)',
           collectionId: starterCollection._id,
-          folderId: 'f-advanced',
+          folderId: 'f-security',
           userId: adminUser._id,
           method: 'GET',
           url: '{{baseUrl}}/auth-protected',
@@ -160,7 +163,7 @@ async function seedInitialData() {
         {
           name: '6. XML Response Viewer',
           collectionId: starterCollection._id,
-          folderId: 'f-advanced',
+          folderId: 'f-xml-data',
           userId: adminUser._id,
           method: 'GET',
           url: '{{baseUrl}}/xml',

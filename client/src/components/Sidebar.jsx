@@ -476,7 +476,7 @@ const FolderTreeItem = ({
     <div className="my-0.5">
       <div
         onClick={() => toggleFolder(folder.id)}
-        className="flex items-center justify-between px-2 py-1.5 hover:bg-slate-800/40 rounded cursor-pointer text-slate-300 group"
+        className="flex items-center justify-between px-2 py-1.5 hover:bg-slate-800/40 rounded cursor-pointer text-slate-300 group transition"
       >
         <div className="flex items-center gap-1.5 truncate">
           {isFolderOpen ? (
@@ -484,31 +484,36 @@ const FolderTreeItem = ({
           ) : (
             <ChevronRight className="w-3 h-3 text-slate-400 shrink-0" />
           )}
-          <FolderOpen className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+          <FolderOpen className={`w-3.5 h-3.5 shrink-0 ${depth > 0 ? 'text-violet-400' : 'text-indigo-400'}`} />
           <span className="truncate font-medium text-xs">{folder.name}</span>
+          {depth > 0 && (
+            <span className="text-[9px] px-1 py-0.2 rounded bg-violet-500/10 text-violet-300 border border-violet-500/20">
+              sub
+            </span>
+          )}
           <span className="text-[10px] text-slate-500">
             ({folderRequests.length + childFolders.length})
           </span>
         </div>
 
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-1 opacity-70 group-hover:opacity-100 transition" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={(e) => onAddRequest(e, collectionId, folder.id)}
-            className="p-0.5 hover:bg-slate-700 rounded text-slate-300 transition"
+            className="p-1 hover:bg-slate-700/80 rounded text-slate-400 hover:text-sky-400 transition"
             title="Add Request into Folder"
           >
-            <Plus className="w-3 h-3 text-sky-400" />
+            <Plus className="w-3 h-3" />
           </button>
           <button
             onClick={(e) => onAddFolder(e, collectionId, folder.id)}
-            className="p-0.5 hover:bg-slate-700 rounded text-slate-300 transition"
+            className="p-1 hover:bg-slate-700/80 rounded text-slate-400 hover:text-indigo-400 transition"
             title="Add Nested Subfolder"
           >
-            <Folder className="w-3 h-3 text-indigo-400" />
+            <Folder className="w-3 h-3" />
           </button>
           <button
             onClick={(e) => onDeleteFolder(e, collectionId, folder.id)}
-            className="p-0.5 hover:bg-slate-700 rounded text-slate-400 hover:text-rose-400 transition"
+            className="p-1 hover:bg-slate-700/80 rounded text-slate-400 hover:text-rose-400 transition"
             title="Delete Folder"
           >
             <Trash2 className="w-3 h-3" />
@@ -517,7 +522,7 @@ const FolderTreeItem = ({
       </div>
 
       {isFolderOpen && (
-        <div className="pl-3.5 space-y-0.5 border-l border-slate-800/60 ml-2 my-0.5">
+        <div className="pl-3 space-y-0.5 border-l-2 border-indigo-500/20 hover:border-indigo-500/40 ml-2.5 my-0.5 transition-colors">
           {/* Child nested subfolders */}
           {childFolders.map((subFolder) => (
             <FolderTreeItem
@@ -552,7 +557,22 @@ const FolderTreeItem = ({
           ))}
 
           {folderRequests.length === 0 && childFolders.length === 0 && (
-            <div className="text-[11px] text-slate-600 pl-2 py-0.5 italic">Empty folder</div>
+            <div className="flex items-center gap-2 text-[10px] text-slate-500 pl-2 py-1">
+              <span className="italic">Empty</span>
+              <button
+                onClick={(e) => onAddFolder(e, collectionId, folder.id)}
+                className="text-indigo-400 hover:text-indigo-300 font-mono text-[10px]"
+              >
+                + subfolder
+              </button>
+              <span>&bull;</span>
+              <button
+                onClick={(e) => onAddRequest(e, collectionId, folder.id)}
+                className="text-sky-400 hover:text-sky-300 font-mono text-[10px]"
+              >
+                + request
+              </button>
+            </div>
           )}
         </div>
       )}

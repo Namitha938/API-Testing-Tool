@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 
 export const ResponsePane = () => {
-  const { response, isLoading, responseTab, setResponseTab } = useApi();
+  const { response, isLoading, responseTab, setResponseTab, sendRequest, activeRequest } = useApi();
   const [copied, setCopied] = useState(false);
   const [bodyFilter, setBodyFilter] = useState('');
   const [viewMode, setViewMode] = useState('pretty'); // 'pretty' or 'raw'
@@ -30,8 +30,8 @@ export const ResponsePane = () => {
     return (
       <div className="flex-1 flex flex-col items-center justify-center bg-slate-900/50 p-8 text-center text-xs">
         <div className="w-12 h-12 rounded-full border-2 border-sky-500 border-t-transparent animate-spin mb-4" />
-        <p className="text-slate-300 font-medium">Sending request to proxy...</p>
-        <p className="text-slate-500 text-[11px] mt-1">Measuring DNS, TTFB, and server round-trip latency</p>
+        <p className="text-slate-300 font-medium text-sm">Sending request to proxy...</p>
+        <p className="text-slate-500 text-[11px] mt-1">Measuring DNS, TCP handshake, TTFB, and server round-trip latency</p>
       </div>
     );
   }
@@ -39,13 +39,41 @@ export const ResponsePane = () => {
   if (!response) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center bg-slate-900/40 p-8 text-center text-xs select-none">
-        <div className="w-12 h-12 rounded-xl bg-slate-800/80 border border-slate-700/60 flex items-center justify-center text-slate-500 mb-3">
-          <Zap className="w-6 h-6 text-sky-400 opacity-60" />
+        <div className="w-14 h-14 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 mb-4 shadow-lg shadow-sky-500/5">
+          <Zap className="w-7 h-7 text-sky-400" />
         </div>
-        <p className="text-slate-300 font-medium">No response yet</p>
-        <p className="text-slate-500 text-[11px] mt-1">
-          Click <strong className="text-sky-400">Send</strong> or press <strong className="text-slate-300 font-mono">Ctrl + Enter</strong> to execute
+        <h3 className="text-slate-200 font-bold text-sm mb-1">No response yet</h3>
+        <p className="text-slate-400 text-xs max-w-sm mb-4 leading-relaxed">
+          Execute this request to inspect status codes, network timings, headers, and formatted response payloads.
         </p>
+
+        <button
+          onClick={sendRequest}
+          className="px-5 py-2.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-semibold rounded-lg shadow-md hover:shadow-sky-500/20 transition flex items-center gap-2 text-xs"
+        >
+          <Zap className="w-4 h-4 fill-current" />
+          <span>Send Request Now</span>
+          <span className="text-[10px] opacity-75 font-mono ml-1 px-1.5 py-0.5 rounded bg-black/30">Ctrl + Enter</span>
+        </button>
+
+        <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-md text-left">
+          <div className="p-2 rounded bg-slate-950/60 border border-slate-800 text-[10px]">
+            <span className="text-slate-500 block font-semibold uppercase">Status & Size</span>
+            <span className="text-slate-300 font-mono">200 OK &bull; Bytes</span>
+          </div>
+          <div className="p-2 rounded bg-slate-950/60 border border-slate-800 text-[10px]">
+            <span className="text-slate-500 block font-semibold uppercase">Latency</span>
+            <span className="text-emerald-400 font-mono">TTFB &bull; DNS breakdown</span>
+          </div>
+          <div className="p-2 rounded bg-slate-950/60 border border-slate-800 text-[10px]">
+            <span className="text-slate-500 block font-semibold uppercase">View Modes</span>
+            <span className="text-sky-400 font-mono">Pretty &bull; Raw &bull; Preview</span>
+          </div>
+          <div className="p-2 rounded bg-slate-950/60 border border-slate-800 text-[10px]">
+            <span className="text-slate-500 block font-semibold uppercase">Payloads</span>
+            <span className="text-amber-400 font-mono">JSON &bull; XML &bull; HTML</span>
+          </div>
+        </div>
       </div>
     );
   }

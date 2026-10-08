@@ -111,7 +111,7 @@ export default function App() {
       <AuthProvider>
         <ApiProvider>
           <Routes>
-            <Route path="/" element={<LandingPage />} />
+            <Route path="/" element={<LoginPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/profile" element={<ProfilePage />} />
@@ -122,7 +122,7 @@ export default function App() {
             <Route path="/app" element={<StudioWorkbench />} />
             <Route path="/requests" element={<Navigate to="/app" replace />} />
             <Route path="/studio" element={<Navigate to="/app" replace />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<LoginPage />} />
           </Routes>
         </ApiProvider>
       </AuthProvider>

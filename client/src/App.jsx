@@ -111,14 +111,7 @@ export default function App() {
       <AuthProvider>
         <ApiProvider>
           <Routes>
-            {/* Directly land on the Studio Workbench */}
-            <Route path="/" element={<StudioWorkbench />} />
-            <Route path="/app" element={<StudioWorkbench />} />
-            <Route path="/requests" element={<StudioWorkbench />} />
-            <Route path="/studio" element={<StudioWorkbench />} />
-            <Route path="/workbench" element={<StudioWorkbench />} />
-
-            {/* Authentication & Profile Pages */}
+            <Route path="/" element={<LoginPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/profile" element={<ProfilePage />} />
@@ -129,8 +122,12 @@ export default function App() {
             <Route path="/admin-dashboard" element={<AdminPage />} />
             <Route path="/admin-console" element={<AdminPage />} />
 
-            {/* Fallback directly to Studio Workbench */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            {/* Studio Workbench */}
+            <Route path="/app" element={<StudioWorkbench />} />
+            <Route path="/workbench" element={<StudioWorkbench />} />
+            <Route path="/requests" element={<Navigate to="/app" replace />} />
+            <Route path="/studio" element={<Navigate to="/app" replace />} />
+            <Route path="*" element={<LoginPage />} />
           </Routes>
         </ApiProvider>
       </AuthProvider>

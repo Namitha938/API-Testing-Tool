@@ -54,8 +54,84 @@ export const AuthProvider = ({ children }) => {
       throw new Error(data.message || 'Login failed');
     }
 
+    // Handle 2FA Challenge
+    if (data.requires2FA) {
+      return data;
+    }
+
     localStorage.setItem('token', data.token);
     setToken(data.token);
+    setUser(data.user);
+    return data;
+  };
+
+  const verifyLogin2FA = async (email, code) => {
+    const res = await fetch('/api/auth/2fa/verify-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, code }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || '2FA verification failed');
+    }
+
+    localStorage.setItem('token', data.token);
+    setToken(data.token);
+    setUser(data.user);
+    return data;
+  };
+
+  const generate2FA = async () => {
+    const res = await fetch('/api/auth/2fa/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || 'Failed to generate 2FA setup');
+    }
+    return data;
+  };
+
+  const enable2FA = async (code) => {
+    const res = await fetch('/api/auth/2fa/enable', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ code }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || 'Failed to enable 2FA');
+    }
+
+    setUser(data.user);
+    return data;
+  };
+
+  const disable2FA = async () => {
+    const res = await fetch('/api/auth/2fa/disable', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || 'Failed to disable 2FA');
+    }
+
     setUser(data.user);
     return data;
   };
@@ -203,6 +279,10 @@ export const AuthProvider = ({ children }) => {
         changePassword,
         forgotPassword,
         resetPassword,
+        verifyLogin2FA,
+        generate2FA,
+        enable2FA,
+        disable2FA,
         logout,
         isAdmin: user?.role === 'admin',
       }}

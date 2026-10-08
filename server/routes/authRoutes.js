@@ -68,6 +68,21 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password.' });
     }
 
+    // Check if 2FA is enabled for this user
+    if (user.twoFactorEnabled) {
+      const twoFactorCode = Math.floor(100000 + Math.random() * 900000).toString();
+      user.twoFactorTempCode = twoFactorCode;
+      user.twoFactorTempExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+      await user.save();
+
+      return res.json({
+        requires2FA: true,
+        email: user.email,
+        message: 'Two-factor authentication is required. A 6-digit verification code has been generated.',
+        demoCode: twoFactorCode, // Provided for demonstration and testing convenience
+      });
+    }
+
     user.lastLogin = new Date();
     await user.save();
 
@@ -80,6 +95,120 @@ router.post('/login', async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: 'Login failed', error: error.message });
+  }
+});
+
+// POST /api/auth/2fa/verify-login - Complete 2FA login with code
+router.post('/2fa/verify-login', async (req, res) => {
+  try {
+    const { email, code } = req.body;
+    if (!email || !code) {
+      return res.status(400).json({ message: 'Email and 6-digit verification code are required.' });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    if (!user.twoFactorTempCode || user.twoFactorTempCode !== code.toString().trim()) {
+      return res.status(400).json({ message: 'Invalid 2FA verification code. Please check and try again.' });
+    }
+
+    if (!user.twoFactorTempExpiry || new Date(user.twoFactorTempExpiry) < new Date()) {
+      return res.status(400).json({ message: 'Verification code has expired. Please log in again.' });
+    }
+
+    user.twoFactorTempCode = '';
+    user.twoFactorTempExpiry = null;
+    user.lastLogin = new Date();
+    await user.save();
+
+    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+
+    res.json({
+      message: 'Two-factor authentication verified successfully!',
+      token,
+      user: user.toJSON(),
+    });
+  } catch (error) {
+    res.status(500).json({ message: '2FA login verification failed', error: error.message });
+  }
+});
+
+// POST /api/auth/2fa/generate - Generate 2FA setup secret and code
+router.post('/2fa/generate', authenticate, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found.' });
+
+    const setupCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const secretKey = 'SEC-' + Math.random().toString(36).substring(2, 10).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+
+    user.twoFactorSecret = secretKey;
+    user.twoFactorTempCode = setupCode;
+    user.twoFactorTempExpiry = new Date(Date.now() + 15 * 60 * 1000);
+    await user.save();
+
+    res.json({
+      message: '2FA setup code generated successfully.',
+      secret: secretKey,
+      code: setupCode,
+      setupCode,
+      otpauthUrl: `otpauth://totp/APITestingTool:${encodeURIComponent(user.email)}?secret=${secretKey}&issuer=APITestingTool`,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to generate 2FA setup', error: error.message });
+  }
+});
+
+// POST /api/auth/2fa/enable - Confirm code and enable 2FA
+router.post('/2fa/enable', authenticate, async (req, res) => {
+  try {
+    const { code } = req.body;
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found.' });
+
+    if (!user.twoFactorTempCode || user.twoFactorTempCode !== code?.toString().trim()) {
+      return res.status(400).json({ message: 'Invalid verification code. Please enter the correct 6-digit code.' });
+    }
+
+    if (!user.twoFactorTempExpiry || new Date(user.twoFactorTempExpiry) < new Date()) {
+      return res.status(400).json({ message: 'Verification code has expired. Please generate a new code.' });
+    }
+
+    user.twoFactorEnabled = true;
+    user.twoFactorTempCode = '';
+    user.twoFactorTempExpiry = null;
+    await user.save();
+
+    res.json({
+      message: 'Two-factor authentication (2FA) is now enabled for your account!',
+      user: user.toJSON(),
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to enable 2FA', error: error.message });
+  }
+});
+
+// POST /api/auth/2fa/disable - Disable 2FA
+router.post('/2fa/disable', authenticate, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found.' });
+
+    user.twoFactorEnabled = false;
+    user.twoFactorSecret = '';
+    user.twoFactorTempCode = '';
+    user.twoFactorTempExpiry = null;
+    await user.save();
+
+    res.json({
+      message: 'Two-factor authentication (2FA) has been disabled.',
+      user: user.toJSON(),
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to disable 2FA', error: error.message });
   }
 });
 

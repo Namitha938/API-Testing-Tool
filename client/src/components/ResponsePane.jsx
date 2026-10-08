@@ -18,7 +18,10 @@ import {
   Layers,
   FileCode,
   Zap,
+  Sparkles,
+  ArrowRight,
 } from 'lucide-react';
+import { AiDiagnosticsPanel } from './AiDiagnosticsPanel';
 
 export const ResponsePane = () => {
   const { response, isLoading, responseTab, setResponseTab, sendRequest, activeRequest } = useApi();
@@ -137,6 +140,23 @@ export const ResponsePane = () => {
         </button>
       </div>
 
+      {/* AI Proactive Diagnostics Alert Banner */}
+      {(response.status >= 400 || (response.testResults || []).some((t) => !t.passed)) && responseTab !== 'ai' && (
+        <div className="bg-purple-950/40 border-b border-purple-800/40 px-3 py-1.5 flex items-center justify-between text-xs shrink-0">
+          <div className="flex items-center gap-2 text-purple-300">
+            <Sparkles className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+            <span>Issue detected ({response.status || 'Error'}). AI Root Cause Analysis & 1-Click Fix is ready.</span>
+          </div>
+          <button
+            onClick={() => setResponseTab('ai')}
+            className="px-2 py-0.5 rounded bg-purple-600 hover:bg-purple-500 text-white font-semibold text-[10px] flex items-center gap-1 transition shadow-sm"
+          >
+            <span>View AI Solution</span>
+            <ArrowRight className="w-3 h-3" />
+          </button>
+        </div>
+      )}
+
       {/* Response Navigation Subtabs */}
       <div className="flex border-b border-slate-800 bg-slate-900/60 px-3 text-xs font-medium justify-between items-center">
         <div className="flex">
@@ -182,6 +202,23 @@ export const ResponsePane = () => {
             }`}
           >
             Test Results ({response.testResults?.length || 0})
+          </button>
+
+          <button
+            onClick={() => setResponseTab('ai')}
+            className={`py-2 px-3 border-b-2 transition flex items-center gap-1.5 ${
+              responseTab === 'ai'
+                ? 'border-purple-500 text-purple-400 font-semibold'
+                : (response.status >= 400 || (response.testResults || []).some((t) => !t.passed))
+                ? 'border-transparent text-purple-400 hover:text-purple-300 font-medium'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+            <span>AI Diagnostics & Fix</span>
+            {(response.status >= 400 || (response.testResults || []).some((t) => !t.passed)) && (
+              <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+            )}
           </button>
         </div>
 
@@ -396,6 +433,11 @@ export const ResponsePane = () => {
               </div>
             )}
           </div>
+        )}
+
+        {/* TAB 5: AI DIAGNOSTICS & SOLUTIONS */}
+        {responseTab === 'ai' && (
+          <AiDiagnosticsPanel />
         )}
       </div>
     </div>

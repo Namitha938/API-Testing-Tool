@@ -55,9 +55,9 @@ async function seedInitialData() {
         userId: adminUser._id,
         isGlobal: true,
         variables: [
-          { key: 'baseUrl', value: 'http://localhost:5000/api/mock', enabled: true },
-          { key: 'apiKey', value: 'secret_dev_key_9988', enabled: true },
-          { key: 'token', value: 'test-secret-token', enabled: true },
+          { key: 'baseUrl', value: 'https://jsonplaceholder.typicode.com', enabled: true },
+          { key: 'apiKey', value: 'live_prod_api_key_8899', enabled: true },
+          { key: 'token', value: 'production_bearer_token_9900', enabled: true },
         ],
       });
       console.log('[Database] Seeded default Local Dev Environment');

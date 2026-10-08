@@ -10,6 +10,9 @@ import {
   Loader2,
   Trash2,
   ShieldCheck,
+  ShieldAlert,
+  Shield,
+  Copy,
   Mail,
   Building,
   Code2,
@@ -23,7 +26,7 @@ import {
 } from 'lucide-react';
 
 export const ProfileModal = ({ isOpen, onClose }) => {
-  const { user, updateProfile, changePassword, isAdmin } = useAuth();
+  const { user, updateProfile, changePassword, generate2FA, enable2FA, disable2FA, isAdmin } = useAuth();
   const fileInputRef = useRef(null);
 
   const [activeTab, setActiveTab] = useState('general'); // 'general', 'security'
@@ -42,6 +45,16 @@ export const ProfileModal = ({ isOpen, onClose }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
+
+  // 2FA tab states
+  const [twoFactorStep, setTwoFactorStep] = useState('initial'); // 'initial' | 'setup'
+  const [twoFactorSecret, setTwoFactorSecret] = useState('');
+  const [twoFactorSetupCode, setTwoFactorSetupCode] = useState('');
+  const [twoFactorCodeInput, setTwoFactorCodeInput] = useState('');
+  const [twoFactorLoading, setTwoFactorLoading] = useState(false);
+  const [twoFactorError, setTwoFactorError] = useState('');
+  const [twoFactorSuccess, setTwoFactorSuccess] = useState('');
+  const [copiedSecret, setCopiedSecret] = useState(false);
 
   // Status states
   const [loading, setLoading] = useState(false);
@@ -144,6 +157,67 @@ export const ProfileModal = ({ isOpen, onClose }) => {
       setPasswordError(err.message || 'Failed to change password');
     } finally {
       setPasswordLoading(false);
+    }
+  };
+
+  const handleStart2FASetup = async () => {
+    setTwoFactorLoading(true);
+    setTwoFactorError('');
+    setTwoFactorSuccess('');
+    try {
+      const data = await generate2FA();
+      setTwoFactorSecret(data.secret || '');
+      setTwoFactorSetupCode(data.setupCode || '');
+      setTwoFactorStep('setup');
+    } catch (err) {
+      setTwoFactorError(err.message || 'Failed to generate 2FA setup');
+    } finally {
+      setTwoFactorLoading(false);
+    }
+  };
+
+  const handleConfirm2FA = async (e) => {
+    e.preventDefault();
+    if (twoFactorCodeInput.length < 6) {
+      setTwoFactorError('Please enter the 6-digit verification code.');
+      return;
+    }
+    setTwoFactorLoading(true);
+    setTwoFactorError('');
+    try {
+      await enable2FA(twoFactorCodeInput);
+      setTwoFactorSuccess('Two-Factor Authentication is now enabled!');
+      setTwoFactorStep('initial');
+      setTwoFactorCodeInput('');
+      setTimeout(() => setTwoFactorSuccess(''), 4000);
+    } catch (err) {
+      setTwoFactorError(err.message || 'Invalid verification code');
+    } finally {
+      setTwoFactorLoading(false);
+    }
+  };
+
+  const handleDisable2FA = async () => {
+    if (!window.confirm('Are you sure you want to disable 2FA? This lowers your account security.')) return;
+    setTwoFactorLoading(true);
+    setTwoFactorError('');
+    try {
+      await disable2FA();
+      setTwoFactorSuccess('Two-Factor Authentication disabled.');
+      setTwoFactorStep('initial');
+      setTimeout(() => setTwoFactorSuccess(''), 4000);
+    } catch (err) {
+      setTwoFactorError(err.message || 'Failed to disable 2FA');
+    } finally {
+      setTwoFactorLoading(false);
+    }
+  };
+
+  const handleCopySecret = () => {
+    if (twoFactorSecret) {
+      navigator.clipboard.writeText(twoFactorSecret);
+      setCopiedSecret(true);
+      setTimeout(() => setCopiedSecret(false), 2000);
     }
   };
 
@@ -398,112 +472,269 @@ export const ProfileModal = ({ isOpen, onClose }) => {
             </form>
           ) : (
             /* Security Tab */
-            <form onSubmit={handlePasswordSubmit} className="space-y-4">
-              {passwordError && (
-                <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>{passwordError}</span>
+            <div className="space-y-6">
+              {/* 2FA Security Section */}
+              <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/60 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {user.twoFactorEnabled ? (
+                      <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                    ) : (
+                      <ShieldAlert className="w-4 h-4 text-amber-400" />
+                    )}
+                    <span className="font-semibold text-xs text-slate-100">
+                      Two-Factor Authentication (2FA)
+                    </span>
+                  </div>
+                  <span
+                    className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase ${
+                      user.twoFactorEnabled
+                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                        : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+                    }`}
+                  >
+                    {user.twoFactorEnabled ? 'Active' : 'Disabled'}
+                  </span>
                 </div>
-              )}
 
-              {passwordSuccess && (
-                <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 shrink-0" />
-                  <span>{passwordSuccess}</span>
-                </div>
-              )}
-
-              <div className="p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 text-xs text-slate-400 space-y-1">
-                <div className="font-semibold text-slate-200 flex items-center gap-1.5">
-                  <Lock className="w-4 h-4 text-amber-400" />
-                  <span>Account Credentials</span>
-                </div>
-                <p className="text-[11px] leading-relaxed">
-                  Enter your existing password to set a new one. If you signed in via Google and don't have a password, you can set one here or use the Forgot Password flow.
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  {user.twoFactorEnabled
+                    ? 'Your account is secured with 2FA. A 6-digit one-time code is required upon signing in.'
+                    : 'Add an extra layer of defense. A 6-digit code will be required during login before granting access.'}
                 </p>
-              </div>
 
-              <div className="space-y-3 text-xs">
-                <div>
-                  <label className="block text-slate-300 font-medium mb-1">Current Password</label>
-                  <div className="relative">
-                    <input
-                      type={showCurrentPassword ? 'text' : 'password'}
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
-                      required
-                      placeholder="••••••••"
-                      className="w-full rounded-lg pl-3.5 pr-10 py-2 border border-slate-700 bg-slate-950 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs"
-                    />
+                {twoFactorError && (
+                  <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-center gap-2">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>{twoFactorError}</span>
+                  </div>
+                )}
+
+                {twoFactorSuccess && (
+                  <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                    <span>{twoFactorSuccess}</span>
+                  </div>
+                )}
+
+                {user.twoFactorEnabled ? (
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-[11px] text-emerald-400 flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> High Security Protection Enabled
+                    </span>
                     <button
                       type="button"
-                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-200 cursor-pointer"
+                      disabled={twoFactorLoading}
+                      onClick={handleDisable2FA}
+                      className="px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-semibold transition cursor-pointer disabled:opacity-50"
                     >
-                      {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {twoFactorLoading ? 'Disabling...' : 'Disable 2FA'}
                     </button>
                   </div>
+                ) : twoFactorStep === 'setup' ? (
+                  /* 2FA Setup Box */
+                  <div className="p-3.5 rounded-xl bg-purple-950/20 border border-purple-500/30 space-y-3">
+                    <div className="space-y-1">
+                      <div className="text-xs font-semibold text-purple-300">Set Up 2FA Security Key</div>
+                      <p className="text-[11px] text-slate-400">
+                        Use this secret or the demo code below to complete setup:
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between bg-slate-900 px-3 py-2 rounded-lg border border-purple-500/20 font-mono text-xs text-purple-200">
+                      <span className="truncate">{twoFactorSecret}</span>
+                      <button
+                        type="button"
+                        onClick={handleCopySecret}
+                        className="ml-2 text-slate-400 hover:text-white p-1 cursor-pointer"
+                        title="Copy Secret"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    {twoFactorSetupCode && (
+                      <button
+                        type="button"
+                        onClick={() => setTwoFactorCodeInput(twoFactorSetupCode)}
+                        className="text-[10px] text-purple-300 hover:text-purple-200 bg-purple-500/20 px-2.5 py-1 rounded border border-purple-500/30 cursor-pointer block font-mono"
+                      >
+                        Click to auto-fill verification code: <strong>{twoFactorSetupCode}</strong>
+                      </button>
+                    )}
+
+                    <form onSubmit={handleConfirm2FA} className="space-y-3">
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                          Enter 6-Digit Code
+                        </label>
+                        <input
+                          type="text"
+                          maxLength={6}
+                          required
+                          value={twoFactorCodeInput}
+                          onChange={(e) => setTwoFactorCodeInput(e.target.value.replace(/\D/g, ''))}
+                          placeholder="000000"
+                          className="w-full text-center tracking-[0.4em] font-mono text-lg py-2 rounded-lg bg-slate-950 border border-purple-500/30 text-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-500/30"
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-end gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTwoFactorStep('initial');
+                            setTwoFactorError('');
+                          }}
+                          className="px-3 py-1.5 text-xs text-slate-400 hover:text-slate-200 cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={twoFactorLoading || twoFactorCodeInput.length < 6}
+                          className="px-4 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-md transition disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                        >
+                          {twoFactorLoading ? (
+                            <>
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                              <span>Enabling...</span>
+                            </>
+                          ) : (
+                            <>
+                              <ShieldCheck className="w-3.5 h-3.5" />
+                              <span>Confirm & Enable 2FA</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={twoFactorLoading}
+                    onClick={handleStart2FASetup}
+                    className="px-3.5 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-semibold shadow-md transition cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                  >
+                    {twoFactorLoading ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Initializing 2FA...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Shield className="w-3.5 h-3.5" />
+                        <span>Enable Two-Factor Authentication</span>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+
+              {/* Password Change Form */}
+              <form onSubmit={handlePasswordSubmit} className="space-y-4 pt-2 border-t border-slate-800">
+                {passwordError && (
+                  <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{passwordError}</span>
+                  </div>
+                )}
+
+                {passwordSuccess && (
+                  <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 shrink-0" />
+                    <span>{passwordSuccess}</span>
+                  </div>
+                )}
+
+                <div className="font-semibold text-slate-200 text-xs flex items-center gap-1.5">
+                  <Lock className="w-4 h-4 text-amber-400" />
+                  <span>Change Password</span>
                 </div>
 
-                <div>
-                  <label className="block text-slate-300 font-medium mb-1">New Password</label>
-                  <div className="relative">
+                <div className="space-y-3 text-xs">
+                  <div>
+                    <label className="block text-slate-300 font-medium mb-1">Current Password</label>
+                    <div className="relative">
+                      <input
+                        type={showCurrentPassword ? 'text' : 'password'}
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        required
+                        placeholder="••••••••"
+                        className="w-full rounded-lg pl-3.5 pr-10 py-2 border border-slate-700 bg-slate-950 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-200 cursor-pointer"
+                      >
+                        {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-300 font-medium mb-1">New Password</label>
+                    <div className="relative">
+                      <input
+                        type={showNewPassword ? 'text' : 'password'}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        required
+                        minLength={6}
+                        placeholder="At least 6 characters"
+                        className="w-full rounded-lg pl-3.5 pr-10 py-2 border border-slate-700 bg-slate-950 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-200 cursor-pointer"
+                      >
+                        {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-300 font-medium mb-1">Confirm New Password</label>
                     <input
                       type={showNewPassword ? 'text' : 'password'}
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
                       required
-                      minLength={6}
-                      placeholder="At least 6 characters"
-                      className="w-full rounded-lg pl-3.5 pr-10 py-2 border border-slate-700 bg-slate-950 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs"
+                      placeholder="Confirm new password"
+                      className="w-full rounded-lg px-3.5 py-2 border border-slate-700 bg-slate-950 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs"
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-200 cursor-pointer"
-                    >
-                      {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-slate-300 font-medium mb-1">Confirm New Password</label>
-                  <input
-                    type={showNewPassword ? 'text' : 'password'}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                    placeholder="Confirm new password"
-                    className="w-full rounded-lg px-3.5 py-2 border border-slate-700 bg-slate-950 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs"
-                  />
+                <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-800">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="px-4 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={passwordLoading}
+                    className="px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold shadow-md shadow-sky-600/20 transition flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                  >
+                    {passwordLoading ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Updating...</span>
+                      </>
+                    ) : (
+                      <span>Change Password</span>
+                    )}
+                  </button>
                 </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-800">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-4 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={passwordLoading}
-                  className="px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold shadow-md shadow-sky-600/20 transition flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
-                >
-                  {passwordLoading ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>Updating...</span>
-                    </>
-                  ) : (
-                    <span>Change Password</span>
-                  )}
-                </button>
-              </div>
-            </form>
+              </form>
+            </div>
           )}
         </div>
       </div>

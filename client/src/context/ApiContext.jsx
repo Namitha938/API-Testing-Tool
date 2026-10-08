@@ -7,17 +7,16 @@ export const useApi = () => useContext(ApiContext);
 
 const defaultRequest = {
   _id: null,
-  name: 'New Request',
+  name: '1. Fetch Live Posts (Real Public API)',
   collectionId: null,
   folderId: null,
   method: 'GET',
-  url: 'http://localhost:5000/api/mock/users',
+  url: 'https://jsonplaceholder.typicode.com/posts',
   params: [
-    { key: 'page', value: '1', enabled: true, description: 'Page number' },
-    { key: 'limit', value: '10', enabled: true, description: 'Items per page' },
+    { key: 'userId', value: '1', enabled: true, description: 'Filter posts by author ID' },
   ],
   headers: [
-    { key: 'Accept', value: 'application/json', enabled: true, description: '' },
+    { key: 'Accept', value: 'application/json', enabled: true, description: 'Accept JSON format' },
   ],
   auth: {
     type: 'none',
@@ -32,8 +31,9 @@ const defaultRequest = {
   rawBody: '',
   formData: [],
   testCases: [
-    { id: 't1', name: 'Status code is 200', type: 'status', expectedValue: '200', enabled: true },
-    { id: 't2', name: 'Response time < 500ms', type: 'responseTime', expectedValue: '500', enabled: true },
+    { id: 't1', name: 'Status code is 200 OK', type: 'status', expectedValue: '200', enabled: true },
+    { id: 't2', name: 'Response time under 1500ms', type: 'responseTime', expectedValue: '1500', enabled: true },
+    { id: 't3', name: 'Response contains posts data', type: 'containsText', expectedValue: 'title', enabled: true },
   ],
 };
 

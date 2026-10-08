@@ -48,9 +48,25 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+
+  const getPasswordStrength = (pass) => {
+    if (!pass) return { score: 0, label: '', color: 'bg-slate-700' };
+    let score = 0;
+    if (pass.length >= 6) score += 25;
+    if (pass.length >= 8) score += 25;
+    if (/[A-Z]/.test(pass)) score += 25;
+    if (/[0-9]/.test(pass) || /[^A-Za-z0-9]/.test(pass)) score += 25;
+
+    if (score <= 25) return { score, label: 'Weak', color: 'bg-rose-500', text: 'text-rose-400' };
+    if (score <= 75) return { score, label: 'Medium', color: 'bg-amber-500', text: 'text-amber-400' };
+    return { score, label: 'Strong', color: 'bg-emerald-500', text: 'text-emerald-400' };
+  };
+
+  const strength = getPasswordStrength(password);
 
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('theme') || 'dark';
@@ -328,7 +344,14 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className={labelCls}>Password</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label htmlFor="password" className={labelCls}>Password</label>
+                {password && (
+                  <span className={`text-xs font-semibold ${strength.text}`}>
+                    Strength: {strength.label}
+                  </span>
+                )}
+              </div>
               <div className="relative">
                 <input
                   id="password"
@@ -345,27 +368,56 @@ export default function RegisterPage() {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  className={`absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 ${
+                  className={`absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 cursor-pointer ${
                     isDark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-700'
                   }`}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
+
+              {/* Password Strength Meter */}
+              {password && (
+                <div className="mt-2 space-y-1">
+                  <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-300 rounded-full ${strength.color}`}
+                      style={{ width: `${strength.score}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-[10px] text-slate-500 pt-0.5">
+                    <span className={password.length >= 6 ? 'text-emerald-400' : ''}>✓ 6+ chars</span>
+                    <span className={/[A-Z]/.test(password) ? 'text-emerald-400' : ''}>✓ Uppercase</span>
+                    <span className={/[0-9]/.test(password) ? 'text-emerald-400' : ''}>✓ Number</span>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div>
               <label htmlFor="confirmPassword" className={labelCls}>Confirm Password</label>
-              <input
-                id="confirmPassword"
-                type={showPassword ? 'text' : 'password'}
-                autoComplete="new-password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                placeholder="Confirm your password"
-                className={inputCls}
-              />
+              <div className="relative">
+                <input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  placeholder="Confirm your password"
+                  className={`${inputCls} pr-11`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                  className={`absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 cursor-pointer ${
+                    isDark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
 
             <button

@@ -46,7 +46,7 @@ const IMAGE_PRESETS = [
 ];
 
 export default function LoginPage() {
-  const { login, loginWithGoogle, forgotPassword, resetPassword, user } = useAuth();
+  const { login, verifyLogin2FA, loginWithGoogle, forgotPassword, resetPassword, user } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
@@ -57,6 +57,12 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const currentPreset = IMAGE_PRESETS[selectedImageIndex] || IMAGE_PRESETS[0];
+
+  // 2FA Challenge state
+  const [twoFactorRequired, setTwoFactorRequired] = useState(false);
+  const [twoFactorCode, setTwoFactorCode] = useState('');
+  const [twoFactorDemoCode, setTwoFactorDemoCode] = useState('');
+  const [twoFactorEmail, setTwoFactorEmail] = useState('');
 
   // Forgot Password modal state
   const [forgotOpen, setForgotOpen] = useState(false);
@@ -95,10 +101,31 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await login(email, password);
+      const res = await login(email, password);
+      if (res && res.requires2FA) {
+        setTwoFactorRequired(true);
+        setTwoFactorEmail(res.email);
+        setTwoFactorDemoCode(res.demoCode || '');
+        return;
+      }
       navigate('/app');
     } catch (err) {
       setError(err.message || 'Login failed. Please check your credentials.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerify2FA = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      await verifyLogin2FA(twoFactorEmail, twoFactorCode);
+      navigate('/app');
+    } catch (err) {
+      setError(err.message || 'Invalid 2FA verification code.');
     } finally {
       setLoading(false);
     }
@@ -121,7 +148,13 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      await login(quickEmail, quickPass);
+      const res = await login(quickEmail, quickPass);
+      if (res && res.requires2FA) {
+        setTwoFactorRequired(true);
+        setTwoFactorEmail(res.email);
+        setTwoFactorDemoCode(res.demoCode || '');
+        return;
+      }
       navigate('/app');
     } catch (err) {
       setError(err.message || 'Quick login failed');
@@ -384,86 +417,149 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="email" className={`mb-1.5 block text-xs font-semibold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                Email Address
-              </label>
-              <div className="relative">
-                <Mail size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  id="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  className={`${inputBase} pl-10 pr-4`}
-                />
-              </div>
-            </div>
+          {twoFactorRequired ? (
+            /* 2FA Challenge Verification Step */
+            <div className="space-y-4 animate-in fade-in duration-200">
+              <div className="p-4 rounded-2xl bg-purple-500/10 border border-purple-500/30 text-center space-y-2">
+                <div className="w-12 h-12 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center mx-auto">
+                  <Shield className="w-6 h-6" />
+                </div>
+                <h3 className="font-bold text-sm text-slate-100">Two-Factor Authentication</h3>
+                <p className={`text-xs leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                  Enter the 6-digit verification code associated with <strong className="text-purple-400 font-mono">{twoFactorEmail}</strong>.
+                </p>
 
-            <div>
-              <div className="mb-1.5 flex items-center justify-between">
-                <label htmlFor="password" className={`block text-xs font-semibold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                  Password
-                </label>
-                {/* Forgot Password Button */}
+                {twoFactorDemoCode && (
+                  <button
+                    type="button"
+                    onClick={() => setTwoFactorCode(twoFactorDemoCode)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 font-mono text-[11px] hover:bg-purple-500/30 transition cursor-pointer"
+                  >
+                    <span>Click to auto-fill code: <strong>{twoFactorDemoCode}</strong></span>
+                  </button>
+                )}
+              </div>
+
+              <form onSubmit={handleVerify2FA} className="space-y-4">
+                <div>
+                  <label className={`block text-xs font-semibold mb-1.5 text-center ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                    6-Digit Security Code
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={6}
+                    autoFocus
+                    required
+                    value={twoFactorCode}
+                    onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, ''))}
+                    placeholder="000000"
+                    className="w-full text-center tracking-[0.5em] text-2xl font-mono py-3 rounded-xl bg-slate-900 border border-purple-500/40 text-purple-200 focus:outline-none focus:border-purple-400 focus:ring-4 focus:ring-purple-500/20"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading || twoFactorCode.length < 6}
+                  className="w-full py-3 px-4 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white font-semibold text-sm transition shadow-lg shadow-purple-600/25 flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Shield className="w-4 h-4" />
+                  <span>{loading ? 'Verifying 2FA Code...' : 'Verify & Complete Sign In'}</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={() => {
-                    setForgotEmail(email);
-                    setForgotError('');
-                    setForgotSuccess('');
-                    setForgotStep(1);
-                    setForgotOpen(true);
+                    setTwoFactorRequired(false);
+                    setError('');
                   }}
-                  className="text-xs font-semibold text-sky-500 hover:text-sky-400 cursor-pointer transition hover:underline"
+                  className="w-full text-center text-xs text-slate-400 hover:text-slate-200 transition py-1 block cursor-pointer"
                 >
-                  Forgot password?
+                  &larr; Back to Email & Password
                 </button>
-              </div>
-
-              <div className="relative">
-                <Lock size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className={`${inputBase} pl-10 pr-11`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 cursor-pointer"
-                >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
+              </form>
             </div>
+          ) : (
+            /* Standard Login Form */
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label htmlFor="email" className={`mb-1.5 block text-xs font-semibold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                  Email Address
+                </label>
+                <div className="relative">
+                  <Mail size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    id="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    className={`${inputBase} pl-10 pr-4`}
+                  />
+                </div>
+              </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-xl bg-sky-600 hover:bg-sky-500 py-3 text-sm font-semibold text-white shadow-lg shadow-sky-600/25 transition-all hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <span className="inline-block animate-pulse">Authenticating...</span>
-              ) : (
-                <>
-                  <LogIn size={16} />
-                  <span>Sign In</span>
-                </>
-              )}
-            </button>
-          </form>
+              <div>
+                <div className="mb-1.5 flex items-center justify-between">
+                  <label htmlFor="password" className={`block text-xs font-semibold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                    Password
+                  </label>
+                  {/* Forgot Password Button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForgotEmail(email);
+                      setForgotError('');
+                      setForgotSuccess('');
+                      setForgotStep(1);
+                      setForgotOpen(true);
+                    }}
+                    className="text-xs font-semibold text-sky-500 hover:text-sky-400 cursor-pointer transition hover:underline"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+
+                <div className="relative">
+                  <Lock size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className={`${inputBase} pl-10 pr-11`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full rounded-xl bg-sky-600 hover:bg-sky-500 py-3 text-sm font-semibold text-white shadow-lg shadow-sky-600/25 transition-all hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <span className="inline-block animate-pulse">Authenticating...</span>
+                ) : (
+                  <>
+                    <LogIn size={16} />
+                    <span>Sign In</span>
+                  </>
+                )}
+              </button>
+            </form>
+          )}
 
           {/* Footer Info */}
           <p className="text-center text-xs mt-6 text-slate-500">

@@ -11,6 +11,7 @@ const environmentRoutes = require('./routes/environmentRoutes');
 const historyRoutes = require('./routes/historyRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const mockRoutes = require('./routes/mockRoutes');
+const aiRoutes = require('./routes/aiRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -42,6 +43,7 @@ app.use('/api/environments', environmentRoutes);
 app.use('/api/history', historyRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/mock', mockRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Serve static frontend build if present
 const clientBuildPath = path.join(__dirname, '../client/dist');

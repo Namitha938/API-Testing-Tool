@@ -46,6 +46,22 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    twoFactorEnabled: {
+      type: Boolean,
+      default: false,
+    },
+    twoFactorSecret: {
+      type: String,
+      default: '',
+    },
+    twoFactorTempCode: {
+      type: String,
+      default: '',
+    },
+    twoFactorTempExpiry: {
+      type: Date,
+      default: null,
+    },
     role: {
       type: String,
       enum: ['user', 'admin'],
@@ -69,6 +85,8 @@ const userSchema = new mongoose.Schema(
 userSchema.methods.toJSON = function () {
   const obj = this.toObject();
   delete obj.password;
+  delete obj.twoFactorSecret;
+  delete obj.twoFactorTempCode;
   return obj;
 };
 

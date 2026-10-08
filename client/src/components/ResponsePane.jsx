@@ -215,9 +215,9 @@ export const ResponsePane = () => {
             }`}
           >
             <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-            <span>AI Diagnostics & Fix</span>
+            <span>AI Diagnostics & Suggestions</span>
             {(response.status >= 400 || (response.testResults || []).some((t) => !t.passed)) && (
-              <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+              <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
             )}
           </button>
         </div>

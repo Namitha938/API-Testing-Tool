@@ -321,7 +321,7 @@ async function executeRequest(requestConfig, environmentVariables = {}) {
       else failedCount++;
 
       testResults.push({
-        name: tc.name,
+        name: tc.name || tc.description || `Test ${tc.type || 'Assertion'}`,
         type: tc.type,
         passed,
         expected,

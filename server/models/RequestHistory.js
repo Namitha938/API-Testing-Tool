@@ -2,8 +2,8 @@ const mongoose = require('mongoose');
 
 const testResultSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
-    type: { type: String },
+    name: { type: String, default: 'Assertion' },
+    type: { type: String, default: 'custom' },
     passed: { type: Boolean, required: true },
     expected: { type: String },
     actual: { type: String },

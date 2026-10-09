@@ -41,9 +41,14 @@ import { GoogleIcon } from '../components/GoogleIcon';
 import { ProfileModal } from '../components/ProfileModal';
 
 export default function AdminPage() {
-  const { user, token, login, logout, loginWithGoogle, isAdmin } = useAuth();
+  const { user, token, adminUser, adminToken, loginAdminWithGoogle, logoutAdmin, logout, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [profileModalOpen, setProfileModalOpen] = useState(false);
+
+  // Dedicated admin session or authorized normal user
+  const isNormalUserAdmin = user?.role === 'admin' && ['singunamitha@gmail.com', 's.v.padmavathi2005@gmail.com'].includes((user?.email || '').toLowerCase().replace(/\s+/g, '').trim());
+  const effectiveAdminToken = adminToken || (isNormalUserAdmin ? token : null);
+  const isDashboardAdmin = Boolean(effectiveAdminToken);
 
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('theme') || 'dark';
@@ -83,10 +88,10 @@ export default function AdminPage() {
   const [quickLoginError, setQuickLoginError] = useState('');
 
   const fetchAdminData = async () => {
-    if (!token || !isAdmin) return;
+    if (!effectiveAdminToken) return;
     setLoading(true);
     try {
-      const headers = { Authorization: `Bearer ${token}` };
+      const headers = { Authorization: `Bearer ${effectiveAdminToken}` };
       const [statsRes, usersRes, logsRes] = await Promise.all([
         fetch('/api/admin/stats', { headers }),
         fetch('/api/admin/users', { headers }),
@@ -104,25 +109,17 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
-    if (isAdmin && token) {
+    if (isDashboardAdmin && effectiveAdminToken) {
       fetchAdminData();
     }
-  }, [isAdmin, token]);
+  }, [isDashboardAdmin, effectiveAdminToken]);
 
 
   const handleGoogleAdminLogin = async () => {
     setQuickLoginLoading(true);
     setQuickLoginError('');
     try {
-      const res = await loginWithGoogle();
-      const signedInEmail = res?.user?.email?.toLowerCase().replace(/\s+/g, '').trim();
-      const ALLOWED_ADMINS = ['singunamitha@gmail.com', 's.v.padmavathi2005@gmail.com'];
-
-      if (!ALLOWED_ADMINS.includes(signedInEmail) || res?.user?.role !== 'admin') {
-        setQuickLoginError('Unauthorized: Access denied. This account does not have administrator privileges.');
-        return;
-      }
-
+      await loginAdminWithGoogle();
       fetchAdminData();
     } catch (err) {
       setQuickLoginError(err.message || 'Google authentication failed');
@@ -136,7 +133,7 @@ export default function AdminPage() {
     try {
       const res = await fetch(`/api/admin/users/${userId}/role`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${effectiveAdminToken}` },
         body: JSON.stringify({ role: newRole }),
       });
       if (res.ok) fetchAdminData();
@@ -150,7 +147,7 @@ export default function AdminPage() {
     try {
       const res = await fetch(`/api/admin/users/${userId}/status`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${effectiveAdminToken}` },
         body: JSON.stringify({ status: newStatus }),
       });
       if (res.ok) fetchAdminData();
@@ -164,7 +161,7 @@ export default function AdminPage() {
     try {
       const res = await fetch(`/api/admin/users/${userId}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${effectiveAdminToken}` },
       });
       if (res.ok) fetchAdminData();
     } catch (err) {
@@ -180,7 +177,7 @@ export default function AdminPage() {
     try {
       const res = await fetch('/api/admin/users', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${effectiveAdminToken}` },
         body: JSON.stringify({
           name: newUserName,
           email: newUserEmail,
@@ -210,7 +207,7 @@ export default function AdminPage() {
     try {
       const res = await fetch('/api/admin/history/clear', {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${effectiveAdminToken}` },
       });
       if (res.ok) fetchAdminData();
     } catch (err) {
@@ -283,74 +280,56 @@ export default function AdminPage() {
             {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
 
-          {isAdmin ? (
+          {isDashboardAdmin ? (
             <div className="flex items-center gap-2.5">
-              <button
-                onClick={() => setProfileModalOpen(true)}
-                className={`flex items-center gap-2 px-2 py-1 rounded-lg border transition cursor-pointer hover:scale-[1.02] ${
+              <div
+                className={`flex items-center gap-2 px-2.5 py-1 rounded-lg border transition ${
                   isDark
-                    ? 'border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-slate-200'
-                    : 'border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-800'
+                    ? 'border-purple-500/30 bg-purple-950/40 text-purple-200'
+                    : 'border-purple-200 bg-purple-50 text-purple-900'
                 }`}
-                title="Edit Profile and Avatar"
               >
-                {user?.photoURL ? (
+                {adminUser?.photoURL || user?.photoURL ? (
                   <img
-                    src={user.photoURL}
-                    alt={user.name}
+                    src={adminUser?.photoURL || user?.photoURL}
+                    alt={adminUser?.name || user?.name}
                     className="w-6 h-6 rounded-full border border-purple-400/40 object-cover"
                   />
                 ) : (
                   <div className="w-6 h-6 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center text-[10px] font-bold">
-                    {(user?.name || 'A').charAt(0).toUpperCase()}
+                    {(adminUser?.name || user?.name || 'A').charAt(0).toUpperCase()}
                   </div>
                 )}
-                <span className={`text-xs hidden md:inline ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                  Signed in as <strong className="text-purple-400 font-semibold">{user?.name}</strong>{' '}
-                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-400 border border-purple-500/30 font-mono">
+                <span className="text-xs hidden md:inline">
+                  Admin: <strong className="font-semibold text-purple-600 dark:text-purple-300">{adminUser?.name || user?.name}</strong>{' '}
+                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-600 dark:text-purple-300 border border-purple-500/30 font-mono">
                     ADMIN
                   </span>
                 </span>
-              </button>
-              <button
-                onClick={logout}
-                className="px-2.5 py-1 rounded text-xs text-rose-400 hover:bg-rose-500/10 transition cursor-pointer"
-              >
-                Sign Out
-              </button>
+              </div>
+              {adminToken && (
+                <button
+                  onClick={() => {
+                    logoutAdmin();
+                    if (!isNormalUserAdmin) {
+                      navigate('/app');
+                    }
+                  }}
+                  className="px-2.5 py-1 rounded-lg text-xs text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 transition cursor-pointer"
+                  title="Lock Admin Console without logging out normal user"
+                >
+                  Exit Admin
+                </button>
+              )}
             </div>
           ) : user ? (
             <div className="flex items-center gap-2.5">
-              <button
-                onClick={() => setProfileModalOpen(true)}
-                className={`flex items-center gap-2 px-2.5 py-1 rounded-lg border transition cursor-pointer hover:scale-[1.02] ${
-                  isDark
-                    ? 'border-rose-500/30 bg-rose-950/30 hover:bg-rose-900/40 text-slate-200'
-                    : 'border-rose-300 bg-rose-50 hover:bg-rose-100 text-slate-800'
-                }`}
-                title="Edit Profile and Upload Picture"
-              >
-                {user?.photoURL ? (
-                  <img
-                    src={user.photoURL}
-                    alt={user.name}
-                    className="w-6 h-6 rounded-full border border-rose-400/40 object-cover"
-                  />
-                ) : (
-                  <div className="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center text-[10px] font-bold">
-                    {(user?.name || 'U').charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <span className={`text-xs hidden md:inline ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                  Signed in as <strong className="text-rose-400 font-semibold">{user?.name}</strong>{' '}
-                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 border border-rose-500/40 font-mono font-semibold">
-                    UNAUTHORIZED
-                  </span>
-                </span>
-              </button>
+              <span className={`text-xs hidden md:inline ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                Active User: <strong className="text-slate-200 font-semibold">{user.name}</strong>
+              </span>
               <button
                 onClick={logout}
-                className="px-2.5 py-1 rounded text-xs text-rose-400 hover:bg-rose-500/10 transition cursor-pointer"
+                className="px-2.5 py-1 rounded text-xs text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition cursor-pointer"
               >
                 Sign Out
               </button>
@@ -372,7 +351,7 @@ export default function AdminPage() {
       {/* Main Body */}
       <main className="flex-1 max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-8 space-y-6">
         {/* UNAUTHENTICATED / NOT ADMIN GATEWAY */}
-        {!isAdmin ? (
+        {!isDashboardAdmin ? (
           user ? (
             /* 403 Forbidden: Signed in with unauthorized account */
             <div className="max-w-xl mx-auto my-8 p-8 rounded-2xl border text-center shadow-2xl transition-colors duration-200 bg-slate-900/95 border-rose-500/40">

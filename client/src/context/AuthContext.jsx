@@ -9,6 +9,54 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token') || '');
   const [loading, setLoading] = useState(true);
 
+  // Dedicated Administrator session state (independent of normal dashboard account)
+  const [adminToken, setAdminToken] = useState(() => sessionStorage.getItem('adminToken') || '');
+  const [adminUser, setAdminUser] = useState(() => {
+    const raw = sessionStorage.getItem('adminUser');
+    try {
+      return raw ? JSON.parse(raw) : null;
+    } catch (_) {
+      return null;
+    }
+  });
+
+  // Verify admin session if adminToken exists
+  useEffect(() => {
+    const verifyAdminSession = async () => {
+      if (!adminToken) {
+        setAdminUser(null);
+        return;
+      }
+      try {
+        const res = await fetch('/api/auth/me', {
+          headers: { Authorization: `Bearer ${adminToken}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const email = (data.user?.email || '').toLowerCase().replace(/\s+/g, '').trim();
+          const ALLOWED = ['singunamitha@gmail.com', 's.v.padmavathi2005@gmail.com'];
+          if (data.user?.role === 'admin' && ALLOWED.includes(email)) {
+            setAdminUser(data.user);
+            sessionStorage.setItem('adminUser', JSON.stringify(data.user));
+          } else {
+            sessionStorage.removeItem('adminToken');
+            sessionStorage.removeItem('adminUser');
+            setAdminToken('');
+            setAdminUser(null);
+          }
+        } else {
+          sessionStorage.removeItem('adminToken');
+          sessionStorage.removeItem('adminUser');
+          setAdminToken('');
+          setAdminUser(null);
+        }
+      } catch (_) {
+        // Keep existing cached adminUser on network error
+      }
+    };
+    verifyAdminSession();
+  }, [adminToken]);
+
   // Load user on token change
   useEffect(() => {
     const fetchUser = async () => {
@@ -258,11 +306,52 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
+  const loginAdminWithGoogle = async () => {
+    const { signInWithGoogleFirebase } = await import('../firebase');
+    const payload = await signInWithGoogleFirebase();
+
+    const res = await fetch('/api/auth/google', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || 'Google authentication failed');
+    }
+
+    const email = (data.user?.email || '').toLowerCase().replace(/\s+/g, '').trim();
+    const ALLOWED_ADMINS = ['singunamitha@gmail.com', 's.v.padmavathi2005@gmail.com'];
+
+    if (!ALLOWED_ADMINS.includes(email) || data.user?.role !== 'admin') {
+      throw new Error('Unauthorized: Access denied. This account does not have administrator privileges.');
+    }
+
+    // Persist ONLY to admin session - do NOT modify or overwrite the normal user session!
+    sessionStorage.setItem('adminToken', data.token);
+    sessionStorage.setItem('adminUser', JSON.stringify(data.user));
+    setAdminToken(data.token);
+    setAdminUser(data.user);
+
+    return data;
+  };
+
+  const logoutAdmin = () => {
+    sessionStorage.removeItem('adminToken');
+    sessionStorage.removeItem('adminUser');
+    setAdminToken('');
+    setAdminUser(null);
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     setToken('');
     setUser(null);
   };
+
+  const isNormalUserAdmin = user?.role === 'admin' && ['singunamitha@gmail.com', 's.v.padmavathi2005@gmail.com'].includes((user?.email || '').toLowerCase().replace(/\s+/g, '').trim());
+  const hasActiveAdminSession = adminUser?.role === 'admin' && Boolean(adminToken);
 
   return (
     <AuthContext.Provider
@@ -270,6 +359,10 @@ export const AuthProvider = ({ children }) => {
         user,
         token,
         loading,
+        adminUser,
+        adminToken,
+        loginAdminWithGoogle,
+        logoutAdmin,
         login,
         register,
         loginWithGoogle,
@@ -282,7 +375,7 @@ export const AuthProvider = ({ children }) => {
         enable2FA,
         disable2FA,
         logout,
-        isAdmin: user?.role === 'admin',
+        isAdmin: isNormalUserAdmin || hasActiveAdminSession,
       }}
     >
       {children}

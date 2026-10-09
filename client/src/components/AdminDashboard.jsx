@@ -22,7 +22,7 @@ import {
 import { GoogleIcon } from './GoogleIcon';
 
 export const AdminDashboard = ({ isOpen, onClose }) => {
-  const { token, user: currentUser, isAdmin, loginWithGoogle } = useAuth();
+  const { token, user: currentUser, adminToken, adminUser, loginAdminWithGoogle, logoutAdmin } = useAuth();
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
@@ -33,11 +33,16 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState('');
 
+  // Use dedicated adminToken from sessionStorage, or fall back to token if the normal user is already an authorized admin
+  const isNormalUserAdmin = currentUser?.role === 'admin' && ['singunamitha@gmail.com', 's.v.padmavathi2005@gmail.com'].includes((currentUser?.email || '').toLowerCase().replace(/\s+/g, '').trim());
+  const effectiveAdminToken = adminToken || (isNormalUserAdmin ? token : null);
+  const isDashboardAdmin = Boolean(effectiveAdminToken);
+
   const fetchAdminData = async () => {
-    if (!token || !isAdmin) return;
+    if (!effectiveAdminToken) return;
     setLoading(true);
     try {
-      const headers = { Authorization: `Bearer ${token}` };
+      const headers = { Authorization: `Bearer ${effectiveAdminToken}` };
       const [statsRes, usersRes, logsRes] = await Promise.all([
         fetch('/api/admin/stats', { headers }),
         fetch('/api/admin/users', { headers }),
@@ -55,23 +60,16 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
   };
 
   useEffect(() => {
-    if (isOpen) fetchAdminData();
-  }, [isOpen, token]);
+    if (isOpen && isDashboardAdmin) fetchAdminData();
+  }, [isOpen, effectiveAdminToken, isDashboardAdmin]);
 
   const handleGoogleAdminLogin = async () => {
     setLoginLoading(true);
     setLoginError('');
     try {
-      const res = await loginWithGoogle();
-      const signedInEmail = res?.user?.email?.toLowerCase().replace(/\s+/g, '').trim();
-      const ALLOWED_ADMINS = ['singunamitha@gmail.com', 's.v.padmavathi2005@gmail.com'];
-
-      if (!ALLOWED_ADMINS.includes(signedInEmail) || res?.user?.role !== 'admin') {
-        setLoginError('Unauthorized: Access denied. This account does not have administrator privileges.');
-        return;
-      }
-
-      await fetchAdminData();
+      // Authenticates admin independently without changing normal dashboard user
+      await loginAdminWithGoogle();
+      fetchAdminData();
     } catch (err) {
       setLoginError(err.message || 'Google authentication failed');
     } finally {
@@ -84,7 +82,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
     try {
       const res = await fetch(`/api/admin/users/${userId}/role`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${effectiveAdminToken}` },
         body: JSON.stringify({ role: newRole }),
       });
       if (res.ok) fetchAdminData();
@@ -98,7 +96,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
     try {
       const res = await fetch(`/api/admin/users/${userId}/status`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${effectiveAdminToken}` },
         body: JSON.stringify({ status: newStatus }),
       });
       if (res.ok) fetchAdminData();
@@ -112,7 +110,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
     try {
       const res = await fetch(`/api/admin/users/${userId}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${effectiveAdminToken}` },
       });
       if (res.ok) fetchAdminData();
     } catch (err) {
@@ -122,7 +120,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  if (!isAdmin) {
+  if (!isDashboardAdmin) {
     return (
       <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-purple-500/30 rounded-2xl w-full max-w-md p-6 sm:p-7 shadow-2xl text-center space-y-4">
@@ -192,6 +190,18 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
               <span>Full Page</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </Link>
+            {adminToken && (
+              <button
+                onClick={() => {
+                  logoutAdmin();
+                  onClose();
+                }}
+                className="px-2.5 py-1 text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-rose-200 dark:border-rose-900/40 text-xs font-medium transition cursor-pointer"
+                title="Lock Admin Console without logging out normal dashboard user"
+              >
+                Exit Admin
+              </button>
+            )}
             <button
               onClick={fetchAdminData}
               className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"

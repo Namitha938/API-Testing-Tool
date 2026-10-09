@@ -130,18 +130,18 @@ export const AuthModal = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden text-xs">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden text-xs transition-colors">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-950/60">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60">
           <div className="flex items-center gap-2">
             {twoFactorRequired ? (
-              <Shield className="w-5 h-5 text-purple-400" />
+              <Shield className="w-5 h-5 text-purple-600 dark:text-purple-400" />
             ) : isRegister ? (
-              <UserPlus className="w-5 h-5 text-sky-400" />
+              <UserPlus className="w-5 h-5 text-sky-600 dark:text-sky-400" />
             ) : (
-              <LogIn className="w-5 h-5 text-sky-400" />
+              <LogIn className="w-5 h-5 text-sky-600 dark:text-sky-400" />
             )}
-            <h3 className="text-sm font-bold text-slate-100">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
               {twoFactorRequired
                 ? 'Two-Factor Authentication'
                 : isRegister
@@ -151,7 +151,7 @@ export const AuthModal = ({ isOpen, onClose }) => {
           </div>
           <button
             onClick={onClose}
-            className="p-1 text-slate-400 hover:text-slate-200 rounded cursor-pointer"
+            className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -160,7 +160,7 @@ export const AuthModal = ({ isOpen, onClose }) => {
         {/* Content */}
         <div className="p-6 space-y-4">
           {error && (
-            <div className="p-3 rounded-xl bg-rose-950/40 border border-rose-800 text-rose-300 text-xs flex items-center gap-2">
+            <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{error}</span>
             </div>
@@ -235,7 +235,7 @@ export const AuthModal = ({ isOpen, onClose }) => {
                 type="button"
                 onClick={handleGoogleSignIn}
                 disabled={googleLoading}
-                className="w-full py-2.5 px-3 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-100 font-semibold text-xs flex items-center justify-center gap-2.5 transition cursor-pointer shadow-xs active:scale-95"
+                className="w-full py-2.5 px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-semibold text-xs flex items-center justify-center gap-2.5 transition cursor-pointer shadow-xs active:scale-95"
               >
                 <GoogleIcon className="w-4 h-4" />
                 <span>{googleLoading ? 'Connecting to Google...' : 'Continue with Google'}</span>
@@ -243,29 +243,37 @@ export const AuthModal = ({ isOpen, onClose }) => {
 
               <div className="relative text-center my-2">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-800" />
+                  <div className="w-full border-t border-slate-200 dark:border-slate-800" />
                 </div>
-                <span className="relative px-2 bg-slate-900 text-[10px] text-slate-500 uppercase tracking-wider">
+                <span className="relative px-2 bg-white dark:bg-slate-900 text-[10px] text-slate-500 uppercase tracking-wider">
                   or continue below
                 </span>
               </div>
 
               {/* Quick Login Presets for testing */}
-              <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
-                <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+              <div className="p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl space-y-2">
+                <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                   <span>Quick 1-Click Login</span>
-                  <span className="text-sky-400 flex items-center gap-1 font-mono normal-case">
+                  <span className="text-sky-600 dark:text-sky-400 flex items-center gap-1 font-mono normal-case">
                     <Sparkles className="w-3 h-3" /> Demo
                   </span>
                 </div>
                 <div className="flex flex-col gap-2">
                   <button
                     type="button"
-                    onClick={() => handleQuickLogin('demo@apitester.io', 'user123')}
-                    className="py-1.5 px-3 bg-sky-950/40 hover:bg-sky-900/60 border border-sky-700/60 text-sky-300 rounded-lg font-medium flex items-center justify-center gap-1.5 transition text-[11px] cursor-pointer"
+                    onClick={() => handleQuickLogin('singunamitha@gmail.com', 'Admin@2026!')}
+                    className="py-1.5 px-3 bg-purple-100 dark:bg-purple-950/50 hover:bg-purple-200 dark:hover:bg-purple-900/70 border border-purple-300 dark:border-purple-600/60 text-purple-800 dark:text-purple-200 rounded-lg font-semibold flex items-center justify-center gap-1.5 transition text-[11px] cursor-pointer shadow-xs active:scale-95"
                   >
-                    <User className="w-3.5 h-3.5 text-sky-400" />
-                    <span>Demo User (demo@apitester.io)</span>
+                    <Shield className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                    <span>Administrator (Full Admin Console Access)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleQuickLogin('demo@apitester.io', 'user123')}
+                    className="py-1.5 px-3 bg-sky-100 dark:bg-sky-950/40 hover:bg-sky-200 dark:hover:bg-sky-900/60 border border-sky-300 dark:border-sky-700/60 text-sky-800 dark:text-sky-300 rounded-lg font-medium flex items-center justify-center gap-1.5 transition text-[11px] cursor-pointer"
+                  >
+                    <User className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+                    <span>Demo Developer (demo@apitester.io)</span>
                   </button>
                 </div>
               </div>
@@ -273,45 +281,45 @@ export const AuthModal = ({ isOpen, onClose }) => {
               <form onSubmit={handleSubmit} className="space-y-3">
                 {isRegister && (
                   <div>
-                    <label className="block text-slate-300 font-semibold mb-1">Full Name</label>
+                    <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Full Name</label>
                     <input
                       type="text"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="Alex Morgan"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 text-xs focus:outline-none focus:border-sky-500"
+                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus:border-sky-500"
                       required
                     />
                   </div>
                 )}
 
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">Email Address</label>
+                  <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Email Address</label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="alex@company.com"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 text-xs focus:outline-none focus:border-sky-500"
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus:border-sky-500"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">Password</label>
+                  <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Password</label>
                   <div className="relative">
                     <input
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-3 pr-9 py-2 text-slate-100 text-xs focus:outline-none focus:border-sky-500"
+                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl pl-3 pr-9 py-2 text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus:border-sky-500"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 cursor-pointer p-0.5"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer p-0.5"
                     >
                       {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                     </button>
@@ -321,10 +329,10 @@ export const AuthModal = ({ isOpen, onClose }) => {
                   {isRegister && password.length > 0 && (
                     <div className="mt-2 space-y-1">
                       <div className="flex items-center justify-between text-[10px]">
-                        <span className="text-slate-400">Strength</span>
+                        <span className="text-slate-500 dark:text-slate-400">Strength</span>
                         <span className={`font-semibold ${strength.text}`}>{strength.label}</span>
                       </div>
-                      <div className="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                      <div className="w-full h-1 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
                         <div
                           className={`h-full transition-all duration-300 ${strength.color}`}
                           style={{ width: `${strength.percent}%` }}
@@ -343,13 +351,13 @@ export const AuthModal = ({ isOpen, onClose }) => {
                 </button>
               </form>
 
-              <div className="text-center pt-2 border-t border-slate-800">
+              <div className="text-center pt-2 border-t border-slate-200 dark:border-slate-800">
                 <button
                   onClick={() => {
                     setIsRegister(!isRegister);
                     setError('');
                   }}
-                  className="text-slate-400 hover:text-sky-400 text-[11px] transition cursor-pointer"
+                  className="text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 text-[11px] transition cursor-pointer font-medium"
                 >
                   {isRegister ? 'Already have an account? Sign In' : "Don't have an account? Register here"}
                 </button>

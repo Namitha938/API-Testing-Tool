@@ -426,15 +426,16 @@ router.post('/forgot-password', async (req, res) => {
     const hashedOtp = crypto.createHash('sha256').update(rawOtp).digest('hex');
 
     user.resetToken = hashedOtp;
-    user.resetTokenExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
+    user.resetTokenExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes expiry
     user.resetTokenAttempts = 0;
     user.resetTokenLastSent = new Date();
     user.resetVerified = false;
     await user.save();
 
     // Send verification email
+    let emailResult = { isLiveSmtp: false, previewUrl: null };
     try {
-      await sendPasswordResetOtp({
+      emailResult = await sendPasswordResetOtp({
         to: user.email,
         otp: rawOtp,
         name: user.name || 'Developer',
@@ -448,6 +449,8 @@ router.post('/forgot-password', async (req, res) => {
       success: true,
       message: genericSuccessMessage,
       cooldown: 60,
+      previewUrl: emailResult.previewUrl || null,
+      isLiveSmtp: Boolean(process.env.SMTP_USER),
     };
 
     // In local development when SMTP is not configured, supply devCode for instant developer testing

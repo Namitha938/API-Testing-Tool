@@ -18,6 +18,7 @@ import {
   Sun,
   Moon,
   Zap,
+  ExternalLink,
 } from 'lucide-react';
 
 export default function ForgotPasswordPage() {
@@ -58,6 +59,12 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [devCodeHelper, setDevCodeHelper] = useState('');
+  const [previewUrl, setPreviewUrl] = useState('');
+  const [isLiveSmtp, setIsLiveSmtp] = useState(false);
+
+  // Firebase Direct Password Reset Email state
+  const [firebaseLoading, setFirebaseLoading] = useState(false);
+  const [firebaseSuccess, setFirebaseSuccess] = useState('');
 
   // Resend Cooldown Timer (in seconds)
   const [cooldown, setCooldown] = useState(0);
@@ -75,6 +82,7 @@ export default function ForgotPasswordPage() {
     e.preventDefault();
     setError('');
     setSuccessMsg('');
+    setFirebaseSuccess('');
 
     const cleanEmail = email.trim().toLowerCase();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -90,12 +98,40 @@ export default function ForgotPasswordPage() {
       if (res.devCode) {
         setDevCodeHelper(res.devCode);
       }
+      if (res.previewUrl) {
+        setPreviewUrl(res.previewUrl);
+      }
+      if (res.isLiveSmtp) {
+        setIsLiveSmtp(true);
+      }
       setCooldown(res.cooldown || 60);
       setStep(2);
     } catch (err) {
       setError(err.message || 'Failed to send verification code. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Alternative: Send Password Reset Link via Firebase
+  const handleFirebaseReset = async () => {
+    const cleanEmail = email.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      setError('Please enter a valid email address first.');
+      return;
+    }
+
+    setFirebaseLoading(true);
+    setError('');
+    try {
+      const { sendPasswordResetEmailFirebase } = await import('../firebase');
+      await sendPasswordResetEmailFirebase(cleanEmail);
+      setFirebaseSuccess(`Official Google Firebase password reset email sent to ${cleanEmail}! Please check your Gmail inbox or spam folder.`);
+    } catch (fbErr) {
+      setError(fbErr.message || 'Firebase email request failed. Please verify the email address.');
+    } finally {
+      setFirebaseLoading(false);
     }
   };
 
@@ -111,6 +147,12 @@ export default function ForgotPasswordPage() {
       setSuccessMsg('A new verification code has been dispatched to your email.');
       if (res.devCode) {
         setDevCodeHelper(res.devCode);
+      }
+      if (res.previewUrl) {
+        setPreviewUrl(res.previewUrl);
+      }
+      if (res.isLiveSmtp) {
+        setIsLiveSmtp(true);
       }
       setCooldown(res.cooldown || 60);
     } catch (err) {
@@ -386,20 +428,54 @@ export default function ForgotPasswordPage() {
             </div>
           )}
 
+          {/* Firebase Email Sent Banner */}
+          {firebaseSuccess && (
+            <div className="p-3.5 rounded-xl bg-sky-500/10 border border-sky-500/30 text-sky-600 dark:text-sky-400 text-xs flex items-center gap-2.5 animate-in fade-in duration-200">
+              <CheckCircle2 className="w-4 h-4 shrink-0 text-sky-500" />
+              <span>{firebaseSuccess}</span>
+            </div>
+          )}
+
+          {/* Ethereal Mailbox Online Preview Link if available */}
+          {previewUrl && step === 2 && (
+            <a
+              href={previewUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-3 rounded-xl bg-sky-500/10 border border-sky-500/30 text-sky-600 dark:text-sky-400 text-xs flex items-center justify-between hover:bg-sky-500/15 transition"
+            >
+              <div className="flex items-center gap-2">
+                <Mail className="w-4 h-4 text-sky-500 shrink-0" />
+                <span>Dispatched Test Email (View HTML Mail Online)</span>
+              </div>
+              <div className="flex items-center gap-1 font-bold text-[11px]">
+                <span>View Email</span>
+                <ExternalLink className="w-3 h-3" />
+              </div>
+            </a>
+          )}
+
           {/* Development / Demo Mode Code Auto-Fill Helper */}
           {devCodeHelper && step === 2 && (
-            <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-700 dark:text-purple-300 text-xs flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-purple-500" />
-                <span>Simulated Dev OTP: <strong className="font-mono">{devCodeHelper}</strong></span>
+            <div className="p-3.5 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-700 dark:text-purple-300 text-xs space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-purple-500 shrink-0" />
+                  <span>Development Mode OTP: <strong className="font-mono text-sm tracking-wider text-purple-900 dark:text-purple-100">{devCodeHelper}</strong></span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setCode(devCodeHelper)}
+                  className="px-2.5 py-1 rounded-md bg-purple-600 hover:bg-purple-500 text-white font-bold text-[10px] cursor-pointer shadow-xs active:scale-95 transition"
+                >
+                  Auto-Fill
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => setCode(devCodeHelper)}
-                className="px-2.5 py-1 rounded-md bg-purple-600 hover:bg-purple-500 text-white font-bold text-[10px] cursor-pointer"
-              >
-                Auto-Fill
-              </button>
+              {!isLiveSmtp && (
+                <p className="text-[10px] text-purple-600/90 dark:text-purple-400/90 leading-relaxed">
+                  <strong>Why this code appears:</strong> External SMTP (e.g. Gmail) is not configured in <code className="font-mono bg-purple-500/20 px-1 rounded">server/.env</code>. To deliver OTPs directly to your real Gmail inbox, configure <code className="font-mono bg-purple-500/20 px-1 rounded">SMTP_USER</code> and <code className="font-mono bg-purple-500/20 px-1 rounded">SMTP_PASS</code> in <code className="font-mono bg-purple-500/20 px-1 rounded">server/.env</code>.
+                </p>
+              )}
             </div>
           )}
 
@@ -441,6 +517,22 @@ export default function ForgotPasswordPage() {
                   </>
                 )}
               </button>
+
+              {/* Firebase Direct Email Option */}
+              <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={handleFirebaseReset}
+                  disabled={firebaseLoading || !email.trim()}
+                  className="w-full py-2.5 px-4 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  <Mail className="w-3.5 h-3.5 text-amber-500" />
+                  <span>{firebaseLoading ? 'Sending via Firebase...' : 'Or Send Reset Email via Firebase Service'}</span>
+                </button>
+                <p className="text-[10px] text-slate-500 text-center mt-1">
+                  Sends an official reset link directly from Google Firebase servers to your inbox.
+                </p>
+              </div>
             </form>
           )}
 
@@ -481,7 +573,7 @@ export default function ForgotPasswordPage() {
                 <div className="flex items-center justify-between mt-2 text-[11px] text-slate-500">
                   <span className="flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5" />
-                    <span>Expires in 10 minutes</span>
+                    <span>Expires in 15 minutes</span>
                   </span>
 
                   <button

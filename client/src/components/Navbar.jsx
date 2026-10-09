@@ -192,24 +192,6 @@ export const Navbar = ({
           )}
         </button>
 
-        {/* ALWAYS-VISIBLE Admin Dashboard / Login Button */}
-        <button
-          onClick={onOpenAdmin}
-          className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg border transition shadow-xs cursor-pointer active:scale-95 ${
-            isAdmin
-              ? 'bg-purple-100 dark:bg-purple-950/70 hover:bg-purple-200 dark:hover:bg-purple-900 text-purple-800 dark:text-purple-300 border-purple-300 dark:border-purple-600/50'
-              : 'bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-700/40'
-          }`}
-          title="Open Admin Dashboard & Management Console"
-        >
-          <ShieldCheck className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
-          <span className="font-bold">Admin</span>
-          {isAdmin && (
-            <span className="hidden xl:inline text-[9px] px-1 py-0.2 rounded bg-purple-600 text-white font-mono uppercase">
-              Active
-            </span>
-          )}
-        </button>
 
         {/* Theme Toggle Button */}
         <button
@@ -281,16 +263,18 @@ export const Navbar = ({
                     <span>Upload Photo & Profile</span>
                   </button>
 
-                  <button
-                    onClick={() => {
-                      setUserDropdownOpen(false);
-                      onOpenAdmin();
-                    }}
-                    className="w-full text-left px-3 py-2 text-purple-700 dark:text-purple-300 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2 cursor-pointer transition"
-                  >
-                    <ShieldCheck className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-                    <span>Admin Dashboard Console</span>
-                  </button>
+                  {isAdmin && (
+                    <button
+                      onClick={() => {
+                        setUserDropdownOpen(false);
+                        navigate('/admin');
+                      }}
+                      className="w-full text-left px-3 py-2 text-purple-700 dark:text-purple-300 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2 cursor-pointer transition"
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                      <span>Admin Console</span>
+                    </button>
+                  )}
 
                   <button
                     onClick={() => {

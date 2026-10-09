@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -24,5 +24,9 @@ export const signInWithGoogleFirebase = async () => {
     photoURL: user.photoURL || '',
     googleId: user.uid,
   };
+};
+
+export const sendPasswordResetEmailFirebase = async (email) => {
+  return await sendPasswordResetEmail(auth, email);
 };
 

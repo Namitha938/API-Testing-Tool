@@ -29,9 +29,26 @@ async function getTransporter() {
     return cachedTransporter;
   }
 
-  // If no SMTP configured, use a development stream transporter or ethereal test account
-  console.log('[Email Service] No external SMTP credentials detected in .env. Initializing development email dispatcher...');
-  
+  // Attempt Ethereal test account creation with a 3s timeout for real previewable emails
+  try {
+    const testAccountPromise = nodemailer.createTestAccount();
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000));
+    const testAccount = await Promise.race([testAccountPromise, timeoutPromise]);
+    cachedTransporter = nodemailer.createTransport({
+      host: 'smtp.ethereal.email',
+      port: 587,
+      secure: false,
+      auth: {
+        user: testAccount.user,
+        pass: testAccount.pass,
+      },
+    });
+    console.log(`[Email Service] Initialized Ethereal test account: ${testAccount.user}`);
+    return cachedTransporter;
+  } catch (etherealErr) {
+    console.log('[Email Service] Using local stream transport for offline development...');
+  }
+
   cachedTransporter = nodemailer.createTransport({
     streamTransport: true,
     newline: 'unix',
@@ -153,16 +170,28 @@ The APITester Team
       html: htmlContent,
     });
 
+    const previewUrl = nodemailer.getTestMessageUrl(info) || null;
     console.log(`[Email Service] Password reset OTP sent to: ${to} (Message ID: ${info.messageId || 'dev-stream'})`);
+    if (previewUrl) {
+      console.log(`[Email Service] Ethereal Web Email Preview: ${previewUrl}`);
+    }
 
     // In local dev without live SMTP, log code to console for instant developer feedback
     if (!process.env.SMTP_USER) {
       console.log(`=======================================================`);
       console.log(`[DEV EMAIL SIMULATION] Verification OTP for ${to}: ${otp}`);
+      if (previewUrl) {
+        console.log(`[DEV PREVIEW URL] View in browser: ${previewUrl}`);
+      }
       console.log(`=======================================================`);
     }
 
-    return { success: true, messageId: info.messageId };
+    return {
+      success: true,
+      messageId: info.messageId,
+      previewUrl,
+      isLiveSmtp: Boolean(process.env.SMTP_USER),
+    };
   } catch (error) {
     console.error(`[Email Service] Failed to send email to ${to}:`, error.message);
     throw error;

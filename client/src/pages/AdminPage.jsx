@@ -382,6 +382,14 @@ export default function AdminPage() {
 
               {/* Action Buttons */}
               <div className="space-y-2.5">
+                <Link
+                  to="/login"
+                  className="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs transition shadow-md shadow-purple-600/20 flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.01] active:scale-95"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>Sign In with Admin Credentials</span>
+                </Link>
+
                 <button
                   onClick={handleGoogleAdminLogin}
                   disabled={quickLoginLoading}
@@ -423,9 +431,9 @@ export default function AdminPage() {
               <div className="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 mx-auto mb-4">
                 <ShieldAlert className="w-7 h-7" />
               </div>
-              <h2 className="text-xl font-bold mb-2">Administrator Access Required</h2>
+              <h2 className="text-xl font-bold mb-2">Personal Administrator Console</h2>
               <p className="text-xs text-slate-400 mb-6 leading-relaxed">
-                This console provides high-privilege operations including user role elevation, access control, and telemetry. Please continue with your authorized administrator Google account.
+                This console is restricted to authorized administrators only. Please sign in using your designated administrator credentials from the login page.
               </p>
 
               {quickLoginError && (
@@ -435,6 +443,14 @@ export default function AdminPage() {
               )}
 
               <div className="space-y-3">
+                <Link
+                  to="/login"
+                  className="w-full py-3 px-4 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs transition shadow-md shadow-purple-600/20 flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.01] active:scale-95"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>Sign In with Admin Credentials</span>
+                </Link>
+
                 <button
                   onClick={handleGoogleAdminLogin}
                   disabled={quickLoginLoading}

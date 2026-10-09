@@ -51,7 +51,6 @@ function StudioWorkbench() {
   };
 
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [adminModalOpen, setAdminModalOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [collectionsModalOpen, setCollectionsModalOpen] = useState(false);
   const [environmentModalOpen, setEnvironmentModalOpen] = useState(false);
@@ -77,7 +76,6 @@ function StudioWorkbench() {
       {/* Top Navigation */}
       <Navbar
         onOpenAuth={() => setAuthModalOpen(true)}
-        onOpenAdmin={() => setAdminModalOpen(true)}
         onOpenProfile={() => setProfileModalOpen(true)}
         onOpenEnvironments={() => setEnvironmentModalOpen(true)}
         onOpenRunner={() => {
@@ -124,7 +122,6 @@ function StudioWorkbench() {
 
       {/* Modals */}
       <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
-      <AdminDashboard isOpen={adminModalOpen} onClose={() => setAdminModalOpen(false)} />
       <ProfileModal isOpen={profileModalOpen} onClose={() => setProfileModalOpen(false)} />
       <CollectionsModal isOpen={collectionsModalOpen} onClose={() => setCollectionsModalOpen(false)} />
       <EnvironmentModal isOpen={environmentModalOpen} onClose={() => setEnvironmentModalOpen(false)} />

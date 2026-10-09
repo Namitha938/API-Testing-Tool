@@ -404,60 +404,23 @@ export default function LoginPage() {
             </span>
           </div>
 
-          {/* Quick Demo Login Presets */}
-          <div
-            className={`p-2.5 rounded-xl border mb-3 space-y-2 ${
-              isDark ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-200 shadow-xs'
-            }`}
-          >
-            <div className="flex items-center justify-between text-[11px] font-semibold">
-              <span className={isDark ? 'text-slate-400' : 'text-slate-600'}>1-Click Evaluation Presets</span>
-              <span className="text-sky-500 flex items-center gap-1 font-mono">
-                <Sparkles className="w-3 h-3" />
-                <span>Instant</span>
-              </span>
-            </div>
+          
+          
+            
 
-            <div className="flex flex-col gap-2">
-              <button
-                type="button"
-                disabled={loading}
-                onClick={() => handleQuickLogin('singunamitha@gmail.com', 'Admin@2026!')}
-                className="w-full py-2.5 px-3 rounded-xl border font-semibold text-xs flex items-center justify-center gap-2 transition bg-purple-500/10 hover:bg-purple-500/20 border-purple-500/40 text-purple-700 dark:text-purple-300 disabled:opacity-50 cursor-pointer shadow-xs active:scale-95"
-              >
-                <ShieldCheck className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
-                <span>1-Click Administrator Login (Full Admin Console)</span>
-              </button>
+            
+              
+                
+                
+              
 
-              <button
-                type="button"
-                disabled={loading}
-                onClick={() => handleQuickLogin('demo@apitester.io', 'user123')}
-                className="w-full py-2 px-3 rounded-xl border font-semibold text-xs flex items-center justify-center gap-2 transition bg-sky-500/10 hover:bg-sky-500/20 border-sky-500/30 text-sky-700 dark:text-sky-300 disabled:opacity-50 cursor-pointer shadow-xs active:scale-95"
-              >
-                <User className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400 shrink-0" />
-                <span>1-Click Developer User (demo@apitester.io)</span>
-              </button>
-            </div>
-          </div>
+              
+            
+          
 
-          <div className="mb-4 text-center">
-            <Link
-              to="/admin"
-              className="inline-flex items-center gap-1.5 text-xs text-purple-600 dark:text-purple-400 hover:underline font-semibold"
-            >
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Direct Link to Admin Dashboard & Audit Console &rarr;</span>
-            </Link>
-          </div>
+          
 
-          {/* Error Banner */}
-          {error && (
-            <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{error}</span>
-            </div>
-          )}
+          
 
           {twoFactorRequired ? (
             /* 2FA Challenge Verification Step */
@@ -611,18 +574,7 @@ export default function LoginPage() {
             </Link>
           </p>
 
-          <div className="text-center mt-2">
-            <button
-              type="button"
-              onClick={() => {
-                sessionStorage.setItem('guestMode', 'true');
-                navigate('/app');
-              }}
-              className={`text-[11px] underline cursor-pointer transition ${isDark ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-slate-600'}`}
-            >
-              Continue without signing in (Guest Mode) &rarr;
-            </button>
-          </div>
+          
         </div>
 
         

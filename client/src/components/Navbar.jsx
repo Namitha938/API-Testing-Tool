@@ -54,13 +54,7 @@ export const Navbar = ({
       {/* Brand & Logo with link to Studio Workbench */}
       <div className="flex items-center gap-2 sm:gap-2.5">
         {/* Mobile / Desktop Sidebar Toggle Button */}
-        <button
-          onClick={onToggleSidebar}
-          className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-250 dark:bg-slate-800/80 dark:hover:bg-slate-750 text-slate-600 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 border border-slate-300/80 dark:border-slate-700/60 transition cursor-pointer active:scale-95 shrink-0"
-          title="Toggle Sidebar"
-        >
-          <PanelLeft className="w-4 h-4" />
-        </button>
+       
         <Link to="/app" className="flex items-center gap-2 group hover:opacity-95 transition" title="APITester Studio Workbench">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-sm shadow-sky-500/20 ring-1 ring-black/5 dark:ring-white/20 group-hover:scale-105 transition-transform">
             <Zap className="w-4 h-4 text-amber-300 fill-amber-300 drop-shadow" />
@@ -70,7 +64,7 @@ export const Navbar = ({
               APITester
             </span>
             <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-sky-100 dark:bg-sky-500/15 text-sky-700 dark:text-sky-400 border border-sky-300/60 dark:border-sky-500/30 font-mono font-bold tracking-wide">
-              ENTERPRISE
+              STUDIO
             </span>
           </div>
         </Link>
@@ -167,24 +161,12 @@ export const Navbar = ({
           </button>
         </div>
 
-        {/* ALWAYS-VISIBLE Admin Dashboard / Login Button */}
-        <button
-          onClick={onOpenAdmin}
-          className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg border transition shadow-xs cursor-pointer active:scale-95 ${
-            isAdmin
-              ? 'bg-purple-100 dark:bg-purple-950/70 hover:bg-purple-200 dark:hover:bg-purple-900 text-purple-800 dark:text-purple-300 border-purple-300 dark:border-purple-600/50'
-              : 'bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-700/40'
-          }`}
-          title="Open Admin Dashboard & Management Console"
-        >
-          <ShieldCheck className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
-          <span className="font-bold">Admin</span>
-          {isAdmin && (
-            <span className="hidden xl:inline text-[9px] px-1 py-0.2 rounded bg-purple-600 text-white font-mono uppercase">
-              Active
-            </span>
-          )}
-        </button>
+        
+        
+          
+          
+          
+
 
         {/* Theme Toggle Button */}
         <button

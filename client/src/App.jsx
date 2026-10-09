@@ -17,7 +17,7 @@ import { MockServerModal } from './components/MockServerModal';
 import { ApiDocsModal } from './components/ApiDocsModal';
 import { CurlImportModal } from './components/CurlImportModal';
 
-import LandingPage from './pages/LandingPage';
+
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import AdminPage from './pages/AdminPage';
@@ -31,17 +31,6 @@ function StudioWorkbench() {
 
   useEffect(() => {
     localStorage.setItem('theme', theme);
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-      document.documentElement.classList.remove('light');
-      document.body.classList.add('dark');
-      document.body.classList.remove('light');
-    } else {
-      document.documentElement.classList.remove('dark');
-      document.documentElement.classList.add('light');
-      document.body.classList.remove('dark');
-      document.body.classList.add('light');
-    }
   }, [theme]);
 
   const toggleTheme = () => {
@@ -69,11 +58,11 @@ function StudioWorkbench() {
   };
 
   return (
-    <div className={`flex flex-col h-screen w-screen overflow-hidden font-sans transition-colors duration-200 ${theme === 'dark' ? 'bg-[#090d16] text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
+    <div className={`flex flex-col min-h-screen h-auto w-full font-sans transition-colors duration-200 ${theme === 'dark' ? 'bg-[#0b0f17] text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
       {/* Top Navigation */}
       <Navbar
         onOpenAuth={() => setAuthModalOpen(true)}
-        onOpenAdmin={() => setAdminModalOpen(true)}
+        
         onOpenProfile={() => setProfileModalOpen(true)}
         onOpenEnvironments={() => setEnvironmentModalOpen(true)}
         onOpenRunner={() => {
@@ -90,7 +79,7 @@ function StudioWorkbench() {
       />
 
       {/* Main Studio Area */}
-      <div className="flex-1 flex overflow-hidden relative">
+      <div className="flex-1 flex relative min-h-0 items-stretch">
         {/* Left Sidebar */}
         <Sidebar
           isOpen={sidebarOpen}
@@ -100,20 +89,19 @@ function StudioWorkbench() {
           onRunCollection={handleRunCollection}
           onOpenMockServer={() => setMockServerModalOpen(true)}
           onOpenApiDocs={() => setApiDocsModalOpen(true)}
-          theme={theme}
         />
 
         {/* Center / Right Workbench */}
-        <main className={`flex-1 flex flex-col overflow-y-auto lg:overflow-hidden min-w-0 transition-colors ${theme === 'dark' ? 'bg-slate-900/30' : 'bg-slate-100/60'}`}>
+        <main className="flex-1 flex flex-col bg-slate-900/40 min-w-0 min-h-0 overflow-visible">
           {/* Top Half: Request Builder */}
-          <div className={`min-h-[380px] lg:h-1/2 flex flex-col border-b overflow-hidden shrink-0 transition-colors ${theme === 'dark' ? 'border-slate-800/90' : 'border-slate-200/90'}`}>
-            <RequestPane onOpenSaveModal={() => setSaveModalOpen(true)} theme={theme} />
-            <RequestTabs theme={theme} />
+          <div className="min-h-[380px] flex flex-col border-b border-slate-800 overflow-visible shrink-0">
+            <RequestPane onOpenSaveModal={() => setSaveModalOpen(true)} />
+            <RequestTabs />
           </div>
 
           {/* Bottom Half: Response Inspector */}
-          <div className="min-h-[400px] lg:h-1/2 flex flex-col overflow-hidden flex-1">
-            <ResponsePane theme={theme} />
+          <div className="min-h-[400px] flex flex-col overflow-visible shrink-0">
+            <ResponsePane />
           </div>
         </main>
       </div>

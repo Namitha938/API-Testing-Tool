@@ -89,6 +89,76 @@ export const ResponsePane = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleDownloadResponse = () => {
+    if (!response.responseBody) return;
+    let ext = 'txt';
+    let mime = 'text/plain';
+    const ct = (response.contentType || '').toLowerCase();
+    if (ct.includes('json')) {
+      ext = 'json';
+      mime = 'application/json';
+    } else if (ct.includes('xml')) {
+      ext = 'xml';
+      mime = 'application/xml';
+    } else if (ct.includes('html')) {
+      ext = 'html';
+      mime = 'text/html';
+    } else if (ct.includes('csv')) {
+      ext = 'csv';
+      mime = 'text/csv';
+    }
+
+    const blob = new Blob([response.responseBody], { type: `${mime};charset=utf-8` });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `response-${response.status || 'data'}-${Date.now()}.${ext}`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Helper to extract JSON Schema information
+  const getJsonSchemaOverview = (data) => {
+    if (!data || typeof data !== 'object') return null;
+    if (Array.isArray(data)) {
+      const sample = data[0] || {};
+      const fields = typeof sample === 'object' && sample !== null
+        ? Object.entries(sample).map(([k, v]) => ({
+            key: k,
+            type: Array.isArray(v) ? 'array' : typeof v,
+            sample: JSON.stringify(v),
+          }))
+        : [];
+      return { isArray: true, length: data.length, fields };
+    } else {
+      const fields = Object.entries(data).map(([k, v]) => ({
+        key: k,
+        type: Array.isArray(v) ? 'array' : typeof v,
+        sample: JSON.stringify(v),
+      }));
+      return { isArray: false, fields };
+    }
+  };
+
+  let parsedJsonForSchema = null;
+  try {
+    parsedJsonForSchema = JSON.parse(response.responseBody);
+  } catch (_) {
+    parsedJsonForSchema = null;
+  }
+  const schemaInfo = parsedJsonForSchema ? getJsonSchemaOverview(parsedJsonForSchema) : null;
+
+  // Filtered body calculation
+  const getDisplayBody = () => {
+    const base = viewMode === 'pretty' ? formattedBody : response.responseBody;
+    if (!bodyFilter.trim()) return base;
+    const lines = (base || '').split('\n');
+    const filtered = lines.filter((l) => l.toLowerCase().includes(bodyFilter.toLowerCase()));
+    return filtered.length > 0
+      ? filtered.join('\n')
+      : `// No matching lines found for query: "${bodyFilter}"`;
+  };
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-slate-900 border-t border-slate-800">
       {/* Response Status Bar */}
@@ -129,15 +199,26 @@ export const ResponsePane = () => {
           )}
         </div>
 
-        {/* Copy button */}
-        <button
-          onClick={handleCopyBody}
-          className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-[11px] cursor-pointer shrink-0 ml-auto sm:ml-0"
-          title="Copy response body"
-        >
-          {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-          <span>{copied ? 'Copied!' : 'Copy'}</span>
-        </button>
+        {/* Action buttons (Download + Copy) */}
+        <div className="flex items-center gap-1.5 ml-auto sm:ml-0 shrink-0">
+          <button
+            onClick={handleDownloadResponse}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition text-[11px] cursor-pointer"
+            title="Download response file"
+          >
+            <Zap className="w-3.5 h-3.5 text-sky-400" />
+            <span>Download</span>
+          </button>
+
+          <button
+            onClick={handleCopyBody}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-[11px] cursor-pointer"
+            title="Copy response body"
+          >
+            {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+            <span>{copied ? 'Copied!' : 'Copy'}</span>
+          </button>
+        </div>
       </div>
 
       {/* AI Proactive Diagnostics Alert Banner */}
@@ -224,6 +305,27 @@ export const ResponsePane = () => {
 
         {responseTab === 'body' && (
           <div className="flex items-center gap-2">
+            {/* Search Filter Input */}
+            <div className="relative hidden md:flex items-center">
+              <Search className="w-3 h-3 text-slate-500 absolute left-2 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Find in body..."
+                value={bodyFilter}
+                onChange={(e) => setBodyFilter(e.target.value)}
+                className="bg-slate-950 border border-slate-800 rounded-lg pl-7 pr-5 py-0.5 text-[11px] text-slate-200 focus:outline-none focus:border-sky-500 w-32 focus:w-48 transition-all"
+              />
+              {bodyFilter && (
+                <button
+                  type="button"
+                  onClick={() => setBodyFilter('')}
+                  className="absolute right-1 text-slate-500 hover:text-slate-300 text-[10px]"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
             <div className="flex bg-slate-950 rounded p-0.5 border border-slate-800 text-[11px]">
               <button
                 onClick={() => setViewMode('pretty')}
@@ -241,6 +343,16 @@ export const ResponsePane = () => {
               >
                 Raw
               </button>
+              {schemaInfo && (
+                <button
+                  onClick={() => setViewMode('schema')}
+                  className={`px-2.5 py-0.5 rounded transition ${
+                    viewMode === 'schema' ? 'bg-slate-800 text-sky-400 font-semibold shadow-xs' : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  Schema
+                </button>
+              )}
               <button
                 onClick={() => setViewMode('preview')}
                 className={`px-2.5 py-0.5 rounded transition ${
@@ -259,7 +371,44 @@ export const ResponsePane = () => {
         {/* TAB 1: RESPONSE BODY */}
         {responseTab === 'body' && (
           <div className="h-full flex flex-col">
-            {viewMode === 'preview' ? (
+            {viewMode === 'schema' && schemaInfo ? (
+              <div className="flex-1 p-3 bg-slate-950 rounded-lg border border-slate-800/80 overflow-auto space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-800 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-slate-200">JSON Schema Inspector</span>
+                    <span className="px-2 py-0.2 rounded bg-sky-500/20 text-sky-400 font-mono text-[10px]">
+                      {schemaInfo.isArray ? `Array (${schemaInfo.length} items)` : 'Object'}
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-slate-500 font-mono">
+                    {schemaInfo.fields.length} properties discovered
+                  </span>
+                </div>
+
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-900 text-slate-400 uppercase text-[10px] font-semibold">
+                    <tr>
+                      <th className="p-2">Property Name</th>
+                      <th className="p-2">Data Type</th>
+                      <th className="p-2">Sample Value</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60 font-mono text-[11px]">
+                    {schemaInfo.fields.map((f, i) => (
+                      <tr key={i} className="hover:bg-slate-900/40">
+                        <td className="p-2 text-sky-300 font-bold">{f.key}</td>
+                        <td className="p-2 text-purple-400">
+                          <span className="px-1.5 py-0.5 rounded bg-purple-500/10 border border-purple-500/20">
+                            {f.type}
+                          </span>
+                        </td>
+                        <td className="p-2 text-slate-400 truncate max-w-xs">{f.sample}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : viewMode === 'preview' ? (
               <div className="flex-1 flex flex-col bg-slate-950 rounded-lg border border-slate-800/80 overflow-hidden min-h-[300px]">
                 {/* HTML Preview */}
                 {(response.contentType?.includes('html') || response.responseBody?.trim().startsWith('<!DOCTYPE') || response.responseBody?.trim().startsWith('<html')) ? (
@@ -292,14 +441,14 @@ export const ResponsePane = () => {
                       <span className="text-[10px] text-sky-400 uppercase font-mono">{response.contentType || 'text/plain'}</span>
                     </div>
                     <pre className="font-mono text-xs text-slate-200 whitespace-pre-wrap leading-relaxed select-text bg-slate-900/60 p-3 rounded-md border border-slate-800/60">
-                      {formattedBody}
+                      {getDisplayBody()}
                     </pre>
                   </div>
                 )}
               </div>
             ) : (
               <pre className="flex-1 p-3 bg-slate-950 text-slate-200 font-mono text-xs rounded-lg border border-slate-800/80 overflow-auto whitespace-pre-wrap leading-relaxed select-text">
-                {viewMode === 'pretty' ? formattedBody : response.responseBody}
+                {getDisplayBody()}
               </pre>
             )}
           </div>

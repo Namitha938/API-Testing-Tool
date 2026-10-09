@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useApi } from '../context/ApiContext';
 import { getMethodColor } from '../utils/formatters';
-import { Send, Save, Loader2, Sparkles, ChevronDown, Code2 } from 'lucide-react';
+import { Send, Save, Loader2, Sparkles, ChevronDown, Code2, Terminal } from 'lucide-react';
 import { CodeSnippetModal } from './CodeSnippetModal';
+import { CurlImportModal } from './CurlImportModal';
 
 const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
 
@@ -18,6 +19,7 @@ export const RequestPane = ({ onOpenSaveModal }) => {
   const [nameEditing, setNameEditing] = useState(false);
   const [urlPresetsOpen, setUrlPresetsOpen] = useState(false);
   const [codeModalOpen, setCodeModalOpen] = useState(false);
+  const [curlModalOpen, setCurlModalOpen] = useState(false);
 
   const handleMethodChange = (e) => {
     setActiveRequest((prev) => ({ ...prev, method: e.target.value }));
@@ -179,6 +181,16 @@ export const RequestPane = ({ onOpenSaveModal }) => {
             <span>Send</span>
           </button>
 
+          {/* Import cURL Button */}
+          <button
+            onClick={() => setCurlModalOpen(true)}
+            className="h-10 px-3 sm:px-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-750 text-slate-200 font-medium text-xs flex items-center justify-center gap-1.5 border border-slate-700/80 hover:border-amber-500/40 transition shadow-xs cursor-pointer active:scale-95"
+            title="Import raw cURL command into Workbench"
+          >
+            <Terminal className="w-4 h-4 text-amber-400" />
+            <span className="hidden sm:inline">cURL</span>
+          </button>
+
           {/* Code Snippets Button */}
           <button
             onClick={() => setCodeModalOpen(true)}
@@ -206,6 +218,12 @@ export const RequestPane = ({ onOpenSaveModal }) => {
         isOpen={codeModalOpen}
         onClose={() => setCodeModalOpen(false)}
         request={activeRequest}
+      />
+
+      {/* cURL Import Modal */}
+      <CurlImportModal
+        isOpen={curlModalOpen}
+        onClose={() => setCurlModalOpen(false)}
       />
     </div>
   );

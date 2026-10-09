@@ -20,6 +20,7 @@ import { AiAssistantDrawer } from './components/AiAssistantDrawer';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import AdminPage from './pages/AdminPage';
 import ProfilePage from './pages/ProfilePage';
 import { ProfileModal } from './components/ProfileModal';
 
@@ -158,10 +159,10 @@ export default function App() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/settings" element={<ProfilePage />} />
 
-            {/* Redirect any legacy admin links */}
-            <Route path="/admin" element={<Navigate to="/app" replace />} />
-            <Route path="/admin-dashboard" element={<Navigate to="/app" replace />} />
-            <Route path="/admin-console" element={<Navigate to="/app" replace />} />
+            {/* Admin Console (Strict Whitelist Only) */}
+            <Route path="/admin" element={<AdminPage />} />
+            <Route path="/admin-dashboard" element={<AdminPage />} />
+            <Route path="/admin-console" element={<AdminPage />} />
 
             {/* SECOND PAGE: Studio Workbench */}
             <Route path="/app" element={<StudioRoute />} />

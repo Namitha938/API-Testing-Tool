@@ -82,8 +82,15 @@ export default function LoginPage() {
 
   const isDark = theme === 'dark';
 
-  const handleAuthSuccess = () => {
-    navigate('/app');
+  const handleAuthSuccess = (userData) => {
+    const adminWhitelist = ['singunamitha@gmail.com', 's.v.padmavathi2005@gmail.com'];
+    const userEmail = (userData?.email || '').toLowerCase().trim();
+    const isAdminUser = userData?.role === 'admin' && adminWhitelist.includes(userEmail);
+    if (isAdminUser) {
+      navigate('/admin');
+    } else {
+      navigate('/app');
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -301,13 +308,33 @@ export default function LoginPage() {
                 Active account: <strong className="text-purple-300 font-mono">{user.email}</strong>
               </p>
               <div className="flex items-center gap-2 pt-1 flex-wrap">
-                <button
-                  type="button"
-                  onClick={() => navigate('/app')}
-                  className="flex-1 py-2 px-3 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer shadow-md shadow-sky-600/20"
-                >
-                  <span>Open API Studio Workbench &rarr;</span>
-                </button>
+                {user.role === 'admin' && ['singunamitha@gmail.com', 's.v.padmavathi2005@gmail.com'].includes((user.email || '').toLowerCase().trim()) ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => navigate('/admin')}
+                      className="flex-1 py-2 px-3 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer shadow-md shadow-purple-600/20"
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>Open Admin Console &rarr;</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => navigate('/app')}
+                      className="py-2 px-3 rounded-lg border border-slate-700 hover:bg-slate-800 text-sky-400 text-xs font-semibold transition cursor-pointer"
+                    >
+                      Workbench
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => navigate('/app')}
+                    className="flex-1 py-2 px-3 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer shadow-md shadow-sky-600/20"
+                  >
+                    <span>Open API Studio Workbench &rarr;</span>
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => {

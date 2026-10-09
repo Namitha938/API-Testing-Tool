@@ -257,6 +257,19 @@ export const Navbar = ({
                     <span>Upload Photo & Profile</span>
                   </button>
 
+                  {isAdmin && (
+                    <button
+                      onClick={() => {
+                        setUserDropdownOpen(false);
+                        navigate('/admin');
+                      }}
+                      className="w-full text-left px-3 py-2 text-purple-700 dark:text-purple-300 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2 cursor-pointer transition"
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                      <span>Admin Console</span>
+                    </button>
+                  )}
+
                   <button
                     onClick={() => {
                       setUserDropdownOpen(false);

@@ -13,6 +13,9 @@ import { EnvironmentModal } from './components/EnvironmentModal';
 import { CollectionRunnerModal } from './components/CollectionRunnerModal';
 import { SaveRequestModal } from './components/SaveRequestModal';
 import { AuthModal } from './components/AuthModal';
+import { MockServerModal } from './components/MockServerModal';
+import { ApiDocsModal } from './components/ApiDocsModal';
+import { CurlImportModal } from './components/CurlImportModal';
 
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
@@ -41,6 +44,9 @@ function StudioWorkbench() {
   const [environmentModalOpen, setEnvironmentModalOpen] = useState(false);
   const [runnerModalOpen, setRunnerModalOpen] = useState(false);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
+  const [mockServerModalOpen, setMockServerModalOpen] = useState(false);
+  const [apiDocsModalOpen, setApiDocsModalOpen] = useState(false);
+  const [curlModalOpen, setCurlModalOpen] = useState(false);
   const [runnerCollection, setRunnerCollection] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     return typeof window !== 'undefined' ? window.innerWidth >= 1024 : true;
@@ -64,6 +70,9 @@ function StudioWorkbench() {
           setRunnerModalOpen(true);
         }}
         onOpenCollections={() => setCollectionsModalOpen(true)}
+        onOpenMockServer={() => setMockServerModalOpen(true)}
+        onOpenApiDocs={() => setApiDocsModalOpen(true)}
+        onOpenCurlImport={() => setCurlModalOpen(true)}
         theme={theme}
         onToggleTheme={toggleTheme}
         onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
@@ -78,6 +87,8 @@ function StudioWorkbench() {
           onOpenCollections={() => setCollectionsModalOpen(true)}
           onOpenEnvironments={() => setEnvironmentModalOpen(true)}
           onRunCollection={handleRunCollection}
+          onOpenMockServer={() => setMockServerModalOpen(true)}
+          onOpenApiDocs={() => setApiDocsModalOpen(true)}
         />
 
         {/* Center / Right Workbench */}
@@ -107,6 +118,9 @@ function StudioWorkbench() {
         targetCollection={runnerCollection}
       />
       <SaveRequestModal isOpen={saveModalOpen} onClose={() => setSaveModalOpen(false)} />
+      <MockServerModal isOpen={mockServerModalOpen} onClose={() => setMockServerModalOpen(false)} />
+      <ApiDocsModal isOpen={apiDocsModalOpen} onClose={() => setApiDocsModalOpen(false)} />
+      <CurlImportModal isOpen={curlModalOpen} onClose={() => setCurlModalOpen(false)} />
     </div>
   );
 }

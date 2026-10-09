@@ -18,6 +18,9 @@ import {
   Moon,
   Menu,
   PanelLeft,
+  Server,
+  BookOpen,
+  Terminal,
 } from 'lucide-react';
 
 export const Navbar = ({
@@ -27,6 +30,9 @@ export const Navbar = ({
   onOpenEnvironments,
   onOpenRunner,
   onOpenCollections,
+  onOpenMockServer,
+  onOpenApiDocs,
+  onOpenCurlImport,
   theme,
   onToggleTheme,
   onToggleSidebar,
@@ -105,6 +111,33 @@ export const Navbar = ({
         >
           <PlayCircle className="w-3.5 h-3.5 text-emerald-400" />
           <span className="hidden sm:inline">Runner</span>
+        </button>
+
+        <button
+          onClick={onOpenMockServer}
+          className="hidden md:flex items-center gap-1.5 text-xs font-semibold px-2.5 sm:px-3 py-1.5 rounded-lg bg-indigo-950/60 hover:bg-indigo-900/80 text-indigo-300 transition border border-indigo-700/60 shadow-xs cursor-pointer active:scale-95"
+          title="Open Mock Server Sandbox"
+        >
+          <Server className="w-3.5 h-3.5 text-indigo-400" />
+          <span>Mock Server</span>
+        </button>
+
+        <button
+          onClick={onOpenApiDocs}
+          className="hidden lg:flex items-center gap-1.5 text-xs font-semibold px-2.5 sm:px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-750 text-slate-200 transition border border-slate-700/70 hover:border-sky-500/50 shadow-xs cursor-pointer active:scale-95"
+          title="Generate and export API documentation"
+        >
+          <BookOpen className="w-3.5 h-3.5 text-sky-400" />
+          <span>Docs</span>
+        </button>
+
+        <button
+          onClick={onOpenCurlImport}
+          className="hidden xl:flex items-center gap-1.5 text-xs font-semibold px-2.5 sm:px-3 py-1.5 rounded-lg bg-amber-950/50 hover:bg-amber-900/70 text-amber-300 transition border border-amber-700/50 shadow-xs cursor-pointer active:scale-95"
+          title="Import raw cURL command"
+        >
+          <Terminal className="w-3.5 h-3.5 text-amber-400" />
+          <span>cURL</span>
         </button>
       </div>
 

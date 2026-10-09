@@ -17,12 +17,16 @@ import {
   Upload,
   Globe,
   FileCode,
+  Server,
+  BookOpen,
 } from 'lucide-react';
 
 export const Sidebar = ({
   onOpenCollections,
   onOpenEnvironments,
   onRunCollection,
+  onOpenMockServer,
+  onOpenApiDocs,
   isOpen = true,
   onClose,
 }) => {
@@ -466,9 +470,32 @@ export const Sidebar = ({
           </div>
         </div>
       )}
-    </aside>
-  </>
-);
+
+        {/* Quick Tools Dock at Bottom of Sidebar */}
+        <div className="p-2.5 border-t border-slate-800/80 bg-slate-900/50 space-y-1.5 shrink-0">
+          <div className="text-[10px] uppercase font-bold text-slate-500 tracking-wider px-1">
+            Studio Tools
+          </div>
+          <div className="grid grid-cols-2 gap-1.5 text-xs">
+            <button
+              onClick={onOpenMockServer}
+              className="px-2 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-750 text-indigo-300 border border-indigo-900/50 hover:border-indigo-600/60 flex items-center justify-center gap-1.5 transition text-[11px] font-medium cursor-pointer shadow-xs active:scale-95"
+            >
+              <Server className="w-3.5 h-3.5 text-indigo-400" />
+              <span>Mock Server</span>
+            </button>
+            <button
+              onClick={onOpenApiDocs}
+              className="px-2 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-750 text-sky-300 border border-sky-900/50 hover:border-sky-600/60 flex items-center justify-center gap-1.5 transition text-[11px] font-medium cursor-pointer shadow-xs active:scale-95"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-sky-400" />
+              <span>API Docs</span>
+            </button>
+          </div>
+        </div>
+      </aside>
+    </>
+  );
 };
 
 // Recursive sub-component for hierarchical nested folders

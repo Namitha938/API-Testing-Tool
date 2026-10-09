@@ -58,13 +58,7 @@ export const Navbar = ({
       {/* Brand & Logo with link to Studio Workbench */}
       <div className="flex items-center gap-2 sm:gap-2.5">
         {/* Mobile / Desktop Sidebar Toggle Button */}
-        <button
-          onClick={onToggleSidebar}
-          className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-250 dark:bg-slate-800/80 dark:hover:bg-slate-750 text-slate-600 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 border border-slate-300/80 dark:border-slate-700/60 transition cursor-pointer active:scale-95 shrink-0"
-          title="Toggle Sidebar"
-        >
-          <PanelLeft className="w-4 h-4" />
-        </button>
+       
         <Link to="/app" className="flex items-center gap-2 group hover:opacity-95 transition" title="APITester Studio Workbench">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-sm shadow-sky-500/20 ring-1 ring-black/5 dark:ring-white/20 group-hover:scale-105 transition-transform">
             <Zap className="w-4 h-4 text-amber-300 fill-amber-300 drop-shadow" />
@@ -74,7 +68,7 @@ export const Navbar = ({
               APITester
             </span>
             <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-sky-100 dark:bg-sky-500/15 text-sky-700 dark:text-sky-400 border border-sky-300/60 dark:border-sky-500/30 font-mono font-bold tracking-wide">
-              ENTERPRISE
+              STUDIO
             </span>
           </div>
         </Link>

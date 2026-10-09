@@ -555,18 +555,7 @@ export default function LoginPage() {
             </Link>
           </p>
 
-          <div className="text-center mt-2">
-            <button
-              type="button"
-              onClick={() => {
-                sessionStorage.setItem('guestMode', 'true');
-                navigate('/app');
-              }}
-              className={`text-[11px] underline cursor-pointer transition ${isDark ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-slate-600'}`}
-            >
-              Continue without signing in (Guest Mode) &rarr;
-            </button>
-          </div>
+          
         </div>
       </div>
     </div>

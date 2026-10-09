@@ -224,23 +224,7 @@ export default function LandingPage() {
               {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4 text-indigo-600" />}
             </button>
 
-            {/* Admin Dashboard Navigation Link */}
-            <Link
-              to="/admin"
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition hover:scale-105 duration-200 ${
-                isAdmin
-                  ? 'bg-purple-600/15 border-purple-500/40 text-purple-400 hover:bg-purple-600/25'
-                  : isDark
-                  ? 'border-slate-800 bg-slate-900/80 text-slate-300 hover:bg-slate-800'
-                  : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100 shadow-xs'
-              }`}
-              title="Admin Dashboard & Performance Monitoring"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
-              <span>Admin Dashboard {isAdmin && '★'}</span>
-            </Link>
-
-            {/* Beside right of Admin Dashboard: Sign In */}
+            {/* Beside right: Sign In */}
             <Link
               to="/login"
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition duration-200 hover:scale-105 ${

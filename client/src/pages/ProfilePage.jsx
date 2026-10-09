@@ -359,20 +359,6 @@ export default function ProfilePage() {
             >
               <span>API Studio</span>
             </Link>
-
-            <Link
-              to="/admin"
-              className={`text-xs flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition ${
-                isAdmin
-                  ? 'border-purple-500/30 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20'
-                  : isDark
-                  ? 'border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-300'
-                  : 'border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700'
-              }`}
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
-              <span>Admin Dashboard</span>
-            </Link>
           </div>
 
           <div className="flex items-center gap-3">

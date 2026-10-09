@@ -41,9 +41,14 @@ import { GoogleIcon } from '../components/GoogleIcon';
 import { ProfileModal } from '../components/ProfileModal';
 
 export default function AdminPage() {
-  const { user, token, login, logout, loginWithGoogle, isAdmin } = useAuth();
+  const { user, token, adminUser, adminToken, loginAdminWithGoogle, logoutAdmin, logout, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [profileModalOpen, setProfileModalOpen] = useState(false);
+
+  // Dedicated admin session or authorized normal user
+  const isNormalUserAdmin = user?.role === 'admin' && ['singunamitha@gmail.com', 's.v.padmavathi2005@gmail.com'].includes((user?.email || '').toLowerCase().replace(/\s+/g, '').trim());
+  const effectiveAdminToken = adminToken || (isNormalUserAdmin ? token : null);
+  const isDashboardAdmin = Boolean(effectiveAdminToken);
 
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('theme') || 'dark';
@@ -83,10 +88,10 @@ export default function AdminPage() {
   const [quickLoginError, setQuickLoginError] = useState('');
 
   const fetchAdminData = async () => {
-    if (!token || !isAdmin) return;
+    if (!effectiveAdminToken) return;
     setLoading(true);
     try {
-      const headers = { Authorization: `Bearer ${token}` };
+      const headers = { Authorization: `Bearer ${effectiveAdminToken}` };
       const [statsRes, usersRes, logsRes] = await Promise.all([
         fetch('/api/admin/stats', { headers }),
         fetch('/api/admin/users', { headers }),
@@ -104,19 +109,20 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
-    if (isAdmin && token) {
+    if (isDashboardAdmin && effectiveAdminToken) {
       fetchAdminData();
     }
-  }, [isAdmin, token]);
+  }, [isDashboardAdmin, effectiveAdminToken]);
 
 
   const handleGoogleAdminLogin = async () => {
     setQuickLoginLoading(true);
     setQuickLoginError('');
     try {
-      await loginWithGoogle(true);
+      await loginAdminWithGoogle();
+      fetchAdminData();
     } catch (err) {
-      setQuickLoginError(err.message || 'Google admin login failed');
+      setQuickLoginError(err.message || 'Google authentication failed');
     } finally {
       setQuickLoginLoading(false);
     }
@@ -127,7 +133,7 @@ export default function AdminPage() {
     try {
       const res = await fetch(`/api/admin/users/${userId}/role`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${effectiveAdminToken}` },
         body: JSON.stringify({ role: newRole }),
       });
       if (res.ok) fetchAdminData();
@@ -141,7 +147,7 @@ export default function AdminPage() {
     try {
       const res = await fetch(`/api/admin/users/${userId}/status`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${effectiveAdminToken}` },
         body: JSON.stringify({ status: newStatus }),
       });
       if (res.ok) fetchAdminData();
@@ -155,7 +161,7 @@ export default function AdminPage() {
     try {
       const res = await fetch(`/api/admin/users/${userId}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${effectiveAdminToken}` },
       });
       if (res.ok) fetchAdminData();
     } catch (err) {
@@ -171,7 +177,7 @@ export default function AdminPage() {
     try {
       const res = await fetch('/api/admin/users', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${effectiveAdminToken}` },
         body: JSON.stringify({
           name: newUserName,
           email: newUserEmail,
@@ -201,7 +207,7 @@ export default function AdminPage() {
     try {
       const res = await fetch('/api/admin/history/clear', {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${effectiveAdminToken}` },
       });
       if (res.ok) fetchAdminData();
     } catch (err) {
@@ -274,74 +280,56 @@ export default function AdminPage() {
             {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
 
-          {isAdmin ? (
+          {isDashboardAdmin ? (
             <div className="flex items-center gap-2.5">
-              <button
-                onClick={() => setProfileModalOpen(true)}
-                className={`flex items-center gap-2 px-2 py-1 rounded-lg border transition cursor-pointer hover:scale-[1.02] ${
+              <div
+                className={`flex items-center gap-2 px-2.5 py-1 rounded-lg border transition ${
                   isDark
-                    ? 'border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-slate-200'
-                    : 'border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-800'
+                    ? 'border-purple-500/30 bg-purple-950/40 text-purple-200'
+                    : 'border-purple-200 bg-purple-50 text-purple-900'
                 }`}
-                title="Edit Profile and Avatar"
               >
-                {user?.photoURL ? (
+                {adminUser?.photoURL || user?.photoURL ? (
                   <img
-                    src={user.photoURL}
-                    alt={user.name}
+                    src={adminUser?.photoURL || user?.photoURL}
+                    alt={adminUser?.name || user?.name}
                     className="w-6 h-6 rounded-full border border-purple-400/40 object-cover"
                   />
                 ) : (
                   <div className="w-6 h-6 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center text-[10px] font-bold">
-                    {(user?.name || 'A').charAt(0).toUpperCase()}
+                    {(adminUser?.name || user?.name || 'A').charAt(0).toUpperCase()}
                   </div>
                 )}
-                <span className={`text-xs hidden md:inline ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                  Signed in as <strong className="text-purple-400 font-semibold">{user?.name}</strong>{' '}
-                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-400 border border-purple-500/30 font-mono">
+                <span className="text-xs hidden md:inline">
+                  Admin: <strong className="font-semibold text-purple-600 dark:text-purple-300">{adminUser?.name || user?.name}</strong>{' '}
+                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-600 dark:text-purple-300 border border-purple-500/30 font-mono">
                     ADMIN
                   </span>
                 </span>
-              </button>
-              <button
-                onClick={logout}
-                className="px-2.5 py-1 rounded text-xs text-rose-400 hover:bg-rose-500/10 transition cursor-pointer"
-              >
-                Sign Out
-              </button>
+              </div>
+              {adminToken && (
+                <button
+                  onClick={() => {
+                    logoutAdmin();
+                    if (!isNormalUserAdmin) {
+                      navigate('/app');
+                    }
+                  }}
+                  className="px-2.5 py-1 rounded-lg text-xs text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 transition cursor-pointer"
+                  title="Lock Admin Console without logging out normal user"
+                >
+                  Exit Admin
+                </button>
+              )}
             </div>
           ) : user ? (
             <div className="flex items-center gap-2.5">
-              <button
-                onClick={() => setProfileModalOpen(true)}
-                className={`flex items-center gap-2 px-2.5 py-1 rounded-lg border transition cursor-pointer hover:scale-[1.02] ${
-                  isDark
-                    ? 'border-rose-500/30 bg-rose-950/30 hover:bg-rose-900/40 text-slate-200'
-                    : 'border-rose-300 bg-rose-50 hover:bg-rose-100 text-slate-800'
-                }`}
-                title="Edit Profile and Upload Picture"
-              >
-                {user?.photoURL ? (
-                  <img
-                    src={user.photoURL}
-                    alt={user.name}
-                    className="w-6 h-6 rounded-full border border-rose-400/40 object-cover"
-                  />
-                ) : (
-                  <div className="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center text-[10px] font-bold">
-                    {(user?.name || 'U').charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <span className={`text-xs hidden md:inline ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                  Signed in as <strong className="text-rose-400 font-semibold">{user?.name}</strong>{' '}
-                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 border border-rose-500/40 font-mono font-semibold">
-                    UNAUTHORIZED
-                  </span>
-                </span>
-              </button>
+              <span className={`text-xs hidden md:inline ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                Active User: <strong className="text-slate-200 font-semibold">{user.name}</strong>
+              </span>
               <button
                 onClick={logout}
-                className="px-2.5 py-1 rounded text-xs text-rose-400 hover:bg-rose-500/10 transition cursor-pointer"
+                className="px-2.5 py-1 rounded text-xs text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition cursor-pointer"
               >
                 Sign Out
               </button>
@@ -363,7 +351,7 @@ export default function AdminPage() {
       {/* Main Body */}
       <main className="flex-1 max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-8 space-y-6">
         {/* UNAUTHENTICATED / NOT ADMIN GATEWAY */}
-        {!isAdmin ? (
+        {!isDashboardAdmin ? (
           user ? (
             /* 403 Forbidden: Signed in with unauthorized account */
             <div className="max-w-xl mx-auto my-8 p-8 rounded-2xl border text-center shadow-2xl transition-colors duration-200 bg-slate-900/95 border-rose-500/40">
@@ -383,55 +371,26 @@ export default function AdminPage() {
 
               <h2 className="text-2xl font-bold mb-2 text-white">403 — Unauthorized Account</h2>
               <p className="text-xs text-slate-300 mb-6 leading-relaxed max-w-md mx-auto">
-                You are currently signed in, but your account is <strong>not authorized</strong> to access the Administrator Dashboard.
+                Administrator privileges are required to access this console. Please sign in with an authorized administrator Google account.
               </p>
 
-              {/* Account Diagnostics Card */}
-              <div className="text-left p-4 rounded-xl border border-slate-800 bg-slate-950/80 mb-6 space-y-2.5 text-xs">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
-                  <span className="text-slate-400">Signed-in User:</span>
-                  <div className="flex items-center gap-2">
-                    {user.photoURL ? (
-                      <img src={user.photoURL} alt={user.name} className="w-5 h-5 rounded-full object-cover border border-slate-700" />
-                    ) : (
-                      <div className="w-5 h-5 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center text-[10px] font-bold">
-                        {user.name?.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                    <span className="text-white font-medium">{user.name}</span>
-                  </div>
+              {quickLoginError && (
+                <div className="mb-4 p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs text-left">
+                  {quickLoginError}
                 </div>
-
-                <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
-                  <span className="text-slate-400">Email Address:</span>
-                  <span className="text-slate-200 font-mono text-[11px]">{user.email}</span>
-                </div>
-
-                <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
-                  <span className="text-slate-400">Account Role:</span>
-                  <span className="px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 font-mono text-[10px] uppercase font-bold">
-                    {user.role || 'user'} (Standard User)
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Access Status:</span>
-                  <span className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/40 font-mono text-[10px] uppercase font-bold">
-                    DENIED • UNAUTHORIZED
-                  </span>
-                </div>
-              </div>
-
-              {/* Whitelist Info Box */}
-              <div className="p-3.5 rounded-xl bg-slate-950/50 border border-slate-800 text-[11px] text-slate-400 mb-6 text-left space-y-1">
-                <div className="font-semibold text-slate-300">Authorized Administrator Whitelist:</div>
-                <p className="text-slate-400 text-[11px] leading-relaxed">
-                  Only designated administrator accounts (<code className="text-purple-300 font-mono">singunamitha@gmail.com</code> and <code className="text-purple-300 font-mono">s.v.padmavathi2005@gmail.com</code>) have access to system administration and latency telemetry.
-                </p>
-              </div>
+              )}
 
               {/* Action Buttons */}
               <div className="space-y-2.5">
+                <button
+                  onClick={handleGoogleAdminLogin}
+                  disabled={quickLoginLoading}
+                  className="w-full py-2.5 px-4 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-750 text-slate-100 font-semibold text-xs transition shadow-sm flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.01] active:scale-95 disabled:opacity-50"
+                >
+                  <GoogleIcon className="w-4 h-4" />
+                  <span>{quickLoginLoading ? 'Connecting to Google...' : 'Continue with Google (Switch Account)'}</span>
+                </button>
+
                 <button
                   onClick={() => setProfileModalOpen(true)}
                   className="w-full py-2.5 px-4 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs transition shadow-md shadow-sky-600/20 flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.01] active:scale-95"
@@ -445,7 +404,7 @@ export default function AdminPage() {
                   className="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-rose-300 border border-rose-500/30 font-semibold text-xs transition flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.01] active:scale-95"
                 >
                   <LogOut className="w-4 h-4 text-rose-400" />
-                  <span>Sign Out / Switch to Authorized Account</span>
+                  <span>Sign Out</span>
                 </button>
 
                 <div className="pt-2 flex items-center justify-center gap-4 text-xs text-slate-400">
@@ -466,7 +425,7 @@ export default function AdminPage() {
               </div>
               <h2 className="text-xl font-bold mb-2">Administrator Access Required</h2>
               <p className="text-xs text-slate-400 mb-6 leading-relaxed">
-                This console provides high-privilege operations including user role elevation, access control, and telemetry. Sign in with an administrator account to continue.
+                This console provides high-privilege operations including user role elevation, access control, and telemetry. Please continue with your authorized administrator Google account.
               </p>
 
               {quickLoginError && (
@@ -475,28 +434,29 @@ export default function AdminPage() {
                 </div>
               )}
 
-              <button
-                onClick={handleGoogleAdminLogin}
-                disabled={quickLoginLoading}
-                className={`w-full py-2.5 px-4 rounded-xl border font-semibold text-xs transition shadow-sm flex items-center justify-center gap-2 mb-2.5 cursor-pointer hover:scale-[1.02] active:scale-95 ${
-                  isDark
-                    ? 'border-slate-700 bg-slate-800 hover:bg-slate-750 text-slate-100'
-                    : 'border-slate-300 bg-white hover:bg-slate-50 text-slate-800'
-                }`}
-              >
-                <GoogleIcon className="w-4 h-4" />
-                <span>{quickLoginLoading ? 'Connecting...' : 'Continue with Google (Admin Access)'}</span>
-              </button>
+              <div className="space-y-3">
+                <button
+                  onClick={handleGoogleAdminLogin}
+                  disabled={quickLoginLoading}
+                  className={`w-full py-3 px-4 rounded-xl border font-semibold text-xs transition shadow-sm flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-95 ${
+                    isDark
+                      ? 'border-slate-700 bg-slate-800 hover:bg-slate-750 text-slate-100'
+                      : 'border-slate-300 bg-white hover:bg-slate-50 text-slate-800'
+                  }`}
+                >
+                  <GoogleIcon className="w-4 h-4" />
+                  <span>{quickLoginLoading ? 'Connecting to Google...' : 'Continue with Google'}</span>
+                </button>
 
-              <div className="mb-3 p-2.5 rounded-xl bg-sky-500/10 border border-sky-500/20 text-[11px] text-sky-400 text-center font-medium">
-                Authorized Admin Accounts: <span className="font-mono text-white">singunamitha@gmail.com</span>, <span className="font-mono text-white">s.v.padmavathi2005@gmail.com</span>
-              </div>
-
-              <div className="text-[11px] text-slate-500">
-                Or sign in with custom credentials on the{' '}
-                <Link to="/login" className="text-sky-400 hover:underline">
-                  Login Page &rarr;
-                </Link>
+                <div className="pt-2 flex items-center justify-center gap-4 text-xs text-slate-500">
+                  <Link to="/app" className="text-sky-400 hover:underline">
+                    API Studio Workbench
+                  </Link>
+                  <span>•</span>
+                  <Link to="/" className="hover:text-slate-300 hover:underline">
+                    Home
+                  </Link>
+                </div>
               </div>
             </div>
           )

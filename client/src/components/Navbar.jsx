@@ -16,6 +16,11 @@ import {
   Home,
   Sun,
   Moon,
+  Menu,
+  PanelLeft,
+  Server,
+  BookOpen,
+  Terminal,
 } from 'lucide-react';
 
 export const Navbar = ({
@@ -25,8 +30,12 @@ export const Navbar = ({
   onOpenEnvironments,
   onOpenRunner,
   onOpenCollections,
+  onOpenMockServer,
+  onOpenApiDocs,
+  onOpenCurlImport,
   theme,
   onToggleTheme,
+  onToggleSidebar,
 }) => {
   const navigate = useNavigate();
   const { user, logout, isAdmin } = useAuth();
@@ -41,34 +50,45 @@ export const Navbar = ({
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
   return (
-    <header className="h-14 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-4 select-none shrink-0 z-20">
+    <header className="h-14 bg-slate-900/90 backdrop-blur-md border-b border-slate-800/80 flex items-center justify-between px-3 sm:px-4 select-none shrink-0 z-20 shadow-sm">
       {/* Brand & Logo with link to Studio Workbench */}
-      <div className="flex items-center gap-3">
-        <Link to="/app" className="flex items-center gap-2 group hover:opacity-90 transition" title="APITester Studio Workbench">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white font-bold shadow-md shadow-sky-500/20">
-            <Zap className="w-5 h-5 text-amber-300 fill-amber-300" />
+      <div className="flex items-center gap-2 sm:gap-3">
+        {/* Mobile / Desktop Sidebar Toggle Button */}
+        <button
+          onClick={onToggleSidebar}
+          className="p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-750 text-slate-300 hover:text-sky-400 border border-slate-700/60 transition cursor-pointer active:scale-95 shrink-0"
+          title="Toggle Sidebar"
+        >
+          <PanelLeft className="w-4 h-4" />
+        </button>
+        <Link to="/app" className="flex items-center gap-2.5 group hover:opacity-95 transition" title="APITester Studio Workbench">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-md shadow-sky-500/25 ring-1 ring-white/20 group-hover:scale-105 transition-transform">
+            <Zap className="w-4.5 h-4.5 text-amber-300 fill-amber-300 drop-shadow" />
           </div>
-          <div>
-            <span className="font-bold text-slate-100 text-base tracking-tight flex items-center gap-1.5">
-              APITester <span className="text-xs px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 font-mono">PRO</span>
+          <div className="flex items-center gap-2">
+            <span className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-sky-300 text-base tracking-tight">
+              APITester
+            </span>
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-sky-500/15 text-sky-400 border border-sky-500/30 font-mono font-semibold tracking-wide">
+              STUDIO
             </span>
           </div>
         </Link>
 
         <Link
           to="/"
-          className="text-xs text-slate-200 hover:text-white flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 transition"
+          className="text-xs text-slate-300 hover:text-white flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 transition shadow-xs cursor-pointer hover:border-slate-600"
           title="Go to Sign In / Account Page"
         >
-          <Home className="w-3.5 h-3.5 text-white" />
+          <Home className="w-3.5 h-3.5 text-sky-400" />
           <span className="hidden sm:inline font-medium">Account / Login</span>
         </Link>
 
-        <div className="h-5 w-px bg-slate-800 mx-1" />
+        <div className="hidden md:block h-5 w-px bg-slate-800 mx-1" />
 
         <button
           onClick={newRequestTemplate}
-          className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 transition border border-slate-700/50"
+          className="hidden lg:flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-750 text-slate-200 transition border border-slate-700/70 hover:border-sky-500/50 shadow-xs cursor-pointer active:scale-95"
           title="Create a new clean request"
         >
           <Sparkles className="w-3.5 h-3.5 text-sky-400" />
@@ -77,32 +97,59 @@ export const Navbar = ({
 
         <button
           onClick={onOpenCollections}
-          className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 transition border border-slate-700/50"
+          className="hidden sm:flex items-center gap-1.5 text-xs font-semibold px-2.5 sm:px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-750 text-slate-200 transition border border-slate-700/70 hover:border-indigo-500/50 shadow-xs cursor-pointer active:scale-95"
           title="Manage Collections & Import/Export"
         >
           <FolderOpen className="w-3.5 h-3.5 text-indigo-400" />
-          <span>Collections</span>
+          <span className="hidden md:inline">Collections</span>
         </button>
 
         <button
           onClick={onOpenRunner}
-          className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-md bg-emerald-950/60 hover:bg-emerald-900/80 text-emerald-300 transition border border-emerald-700/60"
+          className="flex items-center gap-1.5 text-xs font-semibold px-2.5 sm:px-3 py-1.5 rounded-lg bg-emerald-950/70 hover:bg-emerald-900/90 text-emerald-300 transition border border-emerald-600/50 shadow-sm shadow-emerald-950/40 cursor-pointer active:scale-95"
           title="Run test suite across collection"
         >
           <PlayCircle className="w-3.5 h-3.5 text-emerald-400" />
-          <span>Collection Runner</span>
+          <span className="hidden sm:inline">Runner</span>
+        </button>
+
+        <button
+          onClick={onOpenMockServer}
+          className="hidden md:flex items-center gap-1.5 text-xs font-semibold px-2.5 sm:px-3 py-1.5 rounded-lg bg-indigo-950/60 hover:bg-indigo-900/80 text-indigo-300 transition border border-indigo-700/60 shadow-xs cursor-pointer active:scale-95"
+          title="Open Mock Server Sandbox"
+        >
+          <Server className="w-3.5 h-3.5 text-indigo-400" />
+          <span>Mock Server</span>
+        </button>
+
+        <button
+          onClick={onOpenApiDocs}
+          className="hidden lg:flex items-center gap-1.5 text-xs font-semibold px-2.5 sm:px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-750 text-slate-200 transition border border-slate-700/70 hover:border-sky-500/50 shadow-xs cursor-pointer active:scale-95"
+          title="Generate and export API documentation"
+        >
+          <BookOpen className="w-3.5 h-3.5 text-sky-400" />
+          <span>Docs</span>
+        </button>
+
+        <button
+          onClick={onOpenCurlImport}
+          className="hidden xl:flex items-center gap-1.5 text-xs font-semibold px-2.5 sm:px-3 py-1.5 rounded-lg bg-amber-950/50 hover:bg-amber-900/70 text-amber-300 transition border border-amber-700/50 shadow-xs cursor-pointer active:scale-95"
+          title="Import raw cURL command"
+        >
+          <Terminal className="w-3.5 h-3.5 text-amber-400" />
+          <span>cURL</span>
         </button>
       </div>
 
       {/* Right side controls: Environment selector, Admin, User */}
       <div className="flex items-center gap-3">
         {/* Environment Picker */}
-        <div className="flex items-center bg-slate-800/80 border border-slate-700 rounded-md px-2 py-1 text-xs">
+        <div className="hidden sm:flex items-center bg-slate-800/80 border border-slate-700 rounded-lg px-2 py-1 text-xs">
           <Globe className="w-3.5 h-3.5 text-slate-400 mr-1.5 shrink-0" />
           <select
             value={activeEnvironmentId}
             onChange={(e) => setActiveEnvironmentId(e.target.value)}
-            className="bg-transparent text-slate-200 focus:outline-none cursor-pointer pr-1 text-xs max-w-[130px] truncate"
+            className="bg-transparent text-slate-200 focus:outline-none cursor-pointer pr-1 text-xs max-w-[110px] sm:max-w-[130px] truncate"
           >
             <option value="" className="bg-slate-900 text-slate-400">No Environment</option>
             {environments.map((env) => (
@@ -113,7 +160,7 @@ export const Navbar = ({
           </select>
           <button
             onClick={onOpenEnvironments}
-            className="text-slate-400 hover:text-sky-400 p-0.5 ml-1 transition"
+            className="text-slate-400 hover:text-sky-400 p-0.5 ml-1 transition cursor-pointer"
             title="Configure Environments & Variables"
           >
             <Sliders className="w-3.5 h-3.5" />
@@ -124,10 +171,11 @@ export const Navbar = ({
         {isAdmin && (
           <button
             onClick={onOpenAdmin}
-            className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-md bg-purple-950/60 hover:bg-purple-900/80 text-purple-300 border border-purple-700/60 transition shadow-sm"
+            className="flex items-center gap-1.5 text-xs font-semibold px-2 sm:px-2.5 py-1.5 rounded-lg bg-purple-950/60 hover:bg-purple-900/80 text-purple-300 border border-purple-700/60 transition shadow-sm cursor-pointer"
+            title="Open Admin Dashboard"
           >
-            <ShieldCheck className="w-4 h-4 text-purple-400" />
-            <span>Admin Dashboard</span>
+            <ShieldCheck className="w-4 h-4 text-purple-400 shrink-0" />
+            <span className="hidden md:inline">Admin</span>
           </button>
         )}
 

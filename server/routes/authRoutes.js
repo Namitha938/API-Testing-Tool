@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const speakeasy = require('speakeasy');
+const QRCode = require('qrcode');
 const User = require('../models/User');
 const { authenticate, JWT_SECRET } = require('../middleware/auth');
 
@@ -97,7 +99,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// POST /api/auth/2fa/verify-login - Complete 2FA login with code
+// POST /api/auth/2fa/verify-login - Complete 2FA login with code from Authenticator App or SMS/Email
 router.post('/2fa/verify-login', async (req, res) => {
   try {
     const { email, code } = req.body;
@@ -110,12 +112,31 @@ router.post('/2fa/verify-login', async (req, res) => {
       return res.status(404).json({ message: 'User not found.' });
     }
 
-    if (!user.twoFactorTempCode || user.twoFactorTempCode !== code.toString().trim()) {
-      return res.status(400).json({ message: 'Invalid 2FA verification code. Please check and try again.' });
+    const cleanCode = code.toString().trim();
+    let isValid = false;
+
+    // 1. Verify with Authenticator App (Google Authenticator / Microsoft Authenticator / Authy)
+    if (user.twoFactorSecret) {
+      const totpValid = speakeasy.totp.verify({
+        secret: user.twoFactorSecret,
+        encoding: 'base32',
+        token: cleanCode,
+        window: 2, // Allows ±60 seconds clock drift
+      });
+      if (totpValid) isValid = true;
     }
 
-    if (!user.twoFactorTempExpiry || new Date(user.twoFactorTempExpiry) < new Date()) {
-      return res.status(400).json({ message: 'Verification code has expired. Please log in again.' });
+    // 2. Fallback to temp security code (sent or generated during login session)
+    if (!isValid && user.twoFactorTempCode && user.twoFactorTempCode === cleanCode) {
+      if (user.twoFactorTempExpiry && new Date(user.twoFactorTempExpiry) >= new Date()) {
+        isValid = true;
+      }
+    }
+
+    if (!isValid) {
+      return res.status(400).json({
+        message: 'Invalid 2FA security code. Please check your Authenticator App or enter the valid code.',
+      });
     }
 
     user.twoFactorTempCode = '';
@@ -135,45 +156,74 @@ router.post('/2fa/verify-login', async (req, res) => {
   }
 });
 
-// POST /api/auth/2fa/generate - Generate 2FA setup secret and code
+// POST /api/auth/2fa/generate - Generate standard TOTP secret and Scannable QR Code
 router.post('/2fa/generate', authenticate, async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: 'User not found.' });
 
-    const setupCode = Math.floor(100000 + Math.random() * 900000).toString();
-    const secretKey = 'SEC-' + Math.random().toString(36).substring(2, 10).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+    // Generate standard Base32 secret for Google Authenticator / Microsoft Authenticator
+    const secret = speakeasy.generateSecret({
+      name: `APITester Studio (${user.email})`,
+      issuer: 'APITester Studio',
+      length: 20,
+    });
 
-    user.twoFactorSecret = secretKey;
-    user.twoFactorTempCode = setupCode;
+    const qrCodeDataUrl = await QRCode.toDataURL(secret.otpauth_url);
+
+    // Save temporary secret until user confirms verification
+    user.twoFactorSecret = secret.base32;
+    // Also provide a current valid TOTP code so users without a phone can immediately test it
+    const currentTotp = speakeasy.totp({
+      secret: secret.base32,
+      encoding: 'base32',
+    });
+    user.twoFactorTempCode = currentTotp;
     user.twoFactorTempExpiry = new Date(Date.now() + 15 * 60 * 1000);
     await user.save();
 
     res.json({
-      message: '2FA setup code generated successfully.',
-      secret: secretKey,
-      code: setupCode,
-      setupCode,
-      otpauthUrl: `otpauth://totp/APITestingTool:${encodeURIComponent(user.email)}?secret=${secretKey}&issuer=APITestingTool`,
+      message: 'Scan the QR code with Google Authenticator, Microsoft Authenticator, or enter the secret key manually.',
+      secret: secret.base32,
+      qrCode: qrCodeDataUrl,
+      otpauthUrl: secret.otpauth_url,
+      setupCode: currentTotp,
+      code: currentTotp,
     });
   } catch (error) {
     res.status(500).json({ message: 'Failed to generate 2FA setup', error: error.message });
   }
 });
 
-// POST /api/auth/2fa/enable - Confirm code and enable 2FA
+// POST /api/auth/2fa/enable - Confirm code from Authenticator App and activate 2FA
 router.post('/2fa/enable', authenticate, async (req, res) => {
   try {
     const { code } = req.body;
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: 'User not found.' });
 
-    if (!user.twoFactorTempCode || user.twoFactorTempCode !== code?.toString().trim()) {
-      return res.status(400).json({ message: 'Invalid verification code. Please enter the correct 6-digit code.' });
+    const cleanCode = code ? code.toString().trim() : '';
+    let isValid = false;
+
+    // Verify TOTP from Google / Microsoft Authenticator
+    if (user.twoFactorSecret) {
+      const totpValid = speakeasy.totp.verify({
+        secret: user.twoFactorSecret,
+        encoding: 'base32',
+        token: cleanCode,
+        window: 2,
+      });
+      if (totpValid) isValid = true;
     }
 
-    if (!user.twoFactorTempExpiry || new Date(user.twoFactorTempExpiry) < new Date()) {
-      return res.status(400).json({ message: 'Verification code has expired. Please generate a new code.' });
+    if (!isValid && user.twoFactorTempCode && user.twoFactorTempCode === cleanCode) {
+      isValid = true;
+    }
+
+    if (!isValid) {
+      return res.status(400).json({
+        message: 'Invalid 6-digit code. Please enter the live code shown in your Authenticator App.',
+      });
     }
 
     user.twoFactorEnabled = true;
@@ -182,7 +232,7 @@ router.post('/2fa/enable', authenticate, async (req, res) => {
     await user.save();
 
     res.json({
-      message: 'Two-factor authentication (2FA) is now enabled for your account!',
+      message: 'Two-factor authentication is now active! Your account is protected by your Authenticator App.',
       user: user.toJSON(),
     });
   } catch (error) {
@@ -203,7 +253,7 @@ router.post('/2fa/disable', authenticate, async (req, res) => {
     await user.save();
 
     res.json({
-      message: 'Two-factor authentication (2FA) has been disabled.',
+      message: 'Two-factor authentication (2FA) has been turned off.',
       user: user.toJSON(),
     });
   } catch (error) {

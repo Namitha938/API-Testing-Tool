@@ -13,6 +13,9 @@ import { EnvironmentModal } from './components/EnvironmentModal';
 import { CollectionRunnerModal } from './components/CollectionRunnerModal';
 import { SaveRequestModal } from './components/SaveRequestModal';
 import { AuthModal } from './components/AuthModal';
+import { MockServerModal } from './components/MockServerModal';
+import { ApiDocsModal } from './components/ApiDocsModal';
+import { CurlImportModal } from './components/CurlImportModal';
 
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
@@ -41,7 +44,13 @@ function StudioWorkbench() {
   const [environmentModalOpen, setEnvironmentModalOpen] = useState(false);
   const [runnerModalOpen, setRunnerModalOpen] = useState(false);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
+  const [mockServerModalOpen, setMockServerModalOpen] = useState(false);
+  const [apiDocsModalOpen, setApiDocsModalOpen] = useState(false);
+  const [curlModalOpen, setCurlModalOpen] = useState(false);
   const [runnerCollection, setRunnerCollection] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    return typeof window !== 'undefined' ? window.innerWidth >= 1024 : true;
+  });
 
   const handleRunCollection = (col) => {
     setRunnerCollection(col);
@@ -49,7 +58,7 @@ function StudioWorkbench() {
   };
 
   return (
-    <div className={`flex flex-col h-screen w-screen overflow-hidden font-sans transition-colors duration-200 ${theme === 'dark' ? 'bg-slate-950 text-slate-100' : 'bg-slate-100 text-slate-900'}`}>
+    <div className={`flex flex-col h-screen w-screen overflow-hidden font-sans transition-colors duration-200 ${theme === 'dark' ? 'bg-[#0b0f17] text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
       {/* Top Navigation */}
       <Navbar
         onOpenAuth={() => setAuthModalOpen(true)}
@@ -61,29 +70,37 @@ function StudioWorkbench() {
           setRunnerModalOpen(true);
         }}
         onOpenCollections={() => setCollectionsModalOpen(true)}
+        onOpenMockServer={() => setMockServerModalOpen(true)}
+        onOpenApiDocs={() => setApiDocsModalOpen(true)}
+        onOpenCurlImport={() => setCurlModalOpen(true)}
         theme={theme}
         onToggleTheme={toggleTheme}
+        onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
       />
 
       {/* Main Studio Area */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden relative">
         {/* Left Sidebar */}
         <Sidebar
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
           onOpenCollections={() => setCollectionsModalOpen(true)}
           onOpenEnvironments={() => setEnvironmentModalOpen(true)}
           onRunCollection={handleRunCollection}
+          onOpenMockServer={() => setMockServerModalOpen(true)}
+          onOpenApiDocs={() => setApiDocsModalOpen(true)}
         />
 
         {/* Center / Right Workbench */}
-        <main className="flex-1 flex flex-col overflow-hidden bg-slate-900/40">
+        <main className="flex-1 flex flex-col overflow-y-auto lg:overflow-hidden bg-slate-900/40 min-w-0">
           {/* Top Half: Request Builder */}
-          <div className="h-1/2 flex flex-col border-b border-slate-800 overflow-hidden">
+          <div className="min-h-[380px] lg:h-1/2 flex flex-col border-b border-slate-800 overflow-hidden shrink-0">
             <RequestPane onOpenSaveModal={() => setSaveModalOpen(true)} />
             <RequestTabs />
           </div>
 
           {/* Bottom Half: Response Inspector */}
-          <div className="h-1/2 flex flex-col overflow-hidden">
+          <div className="min-h-[400px] lg:h-1/2 flex flex-col overflow-hidden flex-1">
             <ResponsePane />
           </div>
         </main>
@@ -101,6 +118,9 @@ function StudioWorkbench() {
         targetCollection={runnerCollection}
       />
       <SaveRequestModal isOpen={saveModalOpen} onClose={() => setSaveModalOpen(false)} />
+      <MockServerModal isOpen={mockServerModalOpen} onClose={() => setMockServerModalOpen(false)} />
+      <ApiDocsModal isOpen={apiDocsModalOpen} onClose={() => setApiDocsModalOpen(false)} />
+      <CurlImportModal isOpen={curlModalOpen} onClose={() => setCurlModalOpen(false)} />
     </div>
   );
 }

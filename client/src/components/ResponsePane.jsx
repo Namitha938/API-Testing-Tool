@@ -41,40 +41,40 @@ export const ResponsePane = () => {
 
   if (!response) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-slate-900/40 p-8 text-center text-xs select-none">
-        <div className="w-14 h-14 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 mb-4 shadow-lg shadow-sky-500/5">
-          <Zap className="w-7 h-7 text-sky-400" />
+      <div className="flex-1 flex flex-col items-center justify-center bg-slate-900/30 p-8 text-center text-xs select-none">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-sky-500/15 to-indigo-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400 mb-4 shadow-xl shadow-sky-500/10 ring-1 ring-sky-500/20">
+          <Zap className="w-8 h-8 text-sky-400 fill-sky-400/20" />
         </div>
-        <h3 className="text-slate-200 font-bold text-sm mb-1">No response yet</h3>
-        <p className="text-slate-400 text-xs max-w-sm mb-4 leading-relaxed">
-          Execute this request to inspect status codes, network timings, headers, and formatted response payloads.
+        <h3 className="text-slate-100 font-extrabold text-base mb-1 tracking-tight">Ready for API Execution</h3>
+        <p className="text-slate-400 text-xs max-w-md mb-5 leading-relaxed">
+          Hit <span className="text-sky-300 font-semibold font-mono">Send</span> to inspect response headers, network latency, real-time status codes, and test assertions.
         </p>
 
         <button
           onClick={sendRequest}
-          className="px-5 py-2.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-semibold rounded-lg shadow-md hover:shadow-sky-500/20 transition flex items-center gap-2 text-xs"
+          className="px-6 py-2.5 bg-gradient-to-r from-sky-500 via-sky-600 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-sky-600/25 hover:shadow-sky-500/35 transition flex items-center gap-2 text-xs active:scale-95 cursor-pointer"
         >
           <Zap className="w-4 h-4 fill-current" />
           <span>Send Request Now</span>
-          <span className="text-[10px] opacity-75 font-mono ml-1 px-1.5 py-0.5 rounded bg-black/30">Ctrl + Enter</span>
+          <span className="text-[10px] opacity-80 font-mono ml-1 px-1.5 py-0.5 rounded-md bg-black/30 border border-white/10">Ctrl + Enter</span>
         </button>
 
-        <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-md text-left">
-          <div className="p-2 rounded bg-slate-950/60 border border-slate-800 text-[10px]">
-            <span className="text-slate-500 block font-semibold uppercase">Status & Size</span>
-            <span className="text-slate-300 font-mono">200 OK &bull; Bytes</span>
+        <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-lg text-left">
+          <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800/80 text-[10px] shadow-xs">
+            <span className="text-slate-500 block font-semibold uppercase tracking-wider">Status & Size</span>
+            <span className="text-slate-200 font-mono font-medium mt-0.5 block">200 OK &bull; Bytes</span>
           </div>
-          <div className="p-2 rounded bg-slate-950/60 border border-slate-800 text-[10px]">
-            <span className="text-slate-500 block font-semibold uppercase">Latency</span>
-            <span className="text-emerald-400 font-mono">TTFB &bull; DNS breakdown</span>
+          <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800/80 text-[10px] shadow-xs">
+            <span className="text-slate-500 block font-semibold uppercase tracking-wider">Latency</span>
+            <span className="text-emerald-400 font-mono font-medium mt-0.5 block">DNS &bull; TTFB &bull; TLS</span>
           </div>
-          <div className="p-2 rounded bg-slate-950/60 border border-slate-800 text-[10px]">
-            <span className="text-slate-500 block font-semibold uppercase">View Modes</span>
-            <span className="text-sky-400 font-mono">Pretty &bull; Raw &bull; Preview</span>
+          <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800/80 text-[10px] shadow-xs">
+            <span className="text-slate-500 block font-semibold uppercase tracking-wider">AI Diagnostics</span>
+            <span className="text-purple-400 font-mono font-medium mt-0.5 block">Automated Fixes</span>
           </div>
-          <div className="p-2 rounded bg-slate-950/60 border border-slate-800 text-[10px]">
-            <span className="text-slate-500 block font-semibold uppercase">Payloads</span>
-            <span className="text-amber-400 font-mono">JSON &bull; XML &bull; HTML</span>
+          <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800/80 text-[10px] shadow-xs">
+            <span className="text-slate-500 block font-semibold uppercase tracking-wider">Payloads</span>
+            <span className="text-amber-400 font-mono font-medium mt-0.5 block">JSON &bull; XML &bull; HTML</span>
           </div>
         </div>
       </div>
@@ -89,29 +89,99 @@ export const ResponsePane = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleDownloadResponse = () => {
+    if (!response.responseBody) return;
+    let ext = 'txt';
+    let mime = 'text/plain';
+    const ct = (response.contentType || '').toLowerCase();
+    if (ct.includes('json')) {
+      ext = 'json';
+      mime = 'application/json';
+    } else if (ct.includes('xml')) {
+      ext = 'xml';
+      mime = 'application/xml';
+    } else if (ct.includes('html')) {
+      ext = 'html';
+      mime = 'text/html';
+    } else if (ct.includes('csv')) {
+      ext = 'csv';
+      mime = 'text/csv';
+    }
+
+    const blob = new Blob([response.responseBody], { type: `${mime};charset=utf-8` });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `response-${response.status || 'data'}-${Date.now()}.${ext}`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Helper to extract JSON Schema information
+  const getJsonSchemaOverview = (data) => {
+    if (!data || typeof data !== 'object') return null;
+    if (Array.isArray(data)) {
+      const sample = data[0] || {};
+      const fields = typeof sample === 'object' && sample !== null
+        ? Object.entries(sample).map(([k, v]) => ({
+            key: k,
+            type: Array.isArray(v) ? 'array' : typeof v,
+            sample: JSON.stringify(v),
+          }))
+        : [];
+      return { isArray: true, length: data.length, fields };
+    } else {
+      const fields = Object.entries(data).map(([k, v]) => ({
+        key: k,
+        type: Array.isArray(v) ? 'array' : typeof v,
+        sample: JSON.stringify(v),
+      }));
+      return { isArray: false, fields };
+    }
+  };
+
+  let parsedJsonForSchema = null;
+  try {
+    parsedJsonForSchema = JSON.parse(response.responseBody);
+  } catch (_) {
+    parsedJsonForSchema = null;
+  }
+  const schemaInfo = parsedJsonForSchema ? getJsonSchemaOverview(parsedJsonForSchema) : null;
+
+  // Filtered body calculation
+  const getDisplayBody = () => {
+    const base = viewMode === 'pretty' ? formattedBody : response.responseBody;
+    if (!bodyFilter.trim()) return base;
+    const lines = (base || '').split('\n');
+    const filtered = lines.filter((l) => l.toLowerCase().includes(bodyFilter.toLowerCase()));
+    return filtered.length > 0
+      ? filtered.join('\n')
+      : `// No matching lines found for query: "${bodyFilter}"`;
+  };
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-slate-900 border-t border-slate-800">
       {/* Response Status Bar */}
-      <div className="h-11 px-3 border-b border-slate-800 flex items-center justify-between bg-slate-950/80 shrink-0 text-xs">
+      <div className="h-auto min-h-11 px-3 py-1.5 sm:py-0 border-b border-slate-800 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 bg-slate-950/80 shrink-0 text-xs">
         {/* Status / Timing / Size badges */}
-        <div className="flex items-center gap-3">
-          <div className={`px-2.5 py-1 rounded font-bold font-mono text-xs ${getStatusColor(response.status)}`}>
+        <div className="flex items-center flex-wrap gap-2 sm:gap-3">
+          <div className={`px-2.5 py-1 rounded-lg font-bold font-mono text-xs ${getStatusColor(response.status)} shrink-0`}>
             {response.status || '0'} {response.statusText || 'Error'}
           </div>
 
-          <div className="flex items-center gap-1 text-slate-400 font-mono text-xs">
+          <div className="flex items-center gap-1 text-slate-400 font-mono text-xs shrink-0">
             <Clock className="w-3.5 h-3.5 text-slate-500" />
             <span>{formatDuration(response.responseTime)}</span>
           </div>
 
-          <div className="flex items-center gap-1 text-slate-400 font-mono text-xs">
+          <div className="flex items-center gap-1 text-slate-400 font-mono text-xs shrink-0">
             <HardDrive className="w-3.5 h-3.5 text-slate-500" />
             <span>{formatBytes(response.responseSize)}</span>
           </div>
 
           {response.testResults?.length > 0 && (
             <div
-              className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-semibold ${
+              className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-xs font-semibold shrink-0 ${
                 response.failedCount === 0
                   ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                   : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
@@ -129,15 +199,26 @@ export const ResponsePane = () => {
           )}
         </div>
 
-        {/* Copy button */}
-        <button
-          onClick={handleCopyBody}
-          className="flex items-center gap-1 px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-[11px]"
-          title="Copy response body"
-        >
-          {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-          <span>{copied ? 'Copied!' : 'Copy'}</span>
-        </button>
+        {/* Action buttons (Download + Copy) */}
+        <div className="flex items-center gap-1.5 ml-auto sm:ml-0 shrink-0">
+          <button
+            onClick={handleDownloadResponse}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition text-[11px] cursor-pointer"
+            title="Download response file"
+          >
+            <Zap className="w-3.5 h-3.5 text-sky-400" />
+            <span>Download</span>
+          </button>
+
+          <button
+            onClick={handleCopyBody}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-[11px] cursor-pointer"
+            title="Copy response body"
+          >
+            {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+            <span>{copied ? 'Copied!' : 'Copy'}</span>
+          </button>
+        </div>
       </div>
 
       {/* AI Proactive Diagnostics Alert Banner */}
@@ -158,11 +239,11 @@ export const ResponsePane = () => {
       )}
 
       {/* Response Navigation Subtabs */}
-      <div className="flex border-b border-slate-800 bg-slate-900/60 px-3 text-xs font-medium justify-between items-center">
-        <div className="flex">
+      <div className="flex border-b border-slate-800 bg-slate-900/60 px-2 sm:px-3 text-xs font-medium justify-between items-center overflow-x-auto scrollbar-none">
+        <div className="flex shrink-0">
           <button
             onClick={() => setResponseTab('body')}
-            className={`py-2 px-3 border-b-2 transition ${
+            className={`py-2 px-2.5 sm:px-3 border-b-2 transition whitespace-nowrap cursor-pointer ${
               responseTab === 'body'
                 ? 'border-sky-500 text-sky-400 font-semibold'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
@@ -173,7 +254,7 @@ export const ResponsePane = () => {
 
           <button
             onClick={() => setResponseTab('headers')}
-            className={`py-2 px-3 border-b-2 transition ${
+            className={`py-2 px-2.5 sm:px-3 border-b-2 transition whitespace-nowrap cursor-pointer shrink-0 ${
               responseTab === 'headers'
                 ? 'border-sky-500 text-sky-400 font-semibold'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
@@ -184,29 +265,29 @@ export const ResponsePane = () => {
 
           <button
             onClick={() => setResponseTab('timings')}
-            className={`py-2 px-3 border-b-2 transition ${
+            className={`py-2 px-2.5 sm:px-3 border-b-2 transition whitespace-nowrap cursor-pointer shrink-0 ${
               responseTab === 'timings'
                 ? 'border-sky-500 text-sky-400 font-semibold'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
-            Performance & Latency
+            Timings & SLA
           </button>
 
           <button
             onClick={() => setResponseTab('tests')}
-            className={`py-2 px-3 border-b-2 transition ${
+            className={`py-2 px-2.5 sm:px-3 border-b-2 transition whitespace-nowrap cursor-pointer shrink-0 ${
               responseTab === 'tests'
                 ? 'border-sky-500 text-sky-400 font-semibold'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
-            Test Results ({response.testResults?.length || 0})
+            Tests ({response.testResults?.length || 0})
           </button>
 
           <button
             onClick={() => setResponseTab('ai')}
-            className={`py-2 px-3 border-b-2 transition flex items-center gap-1.5 ${
+            className={`py-2 px-2.5 sm:px-3 border-b-2 transition whitespace-nowrap cursor-pointer shrink-0 flex items-center gap-1.5 ${
               responseTab === 'ai'
                 ? 'border-purple-500 text-purple-400 font-semibold'
                 : (response.status >= 400 || (response.testResults || []).some((t) => !t.passed))
@@ -215,7 +296,7 @@ export const ResponsePane = () => {
             }`}
           >
             <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-            <span>AI Diagnostics & Suggestions</span>
+            <span>AI Diagnostics</span>
             {(response.status >= 400 || (response.testResults || []).some((t) => !t.passed)) && (
               <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
             )}
@@ -224,6 +305,27 @@ export const ResponsePane = () => {
 
         {responseTab === 'body' && (
           <div className="flex items-center gap-2">
+            {/* Search Filter Input */}
+            <div className="relative hidden md:flex items-center">
+              <Search className="w-3 h-3 text-slate-500 absolute left-2 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Find in body..."
+                value={bodyFilter}
+                onChange={(e) => setBodyFilter(e.target.value)}
+                className="bg-slate-950 border border-slate-800 rounded-lg pl-7 pr-5 py-0.5 text-[11px] text-slate-200 focus:outline-none focus:border-sky-500 w-32 focus:w-48 transition-all"
+              />
+              {bodyFilter && (
+                <button
+                  type="button"
+                  onClick={() => setBodyFilter('')}
+                  className="absolute right-1 text-slate-500 hover:text-slate-300 text-[10px]"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
             <div className="flex bg-slate-950 rounded p-0.5 border border-slate-800 text-[11px]">
               <button
                 onClick={() => setViewMode('pretty')}
@@ -241,6 +343,16 @@ export const ResponsePane = () => {
               >
                 Raw
               </button>
+              {schemaInfo && (
+                <button
+                  onClick={() => setViewMode('schema')}
+                  className={`px-2.5 py-0.5 rounded transition ${
+                    viewMode === 'schema' ? 'bg-slate-800 text-sky-400 font-semibold shadow-xs' : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  Schema
+                </button>
+              )}
               <button
                 onClick={() => setViewMode('preview')}
                 className={`px-2.5 py-0.5 rounded transition ${
@@ -259,7 +371,44 @@ export const ResponsePane = () => {
         {/* TAB 1: RESPONSE BODY */}
         {responseTab === 'body' && (
           <div className="h-full flex flex-col">
-            {viewMode === 'preview' ? (
+            {viewMode === 'schema' && schemaInfo ? (
+              <div className="flex-1 p-3 bg-slate-950 rounded-lg border border-slate-800/80 overflow-auto space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-800 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-slate-200">JSON Schema Inspector</span>
+                    <span className="px-2 py-0.2 rounded bg-sky-500/20 text-sky-400 font-mono text-[10px]">
+                      {schemaInfo.isArray ? `Array (${schemaInfo.length} items)` : 'Object'}
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-slate-500 font-mono">
+                    {schemaInfo.fields.length} properties discovered
+                  </span>
+                </div>
+
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-900 text-slate-400 uppercase text-[10px] font-semibold">
+                    <tr>
+                      <th className="p-2">Property Name</th>
+                      <th className="p-2">Data Type</th>
+                      <th className="p-2">Sample Value</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60 font-mono text-[11px]">
+                    {schemaInfo.fields.map((f, i) => (
+                      <tr key={i} className="hover:bg-slate-900/40">
+                        <td className="p-2 text-sky-300 font-bold">{f.key}</td>
+                        <td className="p-2 text-purple-400">
+                          <span className="px-1.5 py-0.5 rounded bg-purple-500/10 border border-purple-500/20">
+                            {f.type}
+                          </span>
+                        </td>
+                        <td className="p-2 text-slate-400 truncate max-w-xs">{f.sample}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : viewMode === 'preview' ? (
               <div className="flex-1 flex flex-col bg-slate-950 rounded-lg border border-slate-800/80 overflow-hidden min-h-[300px]">
                 {/* HTML Preview */}
                 {(response.contentType?.includes('html') || response.responseBody?.trim().startsWith('<!DOCTYPE') || response.responseBody?.trim().startsWith('<html')) ? (
@@ -292,14 +441,14 @@ export const ResponsePane = () => {
                       <span className="text-[10px] text-sky-400 uppercase font-mono">{response.contentType || 'text/plain'}</span>
                     </div>
                     <pre className="font-mono text-xs text-slate-200 whitespace-pre-wrap leading-relaxed select-text bg-slate-900/60 p-3 rounded-md border border-slate-800/60">
-                      {formattedBody}
+                      {getDisplayBody()}
                     </pre>
                   </div>
                 )}
               </div>
             ) : (
               <pre className="flex-1 p-3 bg-slate-950 text-slate-200 font-mono text-xs rounded-lg border border-slate-800/80 overflow-auto whitespace-pre-wrap leading-relaxed select-text">
-                {viewMode === 'pretty' ? formattedBody : response.responseBody}
+                {getDisplayBody()}
               </pre>
             )}
           </div>

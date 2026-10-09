@@ -447,7 +447,7 @@ export default function LoginPage() {
                 </div>
                 <h3 className="font-bold text-sm text-slate-100">Two-Factor Authentication</h3>
                 <p className={`text-xs leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                  Enter the 6-digit verification code associated with <strong className="text-purple-400 font-mono">{twoFactorEmail}</strong>.
+                  Open your authenticator app (<strong>Google Authenticator</strong>, <strong>Microsoft Authenticator</strong>, or <strong>Authy</strong>) on your phone and enter the current 6-digit security code for <strong className="text-purple-400 font-mono">{twoFactorEmail}</strong>.
                 </p>
 
                 {twoFactorDemoCode && (

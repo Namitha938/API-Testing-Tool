@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useApi } from '../context/ApiContext';
 import { getMethodColor } from '../utils/formatters';
-import { Send, Save, Loader2, Sparkles, ChevronDown, Code2 } from 'lucide-react';
+import { Send, Save, Loader2, Sparkles, ChevronDown, Code2, Terminal } from 'lucide-react';
 import { CodeSnippetModal } from './CodeSnippetModal';
+import { CurlImportModal } from './CurlImportModal';
 
 const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
 
@@ -18,6 +19,7 @@ export const RequestPane = ({ onOpenSaveModal }) => {
   const [nameEditing, setNameEditing] = useState(false);
   const [urlPresetsOpen, setUrlPresetsOpen] = useState(false);
   const [codeModalOpen, setCodeModalOpen] = useState(false);
+  const [curlModalOpen, setCurlModalOpen] = useState(false);
 
   const handleMethodChange = (e) => {
     setActiveRequest((prev) => ({ ...prev, method: e.target.value }));
@@ -128,71 +130,87 @@ export const RequestPane = ({ onOpenSaveModal }) => {
       </div>
 
       {/* Method + URL Input + Send / Save Bar */}
-      <div className="flex items-center gap-2">
-        {/* Method selector */}
-        <div className="relative">
-          <select
-            value={activeRequest.method}
-            onChange={handleMethodChange}
-            className={`h-10 px-3 pr-8 rounded-lg font-bold text-xs border appearance-none focus:outline-none cursor-pointer tracking-wider font-mono ${getMethodColor(
-              activeRequest.method
-            )}`}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2.5">
+        {/* Top input group on mobile: Method + URL */}
+        <div className="flex items-center gap-2 flex-1">
+          {/* Method selector */}
+          <div className="relative shrink-0">
+            <select
+              value={activeRequest.method}
+              onChange={handleMethodChange}
+              className={`h-10 px-3 pr-7 sm:px-3.5 sm:pr-8 rounded-xl font-bold text-xs border appearance-none focus:outline-none cursor-pointer tracking-wider font-mono shadow-xs transition-colors ${getMethodColor(
+                activeRequest.method
+              )}`}
+            >
+              {HTTP_METHODS.map((m) => (
+                <option key={m} value={m} className="bg-slate-900 text-slate-200">
+                  {m}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="w-3.5 h-3.5 absolute right-2 top-3.5 pointer-events-none opacity-60" />
+          </div>
+
+          {/* URL Input */}
+          <div className="flex-1 relative group min-w-0">
+            <input
+              type="text"
+              value={activeRequest.url}
+              onChange={handleUrlChange}
+              onKeyDown={handleKeyDown}
+              placeholder="Enter request URL (e.g. {{baseUrl}}/users or https://api.github.com/users/octocat)"
+              className="w-full h-10 bg-slate-950/90 border border-slate-700/80 rounded-xl px-3 sm:px-4 text-xs text-slate-100 placeholder-slate-500 font-mono focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all shadow-inner truncate"
+            />
+          </div>
+        </div>
+
+        {/* Action buttons (Send, Code, Save) */}
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Send Button */}
+          <button
+            onClick={sendRequest}
+            disabled={isLoading || !activeRequest.url}
+            className="flex-1 sm:flex-none h-10 px-5 sm:px-6 rounded-xl bg-gradient-to-r from-sky-500 via-sky-600 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 disabled:opacity-50 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-sky-600/30 hover:shadow-sky-500/40 active:scale-95 cursor-pointer"
+            title="Send Request (Ctrl + Enter)"
           >
-            {HTTP_METHODS.map((m) => (
-              <option key={m} value={m} className="bg-slate-900 text-slate-200">
-                {m}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-3.5 pointer-events-none opacity-60" />
+            {isLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin text-white" />
+            ) : (
+              <Send className="w-4 h-4 fill-white drop-shadow" />
+            )}
+            <span>Send</span>
+          </button>
+
+          {/* Import cURL Button */}
+          <button
+            onClick={() => setCurlModalOpen(true)}
+            className="h-10 px-3 sm:px-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-750 text-slate-200 font-medium text-xs flex items-center justify-center gap-1.5 border border-slate-700/80 hover:border-amber-500/40 transition shadow-xs cursor-pointer active:scale-95"
+            title="Import raw cURL command into Workbench"
+          >
+            <Terminal className="w-4 h-4 text-amber-400" />
+            <span className="hidden sm:inline">cURL</span>
+          </button>
+
+          {/* Code Snippets Button */}
+          <button
+            onClick={() => setCodeModalOpen(true)}
+            className="h-10 px-3 sm:px-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-750 text-slate-200 font-medium text-xs flex items-center justify-center gap-1.5 border border-slate-700/80 hover:border-sky-500/40 transition shadow-xs cursor-pointer active:scale-95"
+            title="Generate code snippet (cURL, Python, JS, Go)"
+          >
+            <Code2 className="w-4 h-4 text-sky-400" />
+            <span className="hidden sm:inline">Code</span>
+          </button>
+
+          {/* Save Button */}
+          <button
+            onClick={onOpenSaveModal}
+            className="h-10 px-3 sm:px-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-750 text-slate-200 font-medium text-xs flex items-center justify-center gap-1.5 border border-slate-700/80 hover:border-slate-600 transition shadow-xs cursor-pointer active:scale-95"
+            title="Save request to collection"
+          >
+            <Save className="w-4 h-4 text-slate-400" />
+            <span className="hidden sm:inline">Save</span>
+          </button>
         </div>
-
-        {/* URL Input */}
-        <div className="flex-1 relative">
-          <input
-            type="text"
-            value={activeRequest.url}
-            onChange={handleUrlChange}
-            onKeyDown={handleKeyDown}
-            placeholder="Enter request URL (e.g. {{baseUrl}}/users or http://localhost:5000/api/mock/users)"
-            className="w-full h-10 bg-slate-950 border border-slate-700/80 rounded-lg px-3.5 text-xs text-slate-100 placeholder-slate-500 font-mono focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition shadow-inner"
-          />
-        </div>
-
-        {/* Send Button */}
-        <button
-          onClick={sendRequest}
-          disabled={isLoading || !activeRequest.url}
-          className="h-10 px-5 rounded-lg bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white font-semibold text-xs flex items-center gap-2 transition shadow-md shadow-sky-600/20 active:scale-95"
-          title="Send Request (Ctrl + Enter)"
-        >
-          {isLoading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Send className="w-4 h-4 fill-white" />
-          )}
-          <span>Send</span>
-        </button>
-
-        {/* Code Snippets Button */}
-        <button
-          onClick={() => setCodeModalOpen(true)}
-          className="h-10 px-3.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs flex items-center gap-1.5 border border-slate-700 transition"
-          title="Generate code snippet (cURL, Python, JS, Go)"
-        >
-          <Code2 className="w-4 h-4 text-sky-400" />
-          <span>Code</span>
-        </button>
-
-        {/* Save Button */}
-        <button
-          onClick={onOpenSaveModal}
-          className="h-10 px-3.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs flex items-center gap-1.5 border border-slate-700 transition"
-          title="Save request to collection"
-        >
-          <Save className="w-4 h-4 text-slate-400" />
-          <span>Save</span>
-        </button>
       </div>
 
       {/* Code Snippet Modal */}
@@ -200,6 +218,12 @@ export const RequestPane = ({ onOpenSaveModal }) => {
         isOpen={codeModalOpen}
         onClose={() => setCodeModalOpen(false)}
         request={activeRequest}
+      />
+
+      {/* cURL Import Modal */}
+      <CurlImportModal
+        isOpen={curlModalOpen}
+        onClose={() => setCurlModalOpen(false)}
       />
     </div>
   );

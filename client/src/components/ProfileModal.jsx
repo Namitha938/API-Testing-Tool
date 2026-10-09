@@ -49,6 +49,7 @@ export const ProfileModal = ({ isOpen, onClose }) => {
   // 2FA tab states
   const [twoFactorStep, setTwoFactorStep] = useState('initial'); // 'initial' | 'setup'
   const [twoFactorSecret, setTwoFactorSecret] = useState('');
+  const [twoFactorQrCode, setTwoFactorQrCode] = useState('');
   const [twoFactorSetupCode, setTwoFactorSetupCode] = useState('');
   const [twoFactorCodeInput, setTwoFactorCodeInput] = useState('');
   const [twoFactorLoading, setTwoFactorLoading] = useState(false);
@@ -167,6 +168,7 @@ export const ProfileModal = ({ isOpen, onClose }) => {
     try {
       const data = await generate2FA();
       setTwoFactorSecret(data.secret || '');
+      setTwoFactorQrCode(data.qrCode || '');
       setTwoFactorSetupCode(data.setupCode || '');
       setTwoFactorStep('setup');
     } catch (err) {
@@ -532,35 +534,60 @@ export const ProfileModal = ({ isOpen, onClose }) => {
                     </button>
                   </div>
                 ) : twoFactorStep === 'setup' ? (
-                  /* 2FA Setup Box */
-                  <div className="p-3.5 rounded-xl bg-purple-950/20 border border-purple-500/30 space-y-3">
+                  /* Real-Life 2FA Setup Box */
+                  <div className="p-4 rounded-xl bg-purple-950/20 border border-purple-500/30 space-y-4">
                     <div className="space-y-1">
-                      <div className="text-xs font-semibold text-purple-300">Set Up 2FA Security Key</div>
-                      <p className="text-[11px] text-slate-400">
-                        Use this secret or the demo code below to complete setup:
+                      <div className="text-xs font-bold text-purple-300 flex items-center gap-1.5">
+                        <ShieldCheck className="w-4 h-4 text-purple-400" />
+                        <span>Link Your Authenticator App (Google / Microsoft / 1Password)</span>
+                      </div>
+                      <p className="text-[11px] text-slate-300 leading-relaxed">
+                        1. Open <strong>Google Authenticator</strong>, <strong>Microsoft Authenticator</strong>, or <strong>Authy</strong> on your mobile phone.<br />
+                        2. Tap <strong>+ (Add account)</strong> and scan the QR code below:
                       </p>
                     </div>
 
-                    <div className="flex items-center justify-between bg-slate-900 px-3 py-2 rounded-lg border border-purple-500/20 font-mono text-xs text-purple-200">
-                      <span className="truncate">{twoFactorSecret}</span>
-                      <button
-                        type="button"
-                        onClick={handleCopySecret}
-                        className="ml-2 text-slate-400 hover:text-white p-1 cursor-pointer"
-                        title="Copy Secret"
-                      >
-                        <Copy className="w-3.5 h-3.5" />
-                      </button>
+                    {/* QR Code Canvas / Image Display */}
+                    {twoFactorQrCode && (
+                      <div className="flex flex-col items-center justify-center p-3 bg-white rounded-xl shadow-lg border border-purple-400/30 w-fit mx-auto">
+                        <img
+                          src={twoFactorQrCode}
+                          alt="2FA QR Code"
+                          className="w-44 h-44 object-contain rounded"
+                        />
+                        <span className="text-[10px] text-slate-800 font-mono font-bold mt-1.5">
+                          Scan with Mobile App
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Manual Secret Key */}
+                    <div className="space-y-1">
+                      <span className="text-[11px] text-slate-400 font-medium">Or enter key manually if camera unavailable:</span>
+                      <div className="flex items-center justify-between bg-slate-900 px-3 py-2 rounded-lg border border-purple-500/20 font-mono text-xs text-purple-200">
+                        <span className="tracking-widest font-bold">{twoFactorSecret}</span>
+                        <button
+                          type="button"
+                          onClick={handleCopySecret}
+                          className="ml-2 text-slate-400 hover:text-white p-1 cursor-pointer"
+                          title="Copy Secret"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
 
                     {twoFactorSetupCode && (
-                      <button
-                        type="button"
-                        onClick={() => setTwoFactorCodeInput(twoFactorSetupCode)}
-                        className="text-[10px] text-purple-300 hover:text-purple-200 bg-purple-500/20 px-2.5 py-1 rounded border border-purple-500/30 cursor-pointer block font-mono"
-                      >
-                        Click to auto-fill verification code: <strong>{twoFactorSetupCode}</strong>
-                      </button>
+                      <div className="p-2.5 rounded-lg bg-sky-950/30 border border-sky-500/20 text-[11px] text-sky-300 flex items-center justify-between">
+                        <span>Current 30s TOTP code preview:</span>
+                        <button
+                          type="button"
+                          onClick={() => setTwoFactorCodeInput(twoFactorSetupCode)}
+                          className="px-2 py-0.5 rounded bg-sky-500/20 hover:bg-sky-500/30 font-mono font-bold text-sky-200 border border-sky-500/30 cursor-pointer"
+                        >
+                          {twoFactorSetupCode} (Auto-Fill)
+                        </button>
+                      </div>
                     )}
 
                     <form onSubmit={handleConfirm2FA} className="space-y-3">

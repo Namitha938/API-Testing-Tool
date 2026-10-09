@@ -137,15 +137,6 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
             Please continue with your authorized administrator Google account to access this console.
           </p>
 
-          {currentUser && (
-            <div className="text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-950/60 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between">
-              <span>Active session:</span>
-              <span className="font-mono text-slate-800 dark:text-slate-200 font-medium truncate max-w-[200px]">
-                {currentUser.email}
-              </span>
-            </div>
-          )}
-
           {loginError && (
             <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2 text-left">
               <ShieldAlert className="w-4 h-4 shrink-0" />

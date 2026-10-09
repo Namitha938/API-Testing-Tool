@@ -392,44 +392,8 @@ export default function AdminPage() {
 
               <h2 className="text-2xl font-bold mb-2 text-white">403 — Unauthorized Account</h2>
               <p className="text-xs text-slate-300 mb-6 leading-relaxed max-w-md mx-auto">
-                You are currently signed in, but your account is <strong>not authorized</strong> to access the Administrator Dashboard.
+                Administrator privileges are required to access this console. Please sign in with an authorized administrator Google account.
               </p>
-
-              {/* Account Diagnostics Card */}
-              <div className="text-left p-4 rounded-xl border border-slate-800 bg-slate-950/80 mb-6 space-y-2.5 text-xs">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
-                  <span className="text-slate-400">Signed-in User:</span>
-                  <div className="flex items-center gap-2">
-                    {user.photoURL ? (
-                      <img src={user.photoURL} alt={user.name} className="w-5 h-5 rounded-full object-cover border border-slate-700" />
-                    ) : (
-                      <div className="w-5 h-5 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center text-[10px] font-bold">
-                        {user.name?.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                    <span className="text-white font-medium">{user.name}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
-                  <span className="text-slate-400">Email Address:</span>
-                  <span className="text-slate-200 font-mono text-[11px]">{user.email}</span>
-                </div>
-
-                <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
-                  <span className="text-slate-400">Account Role:</span>
-                  <span className="px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 font-mono text-[10px] uppercase font-bold">
-                    {user.role || 'user'} (Standard User)
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Access Status:</span>
-                  <span className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/40 font-mono text-[10px] uppercase font-bold">
-                    DENIED • UNAUTHORIZED
-                  </span>
-                </div>
-              </div>
 
               {quickLoginError && (
                 <div className="mb-4 p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs text-left">

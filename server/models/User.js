@@ -66,11 +66,30 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
-    twoFactorTempCode: {
+    twoFactorTempSecret: {
       type: String,
       default: '',
     },
     twoFactorTempExpiry: {
+      type: Date,
+      default: null,
+    },
+    twoFactorRecoveryCodes: [
+      {
+        hash: { type: String, required: true },
+        used: { type: Boolean, default: false },
+        usedAt: { type: Date, default: null },
+      },
+    ],
+    twoFactorLastTimestep: {
+      type: Number,
+      default: -1,
+    },
+    twoFactorFailedAttempts: {
+      type: Number,
+      default: 0,
+    },
+    twoFactorLockUntil: {
       type: Date,
       default: null,
     },
@@ -96,8 +115,12 @@ const userSchema = new mongoose.Schema(
 
 userSchema.methods.toJSON = function () {
   const obj = this.toObject();
+  const recoveryCodes = Array.isArray(obj.twoFactorRecoveryCodes) ? obj.twoFactorRecoveryCodes : [];
+  obj.remainingRecoveryCodes = recoveryCodes.filter((c) => !c.used).length;
   delete obj.password;
   delete obj.twoFactorSecret;
+  delete obj.twoFactorTempSecret;
+  delete obj.twoFactorRecoveryCodes;
   delete obj.twoFactorTempCode;
   delete obj.resetToken;
   delete obj.resetTokenAttempts;

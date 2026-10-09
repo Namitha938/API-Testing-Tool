@@ -63,6 +63,18 @@ async function seedInitialData() {
         role: 'user',
       });
     }
+
+    let testUser = await User.findOne({ email: 'tester@gmail.com' });
+    if (!testUser) {
+      const testPassword = await bcrypt.hash('Tester@123', 10);
+      await User.create({
+        name: 'Tester User',
+        email: 'tester@gmail.com',
+        password: testPassword,
+        role: 'user',
+      });
+      console.log('[Database] Seeded test user: tester@gmail.com');
+    }
     const adminUser = await User.findOne({ email: 'singunamitha@gmail.com' });
 
     // Seed default Environment if none exist

@@ -22,11 +22,23 @@ import {
   Eye,
   EyeOff,
   Sparkles,
-  Calendar
+  Calendar,
+  Download,
+  RefreshCw,
+  Check
 } from 'lucide-react';
 
 export const ProfileModal = ({ isOpen, onClose }) => {
-  const { user, updateProfile, changePassword, generate2FA, enable2FA, disable2FA, isAdmin } = useAuth();
+  const {
+    user,
+    updateProfile,
+    changePassword,
+    generate2FA,
+    enable2FA,
+    disable2FA,
+    getNewRecoveryCodes,
+    isAdmin,
+  } = useAuth();
   const fileInputRef = useRef(null);
 
   const [activeTab, setActiveTab] = useState('general'); // 'general', 'security'
@@ -47,15 +59,29 @@ export const ProfileModal = ({ isOpen, onClose }) => {
   const [showNewPassword, setShowNewPassword] = useState(false);
 
   // 2FA tab states
-  const [twoFactorStep, setTwoFactorStep] = useState('initial'); // 'initial' | 'setup'
+  const [twoFactorStep, setTwoFactorStep] = useState('initial'); // 'initial' | 'setup' | 'recovery'
   const [twoFactorSecret, setTwoFactorSecret] = useState('');
   const [twoFactorQrCode, setTwoFactorQrCode] = useState('');
-  const [twoFactorSetupCode, setTwoFactorSetupCode] = useState('');
   const [twoFactorCodeInput, setTwoFactorCodeInput] = useState('');
+  const [twoFactorRecoveryCodes, setTwoFactorRecoveryCodes] = useState([]);
   const [twoFactorLoading, setTwoFactorLoading] = useState(false);
   const [twoFactorError, setTwoFactorError] = useState('');
   const [twoFactorSuccess, setTwoFactorSuccess] = useState('');
   const [copiedSecret, setCopiedSecret] = useState(false);
+  const [copiedCodes, setCopiedCodes] = useState(false);
+
+  // Disable 2FA modal
+  const [showDisableModal, setShowDisableModal] = useState(false);
+  const [disablePassword, setDisablePassword] = useState('');
+  const [disableCode, setDisableCode] = useState('');
+  const [disableLoading, setDisableLoading] = useState(false);
+  const [disableError, setDisableError] = useState('');
+
+  // Regenerate recovery codes modal
+  const [showRegenModal, setShowRegenModal] = useState(false);
+  const [regenPassword, setRegenPassword] = useState('');
+  const [regenLoading, setRegenLoading] = useState(false);
+  const [regenError, setRegenError] = useState('');
 
   // Status states
   const [loading, setLoading] = useState(false);
@@ -169,7 +195,7 @@ export const ProfileModal = ({ isOpen, onClose }) => {
       const data = await generate2FA();
       setTwoFactorSecret(data.secret || '');
       setTwoFactorQrCode(data.qrCode || '');
-      setTwoFactorSetupCode(data.setupCode || '');
+      setTwoFactorCodeInput('');
       setTwoFactorStep('setup');
     } catch (err) {
       setTwoFactorError(err.message || 'Failed to generate 2FA setup');
@@ -187,10 +213,15 @@ export const ProfileModal = ({ isOpen, onClose }) => {
     setTwoFactorLoading(true);
     setTwoFactorError('');
     try {
-      await enable2FA(twoFactorCodeInput);
+      const res = await enable2FA(twoFactorCodeInput);
       setTwoFactorSuccess('Two-Factor Authentication is now enabled!');
-      setTwoFactorStep('initial');
       setTwoFactorCodeInput('');
+      if (Array.isArray(res.recoveryCodes) && res.recoveryCodes.length > 0) {
+        setTwoFactorRecoveryCodes(res.recoveryCodes);
+        setTwoFactorStep('recovery');
+      } else {
+        setTwoFactorStep('initial');
+      }
       setTimeout(() => setTwoFactorSuccess(''), 4000);
     } catch (err) {
       setTwoFactorError(err.message || 'Invalid verification code');
@@ -199,20 +230,76 @@ export const ProfileModal = ({ isOpen, onClose }) => {
     }
   };
 
-  const handleDisable2FA = async () => {
-    if (!window.confirm('Are you sure you want to disable 2FA? This lowers your account security.')) return;
-    setTwoFactorLoading(true);
-    setTwoFactorError('');
+  const handleDisable2FA = async (e) => {
+    e?.preventDefault();
+    if (!disablePassword && !disableCode) {
+      setDisableError('Please enter your account password or current 6-digit authenticator code.');
+      return;
+    }
+    setDisableLoading(true);
+    setDisableError('');
     try {
-      await disable2FA();
+      await disable2FA({ password: disablePassword, code: disableCode });
       setTwoFactorSuccess('Two-Factor Authentication disabled.');
+      setShowDisableModal(false);
+      setDisablePassword('');
+      setDisableCode('');
       setTwoFactorStep('initial');
+      setTwoFactorSecret('');
+      setTwoFactorQrCode('');
+      setTwoFactorRecoveryCodes([]);
       setTimeout(() => setTwoFactorSuccess(''), 4000);
     } catch (err) {
-      setTwoFactorError(err.message || 'Failed to disable 2FA');
+      setDisableError(err.message || 'Failed to disable 2FA');
     } finally {
-      setTwoFactorLoading(false);
+      setDisableLoading(false);
     }
+  };
+
+  const handleRegenerateRecoveryCodes = async (e) => {
+    e?.preventDefault();
+    if (!regenPassword) {
+      setRegenError('Please enter your account password to generate new recovery codes.');
+      return;
+    }
+    setRegenLoading(true);
+    setRegenError('');
+    try {
+      const data = await getNewRecoveryCodes({ password: regenPassword });
+      setTwoFactorRecoveryCodes(data.recoveryCodes || []);
+      setShowRegenModal(false);
+      setRegenPassword('');
+      setTwoFactorStep('recovery');
+      setTwoFactorSuccess('New recovery codes generated!');
+      setTimeout(() => setTwoFactorSuccess(''), 4000);
+    } catch (err) {
+      setRegenError(err.message || 'Failed to generate recovery codes');
+    } finally {
+      setRegenLoading(false);
+    }
+  };
+
+  const handleCopyCodes = () => {
+    if (twoFactorRecoveryCodes.length > 0) {
+      const text = twoFactorRecoveryCodes.join('\n');
+      navigator.clipboard.writeText(text);
+      setCopiedCodes(true);
+      setTimeout(() => setCopiedCodes(false), 2000);
+    }
+  };
+
+  const handleDownloadCodes = () => {
+    if (twoFactorRecoveryCodes.length === 0) return;
+    const content = `APITester Studio - Two-Factor Authentication Backup Recovery Codes\nAccount: ${user?.email}\nGenerated: ${new Date().toLocaleString()}\n\nKeep these codes safe and private. Each code can only be used once to access your account if you lose your authenticator app:\n\n${twoFactorRecoveryCodes.map((c, i) => `${i + 1}. ${c}`).join('\n')}\n`;
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `apitester-recovery-codes-${user?.email?.split('@')[0] || 'account'}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const handleCopySecret = () => {
@@ -476,7 +563,7 @@ export const ProfileModal = ({ isOpen, onClose }) => {
             /* Security Tab */
             <div className="space-y-6">
               {/* 2FA Security Section */}
-              <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/60 space-y-3">
+              <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/60 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {user.twoFactorEnabled ? (
@@ -501,8 +588,8 @@ export const ProfileModal = ({ isOpen, onClose }) => {
 
                 <p className="text-[11px] text-slate-400 leading-relaxed">
                   {user.twoFactorEnabled
-                    ? 'Your account is secured with 2FA. A 6-digit one-time code is required upon signing in.'
-                    : 'Add an extra layer of defense. A 6-digit code will be required during login before granting access.'}
+                    ? 'Your account is secured with 2FA. A 6-digit code or backup recovery code is required upon signing in.'
+                    : 'Add standard TOTP protection using Google Authenticator, Microsoft Authenticator, or Authy.'}
                 </p>
 
                 {twoFactorError && (
@@ -519,19 +606,102 @@ export const ProfileModal = ({ isOpen, onClose }) => {
                   </div>
                 )}
 
-                {user.twoFactorEnabled ? (
-                  <div className="flex items-center justify-between pt-1">
-                    <span className="text-[11px] text-emerald-400 flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> High Security Protection Enabled
-                    </span>
-                    <button
-                      type="button"
-                      disabled={twoFactorLoading}
-                      onClick={handleDisable2FA}
-                      className="px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-semibold transition cursor-pointer disabled:opacity-50"
-                    >
-                      {twoFactorLoading ? 'Disabling...' : 'Disable 2FA'}
-                    </button>
+                {/* Step: Recovery Codes Display */}
+                {twoFactorStep === 'recovery' && twoFactorRecoveryCodes.length > 0 ? (
+                  <div className="p-4 rounded-xl border bg-purple-950/20 border-purple-500/30 space-y-3">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-purple-300">
+                        <KeyRound className="w-4 h-4 text-purple-400" />
+                        <span>Save Your Backup Recovery Codes</span>
+                      </div>
+                      <p className="text-[11px] text-slate-300 leading-relaxed">
+                        Store these 8 codes in a safe place. If you ever lose your phone, each code can be used once as a backup login code. <strong>They are displayed only now.</strong>
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {twoFactorRecoveryCodes.map((code, index) => (
+                        <div
+                          key={index}
+                          className="p-2 rounded-lg border font-mono font-bold text-xs text-center tracking-wider bg-slate-900 border-purple-500/20 text-purple-200"
+                        >
+                          {code}
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-purple-500/20">
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={handleCopyCodes}
+                          className="px-2.5 py-1 rounded-lg border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 text-xs font-semibold flex items-center gap-1 cursor-pointer"
+                        >
+                          {copiedCodes ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                          <span>{copiedCodes ? 'Copied' : 'Copy Codes'}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleDownloadCodes}
+                          className="px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1 cursor-pointer"
+                        >
+                          <Download className="w-3 h-3 text-sky-400" />
+                          <span>Download</span>
+                        </button>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTwoFactorStep('initial');
+                          setTwoFactorRecoveryCodes([]);
+                        }}
+                        className="px-3.5 py-1 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-md cursor-pointer"
+                      >
+                        I Have Saved Them &rarr;
+                      </button>
+                    </div>
+                  </div>
+                ) : user.twoFactorEnabled ? (
+                  /* Active State */
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                    <div>
+                      <span className="text-[11px] text-emerald-400 flex items-center gap-1 font-bold">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> High Security Protection Enabled
+                      </span>
+                      <p className="text-[10px] text-slate-400">
+                        {user.remainingRecoveryCodes !== undefined
+                          ? `${user.remainingRecoveryCodes} of 8 backup recovery codes remaining.`
+                          : 'Secured by Authenticator TOTP codes.'}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowRegenModal(true);
+                          setRegenError('');
+                          setRegenPassword('');
+                        }}
+                        className="px-2.5 py-1 rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300 text-xs font-semibold cursor-pointer flex items-center gap-1"
+                      >
+                        <RefreshCw className="w-3 h-3 text-purple-400" />
+                        <span>Regenerate</span>
+                      </button>
+                      <button
+                        type="button"
+                        disabled={twoFactorLoading}
+                        onClick={() => {
+                          setShowDisableModal(true);
+                          setDisableError('');
+                          setDisablePassword('');
+                          setDisableCode('');
+                        }}
+                        className="px-3 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-semibold cursor-pointer disabled:opacity-50"
+                      >
+                        Disable 2FA
+                      </button>
+                    </div>
                   </div>
                 ) : twoFactorStep === 'setup' ? (
                   /* Real-Life 2FA Setup Box */
@@ -539,7 +709,7 @@ export const ProfileModal = ({ isOpen, onClose }) => {
                     <div className="space-y-1">
                       <div className="text-xs font-bold text-purple-300 flex items-center gap-1.5">
                         <ShieldCheck className="w-4 h-4 text-purple-400" />
-                        <span>Link Your Authenticator App (Google / Microsoft / 1Password)</span>
+                        <span>Link Your Authenticator App (Google / Microsoft / Authy)</span>
                       </div>
                       <p className="text-[11px] text-slate-300 leading-relaxed">
                         1. Open <strong>Google Authenticator</strong>, <strong>Microsoft Authenticator</strong>, or <strong>Authy</strong> on your mobile phone.<br />
@@ -569,31 +739,19 @@ export const ProfileModal = ({ isOpen, onClose }) => {
                         <button
                           type="button"
                           onClick={handleCopySecret}
-                          className="ml-2 text-slate-400 hover:text-white p-1 cursor-pointer"
+                          className="ml-2 text-slate-400 hover:text-white p-1 cursor-pointer flex items-center gap-1 text-[11px]"
                           title="Copy Secret"
                         >
-                          <Copy className="w-3.5 h-3.5" />
+                          {copiedSecret ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                          <span>{copiedSecret ? 'Copied' : 'Copy'}</span>
                         </button>
                       </div>
                     </div>
 
-                    {twoFactorSetupCode && (
-                      <div className="p-2.5 rounded-lg bg-sky-950/30 border border-sky-500/20 text-[11px] text-sky-300 flex items-center justify-between">
-                        <span>Current 30s TOTP code preview:</span>
-                        <button
-                          type="button"
-                          onClick={() => setTwoFactorCodeInput(twoFactorSetupCode)}
-                          className="px-2 py-0.5 rounded bg-sky-500/20 hover:bg-sky-500/30 font-mono font-bold text-sky-200 border border-sky-500/30 cursor-pointer"
-                        >
-                          {twoFactorSetupCode} (Auto-Fill)
-                        </button>
-                      </div>
-                    )}
-
                     <form onSubmit={handleConfirm2FA} className="space-y-3">
                       <div>
                         <label className="block text-[11px] font-semibold text-slate-300 mb-1">
-                          Enter 6-Digit Code
+                          Enter 6-Digit Code from Authenticator App
                         </label>
                         <input
                           type="text"
@@ -658,6 +816,149 @@ export const ProfileModal = ({ isOpen, onClose }) => {
                   </button>
                 )}
               </div>
+
+              {/* Disable 2FA Verification Modal */}
+              {showDisableModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs">
+                  <div className="w-full max-w-sm p-5 rounded-2xl border bg-slate-900 border-slate-800 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-xs font-bold text-rose-400">
+                        <ShieldAlert className="w-4 h-4" />
+                        <span>Confirm 2FA Deactivation</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowDisableModal(false)}
+                        className="p-1 text-slate-400 hover:text-white"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      Please enter your account password or current 6-digit authenticator code to confirm:
+                    </p>
+
+                    {disableError && (
+                      <div className="p-2 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-center gap-2">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        <span>{disableError}</span>
+                      </div>
+                    )}
+
+                    <form onSubmit={handleDisable2FA} className="space-y-2.5 text-xs">
+                      <div>
+                        <label className="block text-slate-300 font-medium mb-1">Account Password</label>
+                        <input
+                          type="password"
+                          value={disablePassword}
+                          onChange={(e) => setDisablePassword(e.target.value)}
+                          placeholder="••••••••"
+                          className="w-full rounded-lg px-3 py-1.5 border border-slate-700 bg-slate-950 text-slate-100 text-xs focus:ring-2 focus:ring-rose-500/30 outline-none"
+                        />
+                      </div>
+
+                      <div className="relative text-center my-1">
+                        <span className="text-[10px] uppercase font-bold text-slate-500 px-2 bg-slate-900">or</span>
+                      </div>
+
+                      <div>
+                        <label className="block text-slate-300 font-medium mb-1">6-Digit Code</label>
+                        <input
+                          type="text"
+                          maxLength={6}
+                          value={disableCode}
+                          onChange={(e) => setDisableCode(e.target.value.replace(/\D/g, ''))}
+                          placeholder="000000"
+                          className="w-full rounded-lg px-3 py-1.5 border border-slate-700 bg-slate-950 text-slate-100 font-mono tracking-widest text-center text-sm focus:ring-2 focus:ring-rose-500/30 outline-none"
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-end gap-2 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowDisableModal(false)}
+                          className="px-3 py-1 rounded-lg text-slate-400 hover:text-slate-200 text-xs"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={disableLoading || (!disablePassword && !disableCode)}
+                          className="px-3.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs transition disabled:opacity-50 flex items-center gap-1"
+                        >
+                          {disableLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+                          <span>Confirm Disable</span>
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
+
+              {/* Regenerate Recovery Codes Modal */}
+              {showRegenModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs">
+                  <div className="w-full max-w-sm p-5 rounded-2xl border bg-slate-900 border-slate-800 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-xs font-bold text-purple-300">
+                        <RefreshCw className="w-4 h-4 text-purple-400" />
+                        <span>Regenerate Recovery Codes</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowRegenModal(false)}
+                        className="p-1 text-slate-400 hover:text-white"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      This will invalidate existing codes. Enter your password to confirm:
+                    </p>
+
+                    {regenError && (
+                      <div className="p-2 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-center gap-2">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        <span>{regenError}</span>
+                      </div>
+                    )}
+
+                    <form onSubmit={handleRegenerateRecoveryCodes} className="space-y-2.5 text-xs">
+                      <div>
+                        <label className="block text-slate-300 font-medium mb-1">Account Password</label>
+                        <input
+                          type="password"
+                          required
+                          value={regenPassword}
+                          onChange={(e) => setRegenPassword(e.target.value)}
+                          placeholder="••••••••"
+                          className="w-full rounded-lg px-3 py-1.5 border border-slate-700 bg-slate-950 text-slate-100 text-xs focus:ring-2 focus:ring-purple-500/30 outline-none"
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-end gap-2 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowRegenModal(false)}
+                          className="px-3 py-1 rounded-lg text-slate-400 hover:text-slate-200 text-xs"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={regenLoading || !regenPassword}
+                          className="px-3.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs transition disabled:opacity-50 flex items-center gap-1"
+                        >
+                          {regenLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+                          <span>Generate</span>
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
 
               {/* Password Change Form */}
               <form onSubmit={handlePasswordSubmit} className="space-y-4 pt-2 border-t border-slate-800">

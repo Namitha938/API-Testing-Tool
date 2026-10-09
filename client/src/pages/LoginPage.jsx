@@ -57,8 +57,9 @@ export default function LoginPage() {
   // 2FA Challenge state
   const [twoFactorRequired, setTwoFactorRequired] = useState(false);
   const [twoFactorCode, setTwoFactorCode] = useState('');
-  const [twoFactorDemoCode, setTwoFactorDemoCode] = useState('');
   const [twoFactorEmail, setTwoFactorEmail] = useState('');
+  const [twoFactorTicket, setTwoFactorTicket] = useState('');
+  const [useRecoveryCode, setUseRecoveryCode] = useState(false);
 
   // Set email if redirected with prefilledEmail
   useEffect(() => {
@@ -102,7 +103,9 @@ export default function LoginPage() {
       if (res && res.requires2FA) {
         setTwoFactorRequired(true);
         setTwoFactorEmail(res.email);
-        setTwoFactorDemoCode(res.demoCode || '');
+        setTwoFactorTicket(res.twoFactorTicket || '');
+        setTwoFactorCode('');
+        setUseRecoveryCode(false);
         return;
       }
       handleAuthSuccess(res?.user);
@@ -119,7 +122,11 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await verifyLogin2FA(twoFactorEmail, twoFactorCode);
+      const res = await verifyLogin2FA({
+        email: twoFactorEmail,
+        code: twoFactorCode,
+        twoFactorTicket,
+      });
       handleAuthSuccess(res?.user);
     } catch (err) {
       setError(err.message || 'Invalid 2FA verification code.');
@@ -385,40 +392,65 @@ export default function LoginPage() {
                 </div>
                 <h3 className="font-bold text-sm text-slate-100">Two-Factor Authentication</h3>
                 <p className={`text-xs leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                  Open your authenticator app (<strong>Google Authenticator</strong>, <strong>Microsoft Authenticator</strong>, or <strong>Authy</strong>) on your phone and enter the current 6-digit security code for <strong className="text-purple-400 font-mono">{twoFactorEmail}</strong>.
+                  {useRecoveryCode ? (
+                    <>
+                      Enter one of your saved 8-character backup recovery codes for <strong className="text-purple-400 font-mono">{twoFactorEmail}</strong>.
+                    </>
+                  ) : (
+                    <>
+                      Open your authenticator app (<strong>Google Authenticator</strong>, <strong>Microsoft Authenticator</strong>, or <strong>Authy</strong>) and enter the live 6-digit security code for <strong className="text-purple-400 font-mono">{twoFactorEmail}</strong>.
+                    </>
+                  )}
                 </p>
-
-                {twoFactorDemoCode && (
-                  <button
-                    type="button"
-                    onClick={() => setTwoFactorCode(twoFactorDemoCode)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 font-mono text-[11px] hover:bg-purple-500/30 transition cursor-pointer"
-                  >
-                    <span>Click to auto-fill code: <strong>{twoFactorDemoCode}</strong></span>
-                  </button>
-                )}
               </div>
 
               <form onSubmit={handleVerify2FA} className="space-y-4">
                 <div>
-                  <label className={`block text-xs font-semibold mb-1.5 text-center ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                    6-Digit Security Code
-                  </label>
-                  <input
-                    type="text"
-                    maxLength={6}
-                    autoFocus
-                    required
-                    value={twoFactorCode}
-                    onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, ''))}
-                    placeholder="000000"
-                    className="w-full text-center tracking-[0.5em] text-2xl font-mono py-3 rounded-xl bg-slate-900 border border-purple-500/40 text-purple-200 focus:outline-none focus:border-purple-400 focus:ring-4 focus:ring-purple-500/20"
-                  />
+                  <div className="flex items-center justify-between mb-1.5 px-1">
+                    <label className={`text-xs font-semibold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                      {useRecoveryCode ? 'Backup Recovery Code' : '6-Digit Security Code'}
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUseRecoveryCode(!useRecoveryCode);
+                        setTwoFactorCode('');
+                        setError('');
+                      }}
+                      className="text-[11px] text-sky-400 hover:text-sky-300 underline cursor-pointer"
+                    >
+                      {useRecoveryCode ? 'Use Authenticator App' : 'Use Recovery Code'}
+                    </button>
+                  </div>
+
+                  {useRecoveryCode ? (
+                    <input
+                      type="text"
+                      maxLength={10}
+                      autoFocus
+                      required
+                      value={twoFactorCode}
+                      onChange={(e) => setTwoFactorCode(e.target.value.toUpperCase())}
+                      placeholder="e.g. ABCD-1234"
+                      className="w-full text-center tracking-[0.25em] text-xl font-mono py-3 rounded-xl bg-slate-900 border border-purple-500/40 text-purple-200 focus:outline-none focus:border-purple-400 focus:ring-4 focus:ring-purple-500/20 uppercase"
+                    />
+                  ) : (
+                    <input
+                      type="text"
+                      maxLength={6}
+                      autoFocus
+                      required
+                      value={twoFactorCode}
+                      onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, ''))}
+                      placeholder="000000"
+                      className="w-full text-center tracking-[0.5em] text-2xl font-mono py-3 rounded-xl bg-slate-900 border border-purple-500/40 text-purple-200 focus:outline-none focus:border-purple-400 focus:ring-4 focus:ring-purple-500/20"
+                    />
+                  )}
                 </div>
 
                 <button
                   type="submit"
-                  disabled={loading || twoFactorCode.length < 6}
+                  disabled={loading || (useRecoveryCode ? twoFactorCode.trim().length < 8 : twoFactorCode.length < 6)}
                   className="w-full py-3 px-4 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white font-semibold text-sm transition shadow-lg shadow-purple-600/25 flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Shield className="w-4 h-4" />
@@ -429,6 +461,7 @@ export default function LoginPage() {
                   type="button"
                   onClick={() => {
                     setTwoFactorRequired(false);
+                    setTwoFactorCode('');
                     setError('');
                   }}
                   className="w-full text-center text-xs text-slate-400 hover:text-slate-200 transition py-1 block cursor-pointer"

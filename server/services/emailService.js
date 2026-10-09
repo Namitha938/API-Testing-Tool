@@ -15,12 +15,14 @@ async function getTransporter() {
   const pass = process.env.SMTP_PASS;
   const secure = process.env.SMTP_SECURE === 'true' || port === 465;
 
-  if (host && user && pass) {
+  const isLiveConfigured = host && user && pass && !pass.includes('YOUR_16_LETTER') && pass.trim().length >= 8;
+
+  if (isLiveConfigured) {
     cachedTransporter = nodemailer.createTransport({
       host,
       port,
       secure,
-      auth: { user, pass },
+      auth: { user: user.trim(), pass: pass.replace(/\s+/g, '') },
       tls: {
         rejectUnauthorized: false,
       },
@@ -176,8 +178,15 @@ The APITester Team
       console.log(`[Email Service] Ethereal Web Email Preview: ${previewUrl}`);
     }
 
+    const hasLiveSmtp = Boolean(
+      process.env.SMTP_USER &&
+      process.env.SMTP_PASS &&
+      !process.env.SMTP_PASS.includes('YOUR_16_LETTER') &&
+      process.env.SMTP_PASS.trim().length >= 8
+    );
+
     // In local dev without live SMTP, log code to console for instant developer feedback
-    if (!process.env.SMTP_USER) {
+    if (!hasLiveSmtp) {
       console.log(`=======================================================`);
       console.log(`[DEV EMAIL SIMULATION] Verification OTP for ${to}: ${otp}`);
       if (previewUrl) {
@@ -190,7 +199,7 @@ The APITester Team
       success: true,
       messageId: info.messageId,
       previewUrl,
-      isLiveSmtp: Boolean(process.env.SMTP_USER),
+      isLiveSmtp: hasLiveSmtp,
     };
   } catch (error) {
     console.error(`[Email Service] Failed to send email to ${to}:`, error.message);

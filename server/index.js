@@ -1,6 +1,7 @@
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 const connectDB = require('./config/db');
 
 const authRoutes = require('./routes/authRoutes');
@@ -78,9 +79,9 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`=======================================================`);
-  console.log(`🚀 API Testing Tool Server running on http://localhost:${PORT}`);
+  console.log(`🚀 API Testing Tool Server running on http://127.0.0.1:${PORT}`);
   console.log(`📊 Health Endpoint: http://localhost:${PORT}/api/health`);
   console.log(`🛠️ Mock APIs: http://localhost:${PORT}/api/mock/users`);
   console.log(`=======================================================`);

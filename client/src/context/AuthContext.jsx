@@ -113,11 +113,18 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
-  const verifyLogin2FA = async (email, code) => {
+  const verifyLogin2FA = async (param1, param2, param3) => {
+    let payload = {};
+    if (typeof param1 === 'object' && param1 !== null) {
+      payload = param1;
+    } else {
+      payload = { email: param1, code: param2, twoFactorTicket: param3 };
+    }
+
     const res = await fetch('/api/auth/2fa/verify-login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, code }),
+      body: JSON.stringify(payload),
     });
 
     const data = await res.json();
@@ -166,13 +173,15 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
-  const disable2FA = async () => {
+  const disable2FA = async (verification = {}) => {
+    const payload = typeof verification === 'string' ? { password: verification } : verification;
     const res = await fetch('/api/auth/2fa/disable', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
+      body: JSON.stringify(payload),
     });
 
     const data = await res.json();
@@ -181,6 +190,36 @@ export const AuthProvider = ({ children }) => {
     }
 
     setUser(data.user);
+    return data;
+  };
+
+  const getNewRecoveryCodes = async (verification = {}) => {
+    const payload = typeof verification === 'string' ? { password: verification } : verification;
+    const res = await fetch('/api/auth/2fa/recovery-codes', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || 'Failed to generate recovery codes');
+    }
+    return data;
+  };
+
+  const get2FAStatus = async () => {
+    const res = await fetch('/api/auth/2fa/status', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || 'Failed to fetch 2FA status');
+    }
     return data;
   };
 
@@ -390,6 +429,8 @@ export const AuthProvider = ({ children }) => {
         generate2FA,
         enable2FA,
         disable2FA,
+        getNewRecoveryCodes,
+        get2FAStatus,
         logout,
         isAdmin: isNormalUserAdmin || hasActiveAdminSession,
       }}

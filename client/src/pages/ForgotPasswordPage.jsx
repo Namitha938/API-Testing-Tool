@@ -455,6 +455,16 @@ export default function ForgotPasswordPage() {
             </a>
           )}
 
+          {/* Live SMTP Dispatch Notification */}
+          {isLiveSmtp && step === 2 && (
+            <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs flex items-center gap-2.5">
+              <Mail className="w-4 h-4 text-emerald-500 shrink-0" />
+              <span>
+                <strong>Live Email Sent:</strong> A 6-digit verification code has been dispatched to <strong className="font-mono text-emerald-900 dark:text-emerald-100">{email}</strong>. Please check your inbox and spam folder.
+              </span>
+            </div>
+          )}
+
           {/* Development / Demo Mode Code Auto-Fill Helper */}
           {devCodeHelper && step === 2 && (
             <div className="p-3.5 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-700 dark:text-purple-300 text-xs space-y-2">

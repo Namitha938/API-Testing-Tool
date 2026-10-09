@@ -16,6 +16,9 @@ function generateApiSuggestions({ request = {}, response = {} }) {
   const responseTime = response.responseTime || 0;
   const auth = request.auth || {};
   const testCases = request.testCases || [];
+  const resBodyStr = typeof response.responseBody === 'string'
+    ? response.responseBody
+    : JSON.stringify(response.responseBody || '');
 
   // 1. SECURITY: HTTPS Protocol Upgrade
   if (url.startsWith('http://') && !url.includes('localhost') && !url.includes('127.0.0.1')) {
@@ -33,7 +36,27 @@ function generateApiSuggestions({ request = {}, response = {} }) {
     });
   }
 
-  // 2. HEADERS: Content-Type for JSON payloads
+  // 2. HEADERS: User-Agent Header (crucial for real APIs like GitHub, Cloudflare, etc.)
+  const hasUserAgent = headers.some(
+    (h) => (h.key || '').toLowerCase() === 'user-agent' && h.enabled !== false
+  );
+  if (!hasUserAgent && (url.includes('github.com') || status === 403 || status === 401)) {
+    suggestions.push({
+      id: 'sug-user-agent',
+      category: 'Headers',
+      severity: 'high',
+      title: 'Add "User-Agent" Header',
+      description: 'Many production APIs (including GitHub, Cloudflare, and CDN protected endpoints) reject requests lacking a standard User-Agent header with HTTP 403 Forbidden.',
+      action: {
+        type: 'header',
+        label: 'Add User-Agent: APITester/1.0',
+        key: 'User-Agent',
+        value: 'APITester-Client/1.0',
+      },
+    });
+  }
+
+  // 3. HEADERS: Content-Type for JSON payloads
   if (['POST', 'PUT', 'PATCH'].includes(method)) {
     const hasContentType = headers.some(
       (h) => (h.key || '').toLowerCase() === 'content-type' && h.enabled !== false
@@ -44,7 +67,7 @@ function generateApiSuggestions({ request = {}, response = {} }) {
         category: 'Headers',
         severity: 'high',
         title: 'Specify "Content-Type: application/json" Header',
-        description: 'Server body parsers (like Express express.json()) may ignore or fail to parse JSON payloads if the Content-Type header is omitted.',
+        description: 'Server body parsers (like Express express.json() or Spring @RequestBody) will reject or fail to parse JSON payloads without an explicit Content-Type header.',
         action: {
           type: 'header',
           label: 'Add Content-Type Header',
@@ -55,7 +78,7 @@ function generateApiSuggestions({ request = {}, response = {} }) {
     }
   }
 
-  // 3. HEADERS: Explicit Accept Header
+  // 4. HEADERS: Explicit Accept Header
   const hasAccept = headers.some(
     (h) => (h.key || '').toLowerCase() === 'accept' && h.enabled !== false
   );
@@ -75,7 +98,7 @@ function generateApiSuggestions({ request = {}, response = {} }) {
     });
   }
 
-  // 4. SECURITY: Authentication Header
+  // 5. SECURITY: Authentication Header
   const hasAuth = auth.type && auth.type !== 'none';
   if (!hasAuth && (status === 401 || status === 403 || ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method))) {
     suggestions.push({
@@ -83,7 +106,7 @@ function generateApiSuggestions({ request = {}, response = {} }) {
       category: 'Security',
       severity: 'high',
       title: 'Configure Bearer Token or API Key Authentication',
-      description: 'The endpoint appears to require authorization credentials. Add a Bearer token or configure an environment variable like {{token}} in the Auth tab.',
+      description: 'The endpoint returned an authorization error or is a modifying action. Add a Bearer token or configure an environment variable like {{token}} in the Auth tab.',
       action: {
         type: 'auth',
         label: 'Set Bearer Token ({{token}})',
@@ -93,14 +116,47 @@ function generateApiSuggestions({ request = {}, response = {} }) {
     });
   }
 
-  // 5. PERFORMANCE: Latency Optimization & Caching
-  if (responseTime > 300) {
+  // 6. URL: Trailing Slash Adjustment
+  if (status === 404 && url && !url.includes('?')) {
+    if (url.endsWith('/')) {
+      const fixedUrl = url.slice(0, -1);
+      suggestions.push({
+        id: 'sug-remove-slash',
+        category: 'Routing',
+        severity: 'medium',
+        title: 'Remove Trailing Slash from URL',
+        description: 'Some REST route routers (like Express or Django without APPEND_SLASH) strictly do not match URLs with trailing slashes.',
+        action: {
+          type: 'url',
+          label: 'Strip Trailing Slash',
+          value: fixedUrl,
+        },
+      });
+    } else {
+      const fixedUrl = url + '/';
+      suggestions.push({
+        id: 'sug-add-slash',
+        category: 'Routing',
+        severity: 'medium',
+        title: 'Append Trailing Slash to URL',
+        description: 'Certain frameworks (such as Django REST framework or FastAPI) strictly require a trailing slash on resource collection endpoints.',
+        action: {
+          type: 'url',
+          label: 'Append Trailing Slash (/)',
+          value: fixedUrl,
+        },
+      });
+    }
+  }
+
+  // 7. PERFORMANCE: Latency Optimization & Caching
+  if (responseTime > 400) {
     suggestions.push({
       id: 'sug-latency-opt',
       category: 'Performance',
-      severity: responseTime > 1000 ? 'high' : 'medium',
+      severity: responseTime > 1200 ? 'high' : 'medium',
       title: `Response Latency Optimization (${responseTime}ms)`,
-      description: `Execution took ${responseTime}ms (exceeding 300ms SLA). Consider verifying server database indexing, utilizing HTTP caching ("Cache-Control: max-age=3600"), or using CDN edge caching.`,
+      description: `Execution took ${responseTime}ms. Consider verifying server database indexing, utilizing HTTP caching ("Cache-Control: max-age=3600"), or using CDN edge caching.`,
       action: {
         type: 'header',
         label: 'Add Cache-Control Header',
@@ -110,7 +166,7 @@ function generateApiSuggestions({ request = {}, response = {} }) {
     });
   }
 
-  // 6. TESTING: Status Code Regression Test
+  // 8. TESTING: Status Code Regression Test
   const hasStatusTest = testCases.some((t) => t.type === 'status' && t.enabled !== false);
   if (!hasStatusTest && status > 0) {
     suggestions.push({
@@ -133,7 +189,7 @@ function generateApiSuggestions({ request = {}, response = {} }) {
     });
   }
 
-  // 7. TESTING: Performance SLA Assertion Test
+  // 9. TESTING: Performance SLA Assertion Test
   const hasLatencyTest = testCases.some((t) => t.type === 'responseTime' && t.enabled !== false);
   if (!hasLatencyTest && responseTime > 0) {
     const slaLimit = Math.max(Math.ceil((responseTime * 1.5) / 50) * 50, 300);
@@ -157,7 +213,7 @@ function generateApiSuggestions({ request = {}, response = {} }) {
     });
   }
 
-  // 8. TESTING: Response Body Schema Contract Test
+  // 10. TESTING: Response Body Schema Contract Test
   const hasPropTest = testCases.some((t) => t.type === 'jsonProp' && t.enabled !== false);
   if (!hasPropTest) {
     let candidateKey = null;
@@ -196,46 +252,6 @@ function generateApiSuggestions({ request = {}, response = {} }) {
     }
   }
 
-  // 9. PERFORMANCE: GZIP/Brotli Compression Header
-  const hasAcceptEncoding = headers.some(
-    (h) => (h.key || '').toLowerCase() === 'accept-encoding' && h.enabled !== false
-  );
-  if (!hasAcceptEncoding) {
-    suggestions.push({
-      id: 'sug-compression',
-      category: 'Performance',
-      severity: 'low',
-      title: 'Enable Compression with "Accept-Encoding: gzip, br"',
-      description: 'Instruct upstream servers to compress payloads using GZIP or Brotli, reducing network payload transfer size by up to 70%.',
-      action: {
-        type: 'header',
-        label: 'Add Accept-Encoding Header',
-        key: 'Accept-Encoding',
-        value: 'gzip, deflate, br',
-      },
-    });
-  }
-
-  // 10. SECURITY: Connection Keep-Alive
-  const hasKeepAlive = headers.some(
-    (h) => (h.key || '').toLowerCase() === 'connection' && h.enabled !== false
-  );
-  if (!hasKeepAlive) {
-    suggestions.push({
-      id: 'sug-keep-alive',
-      category: 'Performance',
-      severity: 'low',
-      title: 'Enable TCP Connection Reuse with "Connection: keep-alive"',
-      description: 'Reuse underlying TCP connections across sequential collection runner executions to save 50-150ms of handshake latency per call.',
-      action: {
-        type: 'header',
-        label: 'Add Connection: keep-alive',
-        key: 'Connection',
-        value: 'keep-alive',
-      },
-    });
-  }
-
   return suggestions;
 }
 
@@ -252,9 +268,11 @@ function analyzeApiIssue({ request = {}, response = {}, userPrompt = '' }) {
     typeof response.responseBody === 'string'
       ? response.responseBody
       : JSON.stringify(response.responseBody || '');
+  const lowerBody = responseBody.toLowerCase();
   const headers = request.headers || [];
   const testResults = response.testResults || [];
   const failedTests = testResults.filter((t) => !t.passed);
+  const auth = request.auth || {};
 
   let issueTitle = '';
   let severity = 'warning';
@@ -264,138 +282,217 @@ function analyzeApiIssue({ request = {}, response = {}, userPrompt = '' }) {
   let quickFix = null;
   let codeSnippet = '';
 
-  // 1. NETWORK / CONNECTION ERROR (Status 0)
-  if (status === 0 || statusText === 'Network Error') {
+  // 1. NETWORK / CONNECTION ERROR (Status 0 or Network Error)
+  if (status === 0 || statusText === 'Network Error' || status === 503 && responseBody.includes('ECONNREFUSED')) {
     severity = 'critical';
     issueTitle = 'Connection Failed / Network Error';
     rootCause =
-      'The HTTP proxy or browser failed to establish a network connection with the destination server.';
+      'The HTTP proxy failed to establish a network connection with the destination server. This occurs when the target host is unreachable, DNS failed to resolve, the port is closed, or an SSL/TLS handshake failed.';
     solution =
-      '1. Verify the target server is online and reachable.\n2. Ensure the URL protocol (http:// or https://) and port number are accurate.\n3. Check if a local firewall or proxy is blocking outbound traffic.\n4. If testing local services, make sure localhost / 127.0.0.1 is running.';
+      '1. Verify the target server is online and listening on the designated port.\n2. Ensure the URL protocol (http:// or https://) is specified.\n3. If testing local backend (e.g. localhost:5000 or 127.0.0.1:8000), verify the local server process is active.\n4. Check if a firewall or VPN is intercepting network traffic.';
     explanation = `Failed to connect to ${
       url || 'the specified host'
-    }. Status 0 typically indicates DNS resolution failure, connection refused, or target process stopped.`;
+    }. Status 0 / connection refused indicates the remote host refused the TCP connection or DNS resolution failed.`;
     quickFix = {
       type: 'url',
       field: 'url',
+      label: 'Fix URL Protocol',
       value: url.startsWith('http') ? url : `http://${url}`,
     };
   }
-  // 2. UNAUTHORIZED (Status 401)
+  // 2. GITHUB SPECIFIC OR MISSING USER-AGENT 403
+  else if (status === 403 && (lowerBody.includes('user-agent') || url.includes('github.com'))) {
+    severity = 'critical';
+    issueTitle = '403 Forbidden: Missing "User-Agent" Header';
+    rootCause =
+      'The API provider requires a standard "User-Agent" header to identify the client application. Requests without a User-Agent are automatically rejected by security policies.';
+    solution =
+      '1. Add the "User-Agent" header in the Headers tab.\n2. Set the value to an application identifier (e.g., "APITester-Client/1.0").\n3. Click "1-Click Apply Fix" below to automatically insert this header.';
+    explanation =
+      'Public APIs like GitHub, Reddit, and Cloudflare WAF protect against unidentifiable scrapers by enforcing User-Agent requirements.';
+    quickFix = {
+      type: 'header',
+      key: 'User-Agent',
+      value: 'APITester-Client/1.0',
+      label: 'Add User-Agent Header',
+    };
+    codeSnippet = 'User-Agent: APITester-Client/1.0';
+  }
+  // 3. UNAUTHORIZED (Status 401)
   else if (status === 401) {
     severity = 'critical';
     issueTitle = '401 Unauthorized: Missing or Invalid Authentication';
-    rootCause =
-      'The endpoint requires valid authentication credentials (e.g. Bearer Token, API Key, or Basic Auth), but the request lacked an acceptable Authorization header or the token was invalid/expired.';
 
-    if (url.includes('/api/mock/auth-protected')) {
+    if (lowerBody.includes('expired') || lowerBody.includes('jwt expired') || lowerBody.includes('token_expired')) {
+      rootCause = 'The authentication token provided in the Authorization header has expired.';
       solution =
-        'Use the valid mock Bearer token: "test-secret-token" or environment variable {{token}} in the Authorization header.';
-      quickFix = {
-        type: 'auth',
-        authType: 'bearer',
-        token: 'test-secret-token',
-      };
-      codeSnippet = 'Authorization: Bearer test-secret-token';
+        '1. Generate a refreshed access token from your authentication provider.\n2. Update the token in the "Auth" tab or update your environment variable {{token}}.\n3. Ensure your token refresh strategy is configured.';
+    } else if (lowerBody.includes('bad credentials') || lowerBody.includes('invalid credentials')) {
+      rootCause = 'The credentials or API token provided were rejected by the identity provider.';
+      solution =
+        '1. Double-check your username/password or API token.\n2. Verify the token has not been revoked or regenerated.\n3. Make sure there are no accidental spaces or linebreaks in the token string.';
     } else {
+      rootCause =
+        'The endpoint requires authentication (e.g. Bearer Token, API Key, or Basic Auth), but the request lacked valid credentials.';
       solution =
-        '1. Open the "Auth" tab in the Request Builder.\n2. Choose "Bearer Token" or "API Key" according to your API documentation.\n3. Verify your token has not expired and has appropriate permission scopes.';
-      quickFix = {
-        type: 'auth',
-        authType: 'bearer',
-        token: '{{token}}',
-      };
-      codeSnippet = 'Authorization: Bearer {{token}}';
+        '1. Open the "Auth" tab in the Request Builder.\n2. Choose "Bearer Token" or "API Key" as required by the API documentation.\n3. Set your token value or environment variable (e.g. {{token}}).\n4. Click "1-Click Apply Fix" to add a Bearer token template.';
     }
+
+    quickFix = {
+      type: 'auth',
+      authType: 'bearer',
+      token: '{{token}}',
+      label: 'Configure Bearer Token ({{token}})',
+    };
+    codeSnippet = 'Authorization: Bearer <your_api_token_here>';
     explanation =
-      'HTTP 401 indicates that the request has not been applied because it lacks valid authentication credentials for the target resource.';
+      'HTTP 401 indicates that the request lacked valid authentication credentials for the target resource.';
   }
-  // 3. FORBIDDEN (Status 403)
+  // 4. FORBIDDEN (Status 403)
   else if (status === 403) {
     severity = 'critical';
-    issueTitle = '403 Forbidden: Insufficient Permissions / Role Restriction';
+    issueTitle = '403 Forbidden: Insufficient Permissions or Role Restriction';
     rootCause =
-      'Authentication succeeded, but the authenticated user lacks the required role, permission scope, or whitelist privilege to access this resource.';
+      'Authentication was recognized, but the authenticated user lacks the required role, permission scope, or IP whitelist privilege to access this resource.';
     solution =
-      '1. Confirm your user account has administrative or appropriate role permissions.\n2. Verify API key scopes or tenant permissions.\n3. In whitelist-restricted endpoints, check if the requesting identity is on the authorized list.';
-    explanation = 'Unlike 401, with 403 the server knows who you are, but refuses authorization.';
+      '1. Verify your API key or token has the required OAuth scopes (e.g., repo, read:user, write:orders).\n2. Confirm your user account has administrative privileges.\n3. Check if IP allowlisting or CORS restrictions are active on the target server.';
+    explanation =
+      'Unlike 401, with 403 the server recognized the caller, but explicitly refused access due to policy restrictions.';
   }
-  // 4. NOT FOUND (Status 404)
+  // 5. NOT FOUND (Status 404)
   else if (status === 404) {
     severity = 'warning';
     issueTitle = '404 Not Found: Endpoint or Resource Path Does Not Exist';
     rootCause = `The server could not find a matching route handler or document for path: ${url}.`;
 
-    if (url.includes('/user') && !url.includes('/users')) {
-      solution = 'The route might be pluralized: change "/user" to "/users".';
+    if (url.endsWith('/')) {
+      const fixed = url.slice(0, -1);
+      solution = `The server may not accept trailing slashes. Try testing the route without the trailing slash: ${fixed}`;
       quickFix = {
         type: 'url',
-        field: 'url',
-        value: url.replace('/user', '/users'),
+        value: fixed,
+        label: 'Remove Trailing Slash',
+      };
+    } else if (!url.includes('?') && !url.endsWith('/') && !url.includes('.')) {
+      const fixed = url + '/';
+      solution = `1. Check if the route requires a trailing slash (e.g. ${fixed}).\n2. Verify path spelling and pluralization.\n3. Confirm the HTTP method matches the registered route.`;
+      quickFix = {
+        type: 'url',
+        value: fixed,
+        label: 'Try With Trailing Slash (/)',
       };
     } else {
       solution =
-        '1. Double-check the path spelling and URL path parameters.\n2. Verify the HTTP method matches the endpoint registration (e.g. GET vs POST).\n3. Check if {{baseUrl}} resolves to the correct root address.';
+        '1. Double-check the URL path spelling and path parameters.\n2. Verify the HTTP method matches the route definition (e.g., GET vs POST).\n3. Check if your {{baseUrl}} environment variable resolves to the correct host and version prefix (e.g., /api/v1).';
     }
     explanation =
       'HTTP 404 indicates the origin server did not find a current representation for the target resource.';
   }
-  // 5. BAD REQUEST / UNPROCESSABLE ENTITY (Status 400 or 422)
+  // 6. BAD REQUEST / UNPROCESSABLE ENTITY (Status 400 or 422)
   else if (status === 400 || status === 422) {
     severity = 'warning';
     issueTitle = `${status} Bad Request: Invalid Payload or Missing Parameters`;
 
     let isMalformedJson = false;
+    let jsonErrorMsg = '';
     if (request.bodyType === 'json' && request.rawBody) {
       try {
         JSON.parse(request.rawBody);
       } catch (err) {
         isMalformedJson = true;
+        jsonErrorMsg = err.message;
       }
     }
 
+    const hasContentType = headers.some(
+      (h) => (h.key || '').toLowerCase() === 'content-type' && h.enabled !== false
+    );
+
     if (isMalformedJson) {
-      rootCause =
-        'The request payload contains invalid JSON syntax (e.g. trailing comma, unquoted property names, or mismatched brackets).';
-      solution = 'Fix the JSON formatting in the Body tab. Ensure all keys are double-quoted and brackets match.';
+      rootCause = `The request body contains invalid JSON syntax: ${jsonErrorMsg}. Common causes: trailing commas, single quotes instead of double quotes, or unescaped strings.`;
+      solution = 'Fix the JSON syntax in the Body tab. Ensure all keys and strings are enclosed in double quotes ("") and commas are positioned correctly.';
+      codeSnippet = '{\n  "key": "value",\n  "count": 10\n}';
       quickFix = {
         type: 'body',
         bodyType: 'json',
+        label: 'Repair JSON Syntax',
+        rawBody: request.rawBody
+          .replace(/'/g, '"')
+          .replace(/,\s*}/g, '}')
+          .replace(/,\s*]/g, ']'),
       };
-    } else if (
-      responseBody.toLowerCase().includes('name') ||
-      responseBody.toLowerCase().includes('email') ||
-      responseBody.toLowerCase().includes('required')
-    ) {
+    } else if (!hasContentType && ['POST', 'PUT', 'PATCH'].includes(method)) {
       rootCause =
-        'Server rejected the request because one or more required fields were missing or invalid in the payload.';
-      solution = 'Inspect the endpoint schema. Ensure required fields (e.g., name, email, role) are included in the JSON body.';
-      codeSnippet = JSON.stringify({ name: 'John Doe', email: 'john@example.com', role: 'Developer' }, null, 2);
+        'The server expected "Content-Type: application/json" to parse the request body, but no Content-Type header was supplied.';
+      solution = 'Add the "Content-Type: application/json" header in the Headers tab or click the 1-Click Fix button below.';
+      quickFix = {
+        type: 'header',
+        key: 'Content-Type',
+        value: 'application/json',
+        label: 'Add Content-Type Header',
+      };
+      codeSnippet = 'Content-Type: application/json';
+    } else if (lowerBody.includes('required') || lowerBody.includes('validation')) {
+      rootCause =
+        'Server payload validation rejected the request. One or more mandatory fields were missing or had incorrect data types.';
+      solution =
+        'Inspect the error response body for validation messages. Ensure all required fields (e.g., email, name, password, id) are present with valid types in the Body tab.';
+      explanation = 'Server-side validators (like Joi, Zod, or Express Validator) enforce strict data contract rules.';
     } else {
       rootCause =
         'The server cannot process the request due to malformed request syntax, invalid parameters, or payload validation failure.';
       solution =
         '1. Inspect the request Body and Query Parameters.\n2. Confirm Header "Content-Type: application/json" is set.\n3. Match field types (string, number, boolean) with the API specification.';
     }
-    explanation = 'HTTP 400/422 means the server cannot understand or validate the request syntax or semantic content.';
+    explanation = 'HTTP 400/422 means the server received the request but rejected its syntax or semantics.';
   }
-  // 6. METHOD NOT ALLOWED (Status 405)
+  // 7. METHOD NOT ALLOWED (Status 405)
   else if (status === 405) {
     severity = 'warning';
-    issueTitle = `405 Method Not Allowed: Endpoint does not support ${method}`;
+    issueTitle = `405 Method Not Allowed: Endpoint does not accept ${method}`;
     rootCause = `The endpoint ${url} exists, but it does not support HTTP method "${method}".`;
     solution = `Check your API documentation to confirm supported methods for this route (e.g., switch ${method} to GET, POST, or PUT).`;
+    explanation = 'HTTP 405 indicates that the request method is recognized by the server but is not supported by the target resource.';
+    quickFix = {
+      type: 'method',
+      value: method === 'GET' ? 'POST' : 'GET',
+      label: `Switch Method to ${method === 'GET' ? 'POST' : 'GET'}`,
+    };
   }
-  // 7. SERVER ERROR (Status 500, 502, 503, 504)
+  // 8. UNSUPPORTED MEDIA TYPE (Status 415)
+  else if (status === 415) {
+    severity = 'warning';
+    issueTitle = '415 Unsupported Media Type: Incorrect Content-Type Header';
+    rootCause = 'The server rejected the payload format because the Content-Type header does not match what the endpoint accepts.';
+    solution = 'Set the "Content-Type" header to "application/json" (or the required format like multipart/form-data).';
+    quickFix = {
+      type: 'header',
+      key: 'Content-Type',
+      value: 'application/json',
+      label: 'Add Content-Type: application/json',
+    };
+    codeSnippet = 'Content-Type: application/json';
+  }
+  // 9. RATE LIMITING (Status 429)
+  else if (status === 429) {
+    severity = 'critical';
+    issueTitle = '429 Too Many Requests: Rate Limit Exceeded';
+    rootCause = 'The client has sent too many requests in a given amount of time ("rate limiting").';
+    solution =
+      '1. Check response headers for "Retry-After" or "X-RateLimit-Reset".\n2. Introduce backoff or pauses between requests in the Collection Runner.\n3. Upgrade your API tier or cache responses to stay within rate quotas.';
+    explanation = 'HTTP 429 indicates the client exceeded rate limit quotas enforced by the server or API gateway.';
+  }
+  // 10. SERVER ERROR (Status 500, 502, 503, 504)
   else if (status >= 500) {
     severity = 'critical';
     issueTitle = `${status} Server Error: Upstream Service Failure or Timeout`;
-    rootCause = `The backend application or upstream proxy encountered an unhandled exception or timed out while processing this request.`;
+    rootCause =
+      'The backend application or upstream proxy encountered an unhandled exception, crashed, or timed out while processing this request.';
     solution =
-      '1. Inspect server logs for uncaught exceptions or database connection pool issues.\n2. Verify the server is not encountering an out-of-memory or high CPU bottleneck.\n3. Ensure payload size does not exceed server max body limits.';
-    explanation = '5xx codes indicate the server encountered an error or was unable to fulfill an otherwise valid request.';
+      '1. Inspect backend server logs for uncaught exceptions, null pointer errors, or database disconnections.\n2. If testing microservices, verify dependent downstream services are healthy.\n3. Verify request payload size is within server limits.';
+    explanation = '5xx codes indicate the server encountered an error and was unable to fulfill an otherwise valid request.';
   }
-  // 8. TEST ASSERTIONS FAILED (Status 2xx but failed assertions)
+  // 11. TEST ASSERTIONS FAILED (Status 2xx but failed assertions)
   else if (failedTests.length > 0) {
     severity = 'warning';
     const failedNames = failedTests
@@ -419,7 +516,7 @@ function analyzeApiIssue({ request = {}, response = {}, userPrompt = '' }) {
     }
     explanation = 'Test assertions enforce regression testing and SLA compliance across your API test suites.';
   }
-  // 9. SUCCESSFUL (Status 2xx)
+  // 12. SUCCESSFUL (Status 2xx)
   else {
     severity = 'info';
     issueTitle = 'Request Executed Successfully (No Errors Detected)';
@@ -447,6 +544,222 @@ function analyzeApiIssue({ request = {}, response = {}, userPrompt = '' }) {
     suggestions,
     failedAssertionsCount: failedTests.length,
     timestamp: new Date().toISOString(),
+  };
+}
+
+/**
+ * Generates an interactive contextual chat reply for the AI Assistant drawer.
+ * If Gemini API key is available, calls Gemini 1.5 Flash.
+ * If not, uses our built-in Expert API Testing Copilot engine.
+ */
+async function generateAiChatResponse({ message = '', history = [], request = {}, response = {} }) {
+  const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+  const method = (request.method || 'GET').toUpperCase();
+  const url = request.url || '';
+  const status = response.status !== undefined ? response.status : 0;
+  const statusText = response.statusText || '';
+  const responseBody = typeof response.responseBody === 'string'
+    ? response.responseBody
+    : JSON.stringify(response.responseBody || '');
+  const lowerMsg = message.toLowerCase();
+
+  // If Gemini key exists, call Gemini
+  if (geminiKey) {
+    try {
+      const historyContext = history
+        .map((h) => `${h.role === 'user' ? 'Developer' : 'AI Assistant'}: ${h.content}`)
+        .join('\n');
+
+      const systemPrompt = `
+You are APITester Studio's AI Assistant, an elite senior backend and API testing engineer.
+A developer is testing real APIs and is asking for your assistance with their active request and response.
+
+ACTIVE REQUEST CONTEXT:
+- Method: ${method}
+- URL: ${url}
+- Headers: ${JSON.stringify(request.headers || [])}
+- Auth Config: ${JSON.stringify(request.auth || {})}
+- Query Params: ${JSON.stringify(request.params || [])}
+- Body Type: ${request.bodyType || 'none'}
+- Body Content: ${typeof request.rawBody === 'string' ? request.rawBody.substring(0, 1000) : ''}
+
+ACTIVE RESPONSE CONTEXT:
+- Status Code: ${status} ${statusText}
+- Latency: ${response.responseTime || 0}ms
+- Size: ${response.responseSize || 0} bytes
+- Response Headers: ${JSON.stringify(response.responseHeaders || {})}
+- Response Body: ${responseBody.substring(0, 1500)}
+- Test Assertions: ${JSON.stringify(response.testResults || [])}
+
+CONVERSATION HISTORY:
+${historyContext}
+
+USER'S CURRENT QUESTION:
+"${message}"
+
+INSTRUCTIONS:
+1. Provide a direct, actionable, practical solution formatted in clean markdown.
+2. If this is an error (4xx, 5xx, or Status 0), pinpoint the exact root cause from the response and headers.
+3. Include specific code/cURL snippets or header configurations when applicable.
+4. If an automated fix can be applied to the request (e.g. adding a header, fixing the URL, configuring a Bearer token, formatting JSON), mention it clearly.
+`;
+
+      const geminiRes = await axios.post(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
+        {
+          contents: [{ parts: [{ text: systemPrompt }] }],
+          generationConfig: {
+            temperature: 0.2,
+            maxOutputTokens: 1024,
+          },
+        },
+        { timeout: 9000 }
+      );
+
+      const geminiReply = geminiRes.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (geminiReply) {
+        // Also compute potential quick fix
+        const diagnostic = analyzeApiIssue({ request, response });
+        return {
+          reply: geminiReply,
+          quickFix: diagnostic.quickFix,
+          source: 'gemini-1.5-flash',
+        };
+      }
+    } catch (err) {
+      console.warn('[AI Assistant] Gemini API call fallback to built-in copilot:', err.message);
+    }
+  }
+
+  // Built-in Expert API Testing Copilot Engine
+  const diagnostic = analyzeApiIssue({ request, response });
+  let reply = '';
+  let quickFix = diagnostic.quickFix;
+
+  // 1. Diagnosis / "Why did it fail?" / Error explanation
+  if (
+    lowerMsg.includes('why') ||
+    lowerMsg.includes('fail') ||
+    lowerMsg.includes('error') ||
+    lowerMsg.includes('diagnos') ||
+    lowerMsg.includes('issue') ||
+    lowerMsg.includes('problem')
+  ) {
+    if (status >= 400 || status === 0) {
+      reply = `### 🔍 Issue Diagnosis: ${diagnostic.issue}\n\n` +
+        `**Status**: \`${status} ${statusText}\` | **Method**: \`${method}\` | **URL**: \`${url}\`\n\n` +
+        `#### 📌 Root Cause\n${diagnostic.rootCause}\n\n` +
+        `#### 🛠️ Recommended Action Steps\n${diagnostic.solution}\n\n` +
+        (diagnostic.codeSnippet ? `#### 💡 Code / Header Fix\n\`\`\`http\n${diagnostic.codeSnippet}\n\`\`\`\n\n` : '') +
+        `*Click the **1-Click Apply Fix** button below to apply this resolution directly to your Request Builder.*`;
+    } else {
+      reply = `### ✅ Request Status: ${status} ${statusText}\n\n` +
+        `The active request executed successfully in **${response.responseTime || 0}ms** without HTTP errors.\n\n` +
+        `If you need help creating automated assertions, configuring environment variables, or testing edge cases, let me know!`;
+    }
+  }
+  // 2. Authentication / Authorization help
+  else if (
+    lowerMsg.includes('auth') ||
+    lowerMsg.includes('token') ||
+    lowerMsg.includes('bearer') ||
+    lowerMsg.includes('api key') ||
+    lowerMsg.includes('401') ||
+    lowerMsg.includes('403')
+  ) {
+    reply = `### 🔐 Authentication Guide for ${url || 'Current Endpoint'}\n\n` +
+      `To authorize requests with this API:\n\n` +
+      `1. **Bearer Token (JWT)**:\n` +
+      `   - Navigate to the **Auth** tab in the Request Builder.\n` +
+      `   - Select **Bearer Token** as the Type.\n` +
+      `   - Paste your JWT or reference an environment variable like \`{{token}}\`.\n\n` +
+      `2. **API Key in Header**:\n` +
+      `   - Select **API Key** in the Auth tab.\n` +
+      `   - Set the Key name (e.g. \`X-API-Key\` or \`apiKey\`) and Value.\n\n` +
+      `3. **Environment Variables**:\n` +
+      `   - Open the **Environments** modal from the navbar to store your secrets safely without hardcoding them in URLs.`;
+
+    quickFix = {
+      type: 'auth',
+      authType: 'bearer',
+      token: '{{token}}',
+      label: 'Set Bearer Token ({{token}})',
+    };
+  }
+  // 3. cURL command generation
+  else if (
+    lowerMsg.includes('curl') ||
+    lowerMsg.includes('bash') ||
+    lowerMsg.includes('terminal') ||
+    lowerMsg.includes('command')
+  ) {
+    let curlCmd = `curl -X ${method} "${url}"`;
+    (request.headers || []).forEach((h) => {
+      if (h.enabled !== false && h.key) {
+        curlCmd += ` \\\n  -H "${h.key}: ${h.value}"`;
+      }
+    });
+    if (request.auth?.type === 'bearer' && request.auth?.token) {
+      curlCmd += ` \\\n  -H "Authorization: Bearer ${request.auth.token}"`;
+    }
+    if (['POST', 'PUT', 'PATCH'].includes(method) && request.rawBody) {
+      const sanitized = request.rawBody.replace(/"/g, '\\"');
+      curlCmd += ` \\\n  -d "${sanitized}"`;
+    }
+
+    reply = `### 📜 Generated cURL Command\n\n` +
+      `You can run this exact request in your command terminal or CI/CD runner:\n\n` +
+      `\`\`\`bash\n${curlCmd}\n\`\`\`\n\n` +
+      `*Tip: You can also import cURL commands anytime using the **cURL** button in the top navbar.*`;
+  }
+  // 4. Test assertion generation
+  else if (
+    lowerMsg.includes('test') ||
+    lowerMsg.includes('assert') ||
+    lowerMsg.includes('assertion')
+  ) {
+    reply = `### 🧪 Automated Test Suite Recommendations\n\n` +
+      `For endpoint \`${method} ${url}\`, recommended assertions include:\n\n` +
+      `1. **Status Code Verification**: Assert HTTP Status is \`${status || 200}\`.\n` +
+      `2. **Performance SLA**: Assert Round-trip latency is under \`${Math.max(500, Math.ceil((response.responseTime || 200) * 1.5))}ms\`.\n` +
+      `3. **Payload Contract**: Assert body contains essential JSON properties and matches schema.\n\n` +
+      `*Click **+ Generate Tests** in the Response tab or ask me to inject test assertions into your request.*`;
+  }
+  // 5. CORS / Network / SSL errors
+  else if (
+    lowerMsg.includes('cors') ||
+    lowerMsg.includes('network') ||
+    lowerMsg.includes('ssl') ||
+    lowerMsg.includes('connection')
+  ) {
+    reply = `### 🌐 CORS & Network Troubleshooting\n\n` +
+      `When testing APIs from web clients:\n\n` +
+      `- **CORS Preflight**: Browsers block cross-origin requests unless the target server returns \`Access-Control-Allow-Origin: *\` or your origin.\n` +
+      `- **Backend Proxy**: APITester Studio includes a built-in proxy server that automatically bypasses browser CORS restrictions when testing!\n` +
+      `- **Self-Signed SSL**: If testing internal HTTPS servers, make sure the SSL certificate is recognized or use HTTP locally.\n` +
+      `- **Localhost**: Ensure your local microservice is running and listening on the designated port (e.g. \`http://127.0.0.1:5000\`).`;
+  }
+  // 6. General / Fallback API Assistant guidance
+  else {
+    reply = `### 🤖 APITester Copilot\n\n` +
+      `I am analyzing your active API test execution:\n` +
+      `- **Target**: \`${method} ${url || '(No URL provided)'}\`\n` +
+      `- **Result**: \`${status} ${statusText || 'Pending Execution'}\`\n` +
+      `- **Latency**: \`${response.responseTime || 0}ms\`\n\n` +
+      (status >= 400
+        ? `**Notice**: This request failed with HTTP ${status}. ${diagnostic.rootCause}\n\n**Action Step**: ${diagnostic.solution}`
+        : `Everything looks clean and ready. You can test headers, query parameters, payloads, or run collection test suites.`) +
+      `\n\nFeel free to ask me:\n` +
+      `- *"Why did this request fail?"*\n` +
+      `- *"How do I fix this status code?"*\n` +
+      `- *"Generate a cURL command"*;\n` +
+      `- *"Suggest automated test assertions"*`;
+  }
+
+  return {
+    reply,
+    quickFix,
+    source: 'builtin-expert-copilot',
   };
 }
 
@@ -514,6 +827,8 @@ Respond with JSON adhering to this schema:
     if (!aiResult) {
       aiResult = analyzeApiIssue({ request, response, userPrompt });
     } else {
+      const fallback = analyzeApiIssue({ request, response, userPrompt });
+      aiResult.quickFix = fallback.quickFix;
       aiResult.suggestions = generateApiSuggestions({ request, response });
     }
 
@@ -526,6 +841,32 @@ Respond with JSON adhering to this schema:
     res.status(500).json({
       success: false,
       message: 'AI Diagnostic Engine encountered an error',
+      error: error.message,
+    });
+  }
+});
+
+// POST /api/ai/chat - Interactive AI Assistant conversation endpoint
+router.post('/chat', optionalAuth, async (req, res) => {
+  try {
+    const { message = '', history = [], request = {}, response = {} } = req.body;
+    if (!message || !message.trim()) {
+      return res.status(400).json({ success: false, message: 'Message is required' });
+    }
+
+    const chatResponse = await generateAiChatResponse({ message, history, request, response });
+
+    res.json({
+      success: true,
+      reply: chatResponse.reply,
+      quickFix: chatResponse.quickFix,
+      source: chatResponse.source,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'AI Assistant Chat failed to process request',
       error: error.message,
     });
   }

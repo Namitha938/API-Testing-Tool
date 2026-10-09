@@ -53,6 +53,15 @@ export const ApiProvider = ({ children }) => {
   const [activeTab, setActiveTab] = useState('params'); // 'params', 'headers', 'auth', 'body', 'tests'
   const [responseTab, setResponseTab] = useState('body'); // 'body', 'headers', 'timings', 'tests'
 
+  // AI Assistant Drawer states
+  const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
+  const [initialAiPrompt, setInitialAiPrompt] = useState('');
+
+  const openAiAssistantWithPrompt = (prompt = '') => {
+    if (prompt) setInitialAiPrompt(prompt);
+    setAiAssistantOpen(true);
+  };
+
   const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
 
   // Fetch Collections
@@ -274,6 +283,11 @@ export const ApiProvider = ({ children }) => {
         setActiveTab,
         responseTab,
         setResponseTab,
+        aiAssistantOpen,
+        setAiAssistantOpen,
+        initialAiPrompt,
+        setInitialAiPrompt,
+        openAiAssistantWithPrompt,
         newRequestTemplate: () => {
           setActiveRequest({
             ...defaultRequest,

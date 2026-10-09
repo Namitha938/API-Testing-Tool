@@ -46,6 +46,18 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    resetTokenAttempts: {
+      type: Number,
+      default: 0,
+    },
+    resetTokenLastSent: {
+      type: Date,
+      default: null,
+    },
+    resetVerified: {
+      type: Boolean,
+      default: false,
+    },
     twoFactorEnabled: {
       type: Boolean,
       default: false,
@@ -87,6 +99,8 @@ userSchema.methods.toJSON = function () {
   delete obj.password;
   delete obj.twoFactorSecret;
   delete obj.twoFactorTempCode;
+  delete obj.resetToken;
+  delete obj.resetTokenAttempts;
   return obj;
 };
 

@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 
 export const AiDiagnosticsPanel = () => {
-  const { response, activeRequest, setActiveRequest } = useApi();
+  const { response, activeRequest, setActiveRequest, openAiAssistantWithPrompt } = useApi();
   const [diagnostic, setDiagnostic] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -268,17 +268,26 @@ export const AiDiagnosticsPanel = () => {
             <Sparkles className="w-4 h-4 text-purple-400 shrink-0" />
             <h4 className="font-bold text-sm text-slate-100">{diagnostic.issue}</h4>
           </div>
-          <span
-            className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase font-mono ${
-              isCritical
-                ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                : isWarning
-                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-            }`}
-          >
-            {diagnostic.severity}
-          </span>
+          <div className="flex items-center gap-2">
+            <span
+              className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase font-mono ${
+                isCritical
+                  ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                  : isWarning
+                  ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                  : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+              }`}
+            >
+              {diagnostic.severity}
+            </span>
+            <button
+              onClick={() => openAiAssistantWithPrompt(diagnostic?.issue ? `How do I resolve ${diagnostic.issue}?` : '')}
+              className="px-2.5 py-0.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-[10px] flex items-center gap-1 shadow-xs transition cursor-pointer active:scale-95"
+            >
+              <Sparkles className="w-3 h-3 text-amber-300 fill-amber-300" />
+              <span>Ask Copilot</span>
+            </button>
+          </div>
         </div>
 
         <p className="text-slate-300 text-xs leading-relaxed">{diagnostic.explanation}</p>

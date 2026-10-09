@@ -4,8 +4,10 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const speakeasy = require('speakeasy');
 const QRCode = require('qrcode');
+const crypto = require('crypto');
 const User = require('../models/User');
 const { authenticate, JWT_SECRET } = require('../middleware/auth');
+const { sendPasswordResetOtp } = require('../services/emailService');
 
 // POST /api/auth/register
 router.post('/register', async (req, res) => {
@@ -28,6 +30,7 @@ router.post('/register', async (req, res) => {
     const cleanEmail = email.toLowerCase().trim();
     const role = ALLOWED_ADMIN_EMAILS.includes(cleanEmail) ? 'admin' : 'user';
 
+    const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await User.create({
       name,
       email: cleanEmail,
@@ -373,66 +376,225 @@ router.put('/change-password', authenticate, async (req, res) => {
   }
 });
 
-// POST /api/auth/forgot-password
+// POST /api/auth/forgot-password - Request email OTP verification code
 router.post('/forgot-password', async (req, res) => {
   try {
     const { email } = req.body;
-    if (!email) {
+    if (!email || typeof email !== 'string') {
       return res.status(400).json({ message: 'Email address is required.' });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase().trim() });
-    if (!user) {
-      return res.status(404).json({ message: 'No registered user found with that email address.' });
+    const cleanEmail = email.toLowerCase().trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      return res.status(400).json({ message: 'Please enter a valid email address.' });
     }
 
-    // Generate 6-digit OTP code
-    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
-    user.resetToken = resetCode;
-    user.resetTokenExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
+    const user = await User.findOne({ email: cleanEmail });
+
+    // Rate-limiting check: enforce 60-second cooldown per account
+    if (user && user.resetTokenLastSent) {
+      const elapsedMs = Date.now() - new Date(user.resetTokenLastSent).getTime();
+      const COOLDOWN_MS = 60 * 1000;
+      if (elapsedMs < COOLDOWN_MS) {
+        const remainingSec = Math.ceil((COOLDOWN_MS - elapsedMs) / 1000);
+        return res.status(429).json({
+          message: `Please wait ${remainingSec} seconds before requesting another verification code.`,
+          cooldownRemaining: remainingSec,
+        });
+      }
+    }
+
+    // Generic response message to prevent account enumeration
+    const genericSuccessMessage =
+      'If an account exists with that email address, a 6-digit verification code has been sent. Please check your inbox and spam folder.';
+
+    if (!user) {
+      // Small simulated delay to prevent timing attacks
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      return res.json({
+        success: true,
+        message: genericSuccessMessage,
+        cooldown: 60,
+      });
+    }
+
+    // Generate cryptographically secure 6-digit numeric OTP
+    const rawOtp = crypto.randomInt(100000, 1000000).toString();
+
+    // Never store plaintext OTPs: hash OTP using SHA-256 before persisting
+    const hashedOtp = crypto.createHash('sha256').update(rawOtp).digest('hex');
+
+    user.resetToken = hashedOtp;
+    user.resetTokenExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
+    user.resetTokenAttempts = 0;
+    user.resetTokenLastSent = new Date();
+    user.resetVerified = false;
     await user.save();
 
-    res.json({
-      message: `Verification reset code generated! Enter code ${resetCode} to complete password reset.`,
-      resetCode,
-      email: user.email,
-    });
+    // Send verification email
+    try {
+      await sendPasswordResetOtp({
+        to: user.email,
+        otp: rawOtp,
+        name: user.name || 'Developer',
+      });
+    } catch (emailErr) {
+      console.error('[Auth Service] Email delivery failure:', emailErr.message);
+      // We still proceed so local/offline setups remain testable
+    }
+
+    const responsePayload = {
+      success: true,
+      message: genericSuccessMessage,
+      cooldown: 60,
+    };
+
+    // In local development when SMTP is not configured, supply devCode for instant developer testing
+    if (!process.env.SMTP_USER) {
+      responsePayload.devCode = rawOtp;
+    }
+
+    res.json(responsePayload);
   } catch (error) {
     res.status(500).json({ message: 'Forgot password request failed', error: error.message });
   }
 });
 
-// POST /api/auth/reset-password
-router.post('/reset-password', async (req, res) => {
+// POST /api/auth/verify-reset-code - Verify the 6-digit email OTP
+router.post('/verify-reset-code', async (req, res) => {
   try {
-    const { email, resetCode, newPassword } = req.body;
-    if (!email || !resetCode || !newPassword) {
-      return res.status(400).json({ message: 'Email, reset code, and new password are required.' });
+    const { email, code } = req.body;
+    if (!email || !code) {
+      return res.status(400).json({ message: 'Email address and verification code are required.' });
     }
 
-    if (newPassword.length < 6) {
-      return res.status(400).json({ message: 'New password must be at least 6 characters long.' });
+    const cleanEmail = email.toLowerCase().trim();
+    const cleanCode = code.toString().trim();
+
+    if (!/^\d{6}$/.test(cleanCode)) {
+      return res.status(400).json({ message: 'Verification code must be exactly 6 digits.' });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase().trim() });
-    if (!user) {
-      return res.status(404).json({ message: 'User not found.' });
+    const user = await User.findOne({ email: cleanEmail });
+    if (!user || !user.resetToken) {
+      return res.status(400).json({ message: 'Invalid or expired verification code.' });
     }
 
-    if (!user.resetToken || user.resetToken !== resetCode.trim()) {
-      return res.status(400).json({ message: 'Invalid verification code.' });
-    }
-
+    // Check token expiry (10 minutes)
     if (!user.resetTokenExpiry || new Date(user.resetTokenExpiry) < new Date()) {
+      user.resetToken = '';
+      user.resetTokenExpiry = null;
+      await user.save();
       return res.status(400).json({ message: 'Verification code has expired. Please request a new code.' });
     }
 
-    user.password = await bcrypt.hash(newPassword, 10);
-    user.resetToken = '';
-    user.resetTokenExpiry = null;
+    // Brute-force protection: max 5 failed attempts per OTP
+    if (user.resetTokenAttempts >= 5) {
+      user.resetToken = '';
+      user.resetTokenExpiry = null;
+      await user.save();
+      return res.status(429).json({
+        message: 'Too many incorrect attempts. This verification code has been invalidated for security. Please request a new code.',
+      });
+    }
+
+    // Validate OTP hash
+    const inputHash = crypto.createHash('sha256').update(cleanCode).digest('hex');
+    if (inputHash !== user.resetToken) {
+      user.resetTokenAttempts = (user.resetTokenAttempts || 0) + 1;
+      await user.save();
+      const remaining = 5 - user.resetTokenAttempts;
+      return res.status(400).json({
+        message: `Invalid verification code. Please check your email (${remaining} attempt${remaining === 1 ? '' : 's'} remaining).`,
+      });
+    }
+
+    // Mark as verified and generate short-lived Reset Ticket (valid for 15 minutes)
+    user.resetVerified = true;
     await user.save();
 
-    res.json({ message: 'Password has been reset successfully! You can now log in with your new password.' });
+    const resetTicket = jwt.sign(
+      { id: user._id, email: user.email, purpose: 'password_reset' },
+      JWT_SECRET,
+      { expiresIn: '15m' }
+    );
+
+    res.json({
+      success: true,
+      message: 'Verification code confirmed successfully!',
+      resetTicket,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to verify code', error: error.message });
+  }
+});
+
+// POST /api/auth/reset-password - Set new password after OTP verification
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { email, code, resetTicket, newPassword } = req.body;
+    if (!email || !newPassword) {
+      return res.status(400).json({ message: 'Email and new password are required.' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters long.' });
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+    const user = await User.findOne({ email: cleanEmail });
+    if (!user) {
+      return res.status(400).json({ message: 'Password reset failed. Invalid request.' });
+    }
+
+    let isAuthorized = false;
+
+    // Method 1: Check signed Reset Ticket
+    if (resetTicket) {
+      try {
+        const decoded = jwt.verify(resetTicket, JWT_SECRET);
+        if (decoded.id === user._id.toString() && decoded.purpose === 'password_reset') {
+          isAuthorized = true;
+        }
+      } catch (jwtErr) {
+        // Ticket invalid or expired
+      }
+    }
+
+    // Method 2: Fallback to verified OTP within expiry window
+    if (!isAuthorized && code && user.resetToken) {
+      const inputHash = crypto.createHash('sha256').update(code.toString().trim()).digest('hex');
+      if (
+        inputHash === user.resetToken &&
+        user.resetTokenExpiry &&
+        new Date(user.resetTokenExpiry) >= new Date()
+      ) {
+        isAuthorized = true;
+      }
+    }
+
+    if (!isAuthorized) {
+      return res.status(400).json({
+        message: 'Invalid or expired password reset session. Please request a new verification code.',
+      });
+    }
+
+    // Hash new password using bcrypt
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+
+    // Invalidate OTP and reset session completely (single-use enforcement)
+    user.resetToken = '';
+    user.resetTokenExpiry = null;
+    user.resetTokenAttempts = 0;
+    user.resetVerified = false;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Your password has been reset successfully! You can now sign in with your new password.',
+    });
   } catch (error) {
     res.status(500).json({ message: 'Password reset failed', error: error.message });
   }

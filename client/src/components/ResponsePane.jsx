@@ -24,7 +24,16 @@ import {
 import { AiDiagnosticsPanel } from './AiDiagnosticsPanel';
 
 export const ResponsePane = () => {
-  const { response, isLoading, responseTab, setResponseTab, sendRequest, activeRequest } = useApi();
+  const {
+    response,
+    isLoading,
+    responseTab,
+    setResponseTab,
+    sendRequest,
+    activeRequest,
+    setAiAssistantOpen,
+    openAiAssistantWithPrompt,
+  } = useApi();
   const [copied, setCopied] = useState(false);
   const [bodyFilter, setBodyFilter] = useState('');
   const [viewMode, setViewMode] = useState('pretty'); // 'pretty' or 'raw'
@@ -222,19 +231,30 @@ export const ResponsePane = () => {
       </div>
 
       {/* AI Proactive Diagnostics Alert Banner */}
-      {(response.status >= 400 || (response.testResults || []).some((t) => !t.passed)) && responseTab !== 'ai' && (
-        <div className="bg-purple-50 dark:bg-purple-950/40 border-b border-purple-200 dark:border-purple-800/40 px-3 py-1.5 flex items-center justify-between text-xs shrink-0">
-          <div className="flex items-center gap-2 text-purple-800 dark:text-purple-300 font-medium">
-            <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
-            <span>Issue detected ({response.status || 'Error'}). AI Root Cause Analysis & 1-Click Fix is ready.</span>
+      {(response.status >= 400 || response.status === 0 || (response.testResults || []).some((t) => !t.passed)) && (
+        <div className="bg-gradient-to-r from-purple-50 via-indigo-50 to-purple-100 dark:from-purple-950/60 dark:via-indigo-950/40 dark:to-purple-900/40 border-b border-purple-200 dark:border-purple-800/60 px-3 py-1.5 flex items-center justify-between text-xs shrink-0 flex-wrap gap-2">
+          <div className="flex items-center gap-2 text-purple-900 dark:text-purple-200 font-semibold text-[11px]">
+            <Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0 animate-pulse" />
+            <span>Issue detected ({response.status === 0 ? 'Network Error' : `${response.status} ${response.statusText || ''}`}). AI Assistant Copilot & 1-Click Fix is ready.</span>
           </div>
-          <button
-            onClick={() => setResponseTab('ai')}
-            className="px-2.5 py-0.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-semibold text-[10px] flex items-center gap-1 transition shadow-xs cursor-pointer"
-          >
-            <span>View AI Solution</span>
-            <ArrowRight className="w-3 h-3" />
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => openAiAssistantWithPrompt(`How do I resolve this ${response.status || 'network'} error?`)}
+              className="px-2.5 py-1 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-[10px] flex items-center gap-1 shadow-xs transition cursor-pointer active:scale-95"
+            >
+              <Sparkles className="w-3 h-3 fill-current text-amber-300" />
+              <span>Ask AI Copilot</span>
+            </button>
+            {responseTab !== 'ai' && (
+              <button
+                onClick={() => setResponseTab('ai')}
+                className="px-2 py-1 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-purple-700 dark:text-purple-300 border border-purple-300 dark:border-purple-700 font-semibold text-[10px] flex items-center gap-1 transition shadow-xs cursor-pointer"
+              >
+                <span>Diagnostics Tab</span>
+                <ArrowRight className="w-3 h-3" />
+              </button>
+            )}
+          </div>
         </div>
       )}
 

@@ -45,9 +45,13 @@ export const Navbar = ({
     setActiveEnvironmentId,
     activeRequest,
     newRequestTemplate,
+    response,
+    aiAssistantOpen,
+    setAiAssistantOpen,
   } = useApi();
 
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const hasError = response && (response.status >= 400 || response.status === 0 || (response.testResults || []).some((t) => !t.passed));
 
   return (
     <header className="h-14 bg-white/95 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/90 dark:border-slate-800/80 flex items-center justify-between px-3 sm:px-4 select-none shrink-0 z-20 shadow-xs transition-colors duration-200">
@@ -166,6 +170,27 @@ export const Navbar = ({
             <Sliders className="w-3.5 h-3.5" />
           </button>
         </div>
+
+        {/* AI Assistant Button */}
+        <button
+          onClick={() => setAiAssistantOpen((prev) => !prev)}
+          className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg border transition shadow-xs cursor-pointer active:scale-95 ${
+            hasError
+              ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white border-purple-500 shadow-md shadow-purple-600/25 ring-2 ring-purple-400/40'
+              : aiAssistantOpen
+              ? 'bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 border-purple-400'
+              : 'bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800/50'
+          }`}
+          title="Open AI Assistant & API Troubleshooter"
+        >
+          <Sparkles className={`w-3.5 h-3.5 ${hasError ? 'text-amber-300 fill-amber-300 animate-spin' : 'text-purple-600 dark:text-purple-400'}`} />
+          <span className="font-bold">AI Assistant</span>
+          {hasError && (
+            <span className="text-[9px] px-1 py-0.2 rounded bg-amber-400 text-slate-950 font-bold uppercase font-mono">
+              Fix
+            </span>
+          )}
+        </button>
 
         {/* ALWAYS-VISIBLE Admin Dashboard / Login Button */}
         <button

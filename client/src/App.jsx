@@ -16,10 +16,12 @@ import { AuthModal } from './components/AuthModal';
 import { MockServerModal } from './components/MockServerModal';
 import { ApiDocsModal } from './components/ApiDocsModal';
 import { CurlImportModal } from './components/CurlImportModal';
+import { AiAssistantDrawer } from './components/AiAssistantDrawer';
 
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import AdminPage from './pages/AdminPage';
 import ProfilePage from './pages/ProfilePage';
 import { ProfileModal } from './components/ProfileModal';
@@ -62,6 +64,8 @@ function StudioWorkbench() {
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     return typeof window !== 'undefined' ? window.innerWidth >= 1024 : true;
   });
+
+  const { aiAssistantOpen, setAiAssistantOpen } = useApi();
 
   const handleRunCollection = (col) => {
     setRunnerCollection(col);
@@ -133,6 +137,7 @@ function StudioWorkbench() {
       <MockServerModal isOpen={mockServerModalOpen} onClose={() => setMockServerModalOpen(false)} />
       <ApiDocsModal isOpen={apiDocsModalOpen} onClose={() => setApiDocsModalOpen(false)} />
       <CurlImportModal isOpen={curlModalOpen} onClose={() => setCurlModalOpen(false)} />
+      <AiAssistantDrawer isOpen={aiAssistantOpen} onClose={() => setAiAssistantOpen(false)} />
     </div>
   );
 }
@@ -166,6 +171,7 @@ export default function App() {
             {/* FIRST PAGE: Login Page */}
             <Route path="/" element={<LoginPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/settings" element={<ProfilePage />} />

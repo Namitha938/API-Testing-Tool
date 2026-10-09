@@ -291,11 +291,26 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
-  const resetPassword = async (email, resetCode, newPassword) => {
+  const verifyResetCode = async (email, code) => {
+    const res = await fetch('/api/auth/verify-reset-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, code }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || 'Verification code check failed');
+    }
+
+    return data;
+  };
+
+  const resetPassword = async (email, code, newPassword, resetTicket = '') => {
     const res = await fetch('/api/auth/reset-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, resetCode, newPassword }),
+      body: JSON.stringify({ email, code, newPassword, resetTicket }),
     });
 
     const data = await res.json();
@@ -369,6 +384,7 @@ export const AuthProvider = ({ children }) => {
         updateProfile,
         changePassword,
         forgotPassword,
+        verifyResetCode,
         resetPassword,
         verifyLogin2FA,
         generate2FA,

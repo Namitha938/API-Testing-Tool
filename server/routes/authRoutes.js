@@ -269,10 +269,13 @@ router.post('/google', async (req, res) => {
       return res.status(400).json({ message: 'Email is required for Google authentication.' });
     }
 
-    const cleanEmail = email.toLowerCase().trim();
+    const cleanEmail = email.toLowerCase().replace(/\s+/g, '').trim();
     let user = await User.findOne({ email: cleanEmail });
 
-    const ADMIN_EMAILS = ['singunamitha@gmail.com', 's.v.padmavathi2005@gmail.com'];
+    const ADMIN_EMAILS = [
+      'singunamitha@gmail.com',
+      's.v.padmavathi2005@gmail.com',
+    ];
     const isAdmin = ADMIN_EMAILS.includes(cleanEmail);
 
     if (user) {
@@ -282,7 +285,11 @@ router.post('/google', async (req, res) => {
       user.lastLogin = new Date();
       if (photoURL && !user.photoURL) user.photoURL = photoURL;
       if (googleId && !user.googleId) user.googleId = googleId;
-      if (isAdmin && user.role !== 'admin') user.role = 'admin';
+      if (isAdmin) {
+        user.role = 'admin';
+      } else {
+        user.role = 'user';
+      }
       await user.save();
     } else {
       const role = isAdmin ? 'admin' : 'user';

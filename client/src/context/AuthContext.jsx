@@ -166,13 +166,11 @@ export const AuthProvider = ({ children }) => {
         if (fbErr.code === 'auth/popup-closed-by-user' || fbErr.code === 'auth/cancelled-popup-request') {
           throw new Error('Google sign-in was cancelled.');
         }
-        console.warn('Firebase popup unavailable, using verified direct Google account profile:', fbErr);
-        payload = {
-          name: 'Namitha Singupuram',
-          email: 'singunamitha@gmail.com',
-          photoURL: 'https://lh3.googleusercontent.com/a/ACg8ocLt-s2GzQW7W0iHWmsVCjPfW4WMl4c19ZvnaB7LFVYORR0XgA=s96-c',
-          googleId: 'google_namitha_' + Date.now(),
-        };
+        if (fbErr.code === 'auth/popup-blocked') {
+          throw new Error('Google sign-in popup was blocked by browser. Please allow popups.');
+        }
+        console.error('Firebase authentication error:', fbErr);
+        throw new Error(fbErr.message || 'Firebase Google authentication failed.');
       }
     }
 

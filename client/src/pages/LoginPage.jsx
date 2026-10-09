@@ -11,6 +11,7 @@ import {
   AlertCircle,
   CheckCircle2,
   Shield,
+  ShieldCheck,
   User,
   Sparkles,
   Home,
@@ -421,13 +422,33 @@ export default function LoginPage() {
               <button
                 type="button"
                 disabled={loading}
-                onClick={() => handleQuickLogin('demo@apitester.io', 'user123')}
-                className="w-full py-2 px-3 rounded-lg border font-semibold text-xs flex items-center justify-center gap-2 transition bg-sky-500/10 hover:bg-sky-500/20 border-sky-500/30 text-sky-600 dark:text-sky-300 disabled:opacity-50 cursor-pointer"
+                onClick={() => handleQuickLogin('singunamitha@gmail.com', 'Admin@2026!')}
+                className="w-full py-2.5 px-3 rounded-xl border font-semibold text-xs flex items-center justify-center gap-2 transition bg-purple-500/10 hover:bg-purple-500/20 border-purple-500/40 text-purple-700 dark:text-purple-300 disabled:opacity-50 cursor-pointer shadow-xs active:scale-95"
               >
-                <User className="w-3.5 h-3.5" />
-                <span>1-Click Demo User (demo@apitester.io)</span>
+                <ShieldCheck className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
+                <span>1-Click Administrator Login (Full Admin Console)</span>
+              </button>
+
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => handleQuickLogin('demo@apitester.io', 'user123')}
+                className="w-full py-2 px-3 rounded-xl border font-semibold text-xs flex items-center justify-center gap-2 transition bg-sky-500/10 hover:bg-sky-500/20 border-sky-500/30 text-sky-700 dark:text-sky-300 disabled:opacity-50 cursor-pointer shadow-xs active:scale-95"
+              >
+                <User className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400 shrink-0" />
+                <span>1-Click Developer User (demo@apitester.io)</span>
               </button>
             </div>
+          </div>
+
+          <div className="mb-4 text-center">
+            <Link
+              to="/admin"
+              className="inline-flex items-center gap-1.5 text-xs text-purple-600 dark:text-purple-400 hover:underline font-semibold"
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Direct Link to Admin Dashboard & Audit Console &rarr;</span>
+            </Link>
           </div>
 
           {/* Error Banner */}

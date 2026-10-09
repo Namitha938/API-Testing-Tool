@@ -114,9 +114,18 @@ export default function AdminPage() {
     setQuickLoginLoading(true);
     setQuickLoginError('');
     try {
-      await loginWithGoogle(true);
+      const res = await loginWithGoogle();
+      const signedInEmail = res?.user?.email?.toLowerCase().replace(/\s+/g, '').trim();
+      const ALLOWED_ADMINS = ['singunamitha@gmail.com', 's.v.padmavathi2005@gmail.com'];
+
+      if (!ALLOWED_ADMINS.includes(signedInEmail) || res?.user?.role !== 'admin') {
+        setQuickLoginError('Unauthorized: Access denied. This account does not have administrator privileges.');
+        return;
+      }
+
+      fetchAdminData();
     } catch (err) {
-      setQuickLoginError(err.message || 'Google admin login failed');
+      setQuickLoginError(err.message || 'Google authentication failed');
     } finally {
       setQuickLoginLoading(false);
     }
@@ -383,55 +392,26 @@ export default function AdminPage() {
 
               <h2 className="text-2xl font-bold mb-2 text-white">403 — Unauthorized Account</h2>
               <p className="text-xs text-slate-300 mb-6 leading-relaxed max-w-md mx-auto">
-                You are currently signed in, but your account is <strong>not authorized</strong> to access the Administrator Dashboard.
+                Administrator privileges are required to access this console. Please sign in with an authorized administrator Google account.
               </p>
 
-              {/* Account Diagnostics Card */}
-              <div className="text-left p-4 rounded-xl border border-slate-800 bg-slate-950/80 mb-6 space-y-2.5 text-xs">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
-                  <span className="text-slate-400">Signed-in User:</span>
-                  <div className="flex items-center gap-2">
-                    {user.photoURL ? (
-                      <img src={user.photoURL} alt={user.name} className="w-5 h-5 rounded-full object-cover border border-slate-700" />
-                    ) : (
-                      <div className="w-5 h-5 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center text-[10px] font-bold">
-                        {user.name?.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                    <span className="text-white font-medium">{user.name}</span>
-                  </div>
+              {quickLoginError && (
+                <div className="mb-4 p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs text-left">
+                  {quickLoginError}
                 </div>
-
-                <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
-                  <span className="text-slate-400">Email Address:</span>
-                  <span className="text-slate-200 font-mono text-[11px]">{user.email}</span>
-                </div>
-
-                <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
-                  <span className="text-slate-400">Account Role:</span>
-                  <span className="px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 font-mono text-[10px] uppercase font-bold">
-                    {user.role || 'user'} (Standard User)
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Access Status:</span>
-                  <span className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/40 font-mono text-[10px] uppercase font-bold">
-                    DENIED • UNAUTHORIZED
-                  </span>
-                </div>
-              </div>
-
-              {/* Whitelist Info Box */}
-              <div className="p-3.5 rounded-xl bg-slate-950/50 border border-slate-800 text-[11px] text-slate-400 mb-6 text-left space-y-1">
-                <div className="font-semibold text-slate-300">Authorized Administrator Whitelist:</div>
-                <p className="text-slate-400 text-[11px] leading-relaxed">
-                  Only designated administrator accounts (<code className="text-purple-300 font-mono">singunamitha@gmail.com</code> and <code className="text-purple-300 font-mono">s.v.padmavathi2005@gmail.com</code>) have access to system administration and latency telemetry.
-                </p>
-              </div>
+              )}
 
               {/* Action Buttons */}
               <div className="space-y-2.5">
+                <button
+                  onClick={handleGoogleAdminLogin}
+                  disabled={quickLoginLoading}
+                  className="w-full py-2.5 px-4 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-750 text-slate-100 font-semibold text-xs transition shadow-sm flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.01] active:scale-95 disabled:opacity-50"
+                >
+                  <GoogleIcon className="w-4 h-4" />
+                  <span>{quickLoginLoading ? 'Connecting to Google...' : 'Continue with Google (Switch Account)'}</span>
+                </button>
+
                 <button
                   onClick={() => setProfileModalOpen(true)}
                   className="w-full py-2.5 px-4 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs transition shadow-md shadow-sky-600/20 flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.01] active:scale-95"
@@ -445,7 +425,7 @@ export default function AdminPage() {
                   className="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-rose-300 border border-rose-500/30 font-semibold text-xs transition flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.01] active:scale-95"
                 >
                   <LogOut className="w-4 h-4 text-rose-400" />
-                  <span>Sign Out / Switch to Authorized Account</span>
+                  <span>Sign Out</span>
                 </button>
 
                 <div className="pt-2 flex items-center justify-center gap-4 text-xs text-slate-400">
@@ -466,7 +446,7 @@ export default function AdminPage() {
               </div>
               <h2 className="text-xl font-bold mb-2">Administrator Access Required</h2>
               <p className="text-xs text-slate-400 mb-6 leading-relaxed">
-                This console provides high-privilege operations including user role elevation, access control, and telemetry. Sign in with an administrator account to continue.
+                This console provides high-privilege operations including user role elevation, access control, and telemetry. Please continue with your authorized administrator Google account.
               </p>
 
               {quickLoginError && (
@@ -475,28 +455,29 @@ export default function AdminPage() {
                 </div>
               )}
 
-              <button
-                onClick={handleGoogleAdminLogin}
-                disabled={quickLoginLoading}
-                className={`w-full py-2.5 px-4 rounded-xl border font-semibold text-xs transition shadow-sm flex items-center justify-center gap-2 mb-2.5 cursor-pointer hover:scale-[1.02] active:scale-95 ${
-                  isDark
-                    ? 'border-slate-700 bg-slate-800 hover:bg-slate-750 text-slate-100'
-                    : 'border-slate-300 bg-white hover:bg-slate-50 text-slate-800'
-                }`}
-              >
-                <GoogleIcon className="w-4 h-4" />
-                <span>{quickLoginLoading ? 'Connecting...' : 'Continue with Google (Admin Access)'}</span>
-              </button>
+              <div className="space-y-3">
+                <button
+                  onClick={handleGoogleAdminLogin}
+                  disabled={quickLoginLoading}
+                  className={`w-full py-3 px-4 rounded-xl border font-semibold text-xs transition shadow-sm flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-95 ${
+                    isDark
+                      ? 'border-slate-700 bg-slate-800 hover:bg-slate-750 text-slate-100'
+                      : 'border-slate-300 bg-white hover:bg-slate-50 text-slate-800'
+                  }`}
+                >
+                  <GoogleIcon className="w-4 h-4" />
+                  <span>{quickLoginLoading ? 'Connecting to Google...' : 'Continue with Google'}</span>
+                </button>
 
-              <div className="mb-3 p-2.5 rounded-xl bg-sky-500/10 border border-sky-500/20 text-[11px] text-sky-400 text-center font-medium">
-                Authorized Admin Accounts: <span className="font-mono text-white">singunamitha@gmail.com</span>, <span className="font-mono text-white">s.v.padmavathi2005@gmail.com</span>
-              </div>
-
-              <div className="text-[11px] text-slate-500">
-                Or sign in with custom credentials on the{' '}
-                <Link to="/login" className="text-sky-400 hover:underline">
-                  Login Page &rarr;
-                </Link>
+                <div className="pt-2 flex items-center justify-center gap-4 text-xs text-slate-500">
+                  <Link to="/app" className="text-sky-400 hover:underline">
+                    API Studio Workbench
+                  </Link>
+                  <span>•</span>
+                  <Link to="/" className="hover:text-slate-300 hover:underline">
+                    Home
+                  </Link>
+                </div>
               </div>
             </div>
           )

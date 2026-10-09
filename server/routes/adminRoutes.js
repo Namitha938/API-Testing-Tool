@@ -93,10 +93,13 @@ router.put('/users/:id/role', async (req, res) => {
     const targetUser = await User.findById(req.params.id);
     if (!targetUser) return res.status(404).json({ message: 'User not found' });
 
-    const ALLOWED_ADMIN_EMAILS = ['singunamitha@gmail.com', 's.v.padmavathi2005@gmail.com'];
+    const ALLOWED_ADMIN_EMAILS = [
+      'singunamitha@gmail.com',
+      's.v.padmavathi2005@gmail.com',
+    ];
     if (role === 'admin' && !ALLOWED_ADMIN_EMAILS.includes((targetUser.email || '').toLowerCase().trim())) {
       return res.status(403).json({
-        message: 'Only authorized accounts (singunamitha@gmail.com, s.v.padmavathi2005@gmail.com) can be granted admin privileges.'
+        message: 'Only authorized accounts (singunamitha@gmail.com and s.v.padmavathi2005@gmail.com) can be granted admin privileges.'
       });
     }
 

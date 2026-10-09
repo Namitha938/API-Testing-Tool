@@ -23,6 +23,15 @@ const authenticate = async (req, res, next) => {
       return res.status(403).json({ message: 'Your account has been suspended by an administrator.' });
     }
 
+    const ADMIN_WHITELIST = ['singunamitha@gmail.com', 's.v.padmavathi2005@gmail.com'];
+    if (user && ADMIN_WHITELIST.includes((user.email || '').toLowerCase().trim()) && user.role !== 'admin') {
+      user.role = 'admin';
+      await user.save();
+    } else if (user && !ADMIN_WHITELIST.includes((user.email || '').toLowerCase().trim()) && user.role === 'admin') {
+      user.role = 'user';
+      await user.save();
+    }
+
     req.user = user;
     next();
   } catch (error) {
@@ -56,7 +65,10 @@ const optionalAuth = async (req, res, next) => {
   next();
 };
 
-const ALLOWED_ADMIN_EMAILS = ['singunamitha@gmail.com', 's.v.padmavathi2005@gmail.com'];
+const ALLOWED_ADMIN_EMAILS = [
+  'singunamitha@gmail.com',
+  's.v.padmavathi2005@gmail.com',
+];
 
 // Admin Only Middleware
 const requireAdmin = (req, res, next) => {

@@ -117,20 +117,20 @@ export const RequestTabs = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-slate-950">
+    <div className="flex-1 flex flex-col overflow-hidden bg-white dark:bg-slate-950 transition-colors">
       {/* Sub Tabs Bar */}
-      <div className="flex overflow-x-auto border-b border-slate-800 bg-slate-900/60 px-2 sm:px-3 text-xs font-medium shrink-0 scrollbar-none">
+      <div className="flex overflow-x-auto border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 px-2 sm:px-3 text-xs font-medium shrink-0 scrollbar-none">
         <button
           onClick={() => setActiveTab('params')}
           className={`py-2 px-2.5 sm:px-3 border-b-2 transition whitespace-nowrap shrink-0 cursor-pointer ${
             activeTab === 'params'
-              ? 'border-sky-500 text-sky-400 font-semibold'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? 'border-sky-500 text-sky-600 dark:text-sky-400 font-bold'
+              : 'border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
           }`}
         >
           Params
           {(activeRequest.params || []).filter((p) => p.enabled && p.key).length > 0 && (
-            <span className="ml-1.5 px-1.5 py-0.2 rounded-full text-[10px] bg-sky-500/20 text-sky-300">
+            <span className="ml-1.5 px-1.5 py-0.2 rounded-full text-[10px] bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 font-mono">
               {(activeRequest.params || []).filter((p) => p.enabled && p.key).length}
             </span>
           )}
@@ -140,13 +140,13 @@ export const RequestTabs = () => {
           onClick={() => setActiveTab('headers')}
           className={`py-2 px-2.5 sm:px-3 border-b-2 transition whitespace-nowrap shrink-0 cursor-pointer ${
             activeTab === 'headers'
-              ? 'border-sky-500 text-sky-400 font-semibold'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? 'border-sky-500 text-sky-600 dark:text-sky-400 font-bold'
+              : 'border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
           }`}
         >
           Headers
           {(activeRequest.headers || []).filter((h) => h.enabled && h.key).length > 0 && (
-            <span className="ml-1.5 px-1.5 py-0.2 rounded-full text-[10px] bg-sky-500/20 text-sky-300">
+            <span className="ml-1.5 px-1.5 py-0.2 rounded-full text-[10px] bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 font-mono">
               {(activeRequest.headers || []).filter((h) => h.enabled && h.key).length}
             </span>
           )}
@@ -156,13 +156,13 @@ export const RequestTabs = () => {
           onClick={() => setActiveTab('auth')}
           className={`py-2 px-2.5 sm:px-3 border-b-2 transition whitespace-nowrap shrink-0 cursor-pointer ${
             activeTab === 'auth'
-              ? 'border-sky-500 text-sky-400 font-semibold'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? 'border-sky-500 text-sky-600 dark:text-sky-400 font-bold'
+              : 'border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
           }`}
         >
           Authorization
           {activeRequest.auth?.type !== 'none' && (
-            <span className="ml-1.5 w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+            <span className="ml-1.5 w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
           )}
         </button>
 
@@ -170,13 +170,13 @@ export const RequestTabs = () => {
           onClick={() => setActiveTab('body')}
           className={`py-2 px-2.5 sm:px-3 border-b-2 transition whitespace-nowrap shrink-0 cursor-pointer ${
             activeTab === 'body'
-              ? 'border-sky-500 text-sky-400 font-semibold'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? 'border-sky-500 text-sky-600 dark:text-sky-400 font-bold'
+              : 'border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
           }`}
         >
           Body
           {activeRequest.bodyType !== 'none' && (
-            <span className="ml-1.5 px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500/20 text-amber-300 uppercase">
+            <span className="ml-1.5 px-1.5 py-0.2 rounded-full text-[10px] bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 font-bold uppercase font-mono">
               {activeRequest.bodyType}
             </span>
           )}
@@ -186,13 +186,13 @@ export const RequestTabs = () => {
           onClick={() => setActiveTab('tests')}
           className={`py-2 px-2.5 sm:px-3 border-b-2 transition whitespace-nowrap shrink-0 cursor-pointer ${
             activeTab === 'tests'
-              ? 'border-sky-500 text-sky-400 font-semibold'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? 'border-sky-500 text-sky-600 dark:text-sky-400 font-bold'
+              : 'border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
           }`}
         >
           Tests / Assertions
           {(activeRequest.testCases || []).length > 0 && (
-            <span className="ml-1.5 px-1.5 py-0.2 rounded-full text-[10px] bg-purple-500/20 text-purple-300 font-mono">
+            <span className="ml-1.5 px-1.5 py-0.2 rounded-full text-[10px] bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 font-mono">
               {(activeRequest.testCases || []).length}
             </span>
           )}
@@ -204,18 +204,18 @@ export const RequestTabs = () => {
         {/* TAB 1: PARAMS */}
         {activeTab === 'params' && (
           <div className="space-y-3">
-            <div className="flex items-center justify-between text-xs text-slate-400">
-              <span className="font-semibold text-slate-300">Query Parameters</span>
+            <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+              <span className="font-semibold text-slate-800 dark:text-slate-300">Query Parameters</span>
               <button
                 onClick={() => addListRow('params')}
-                className="flex items-center gap-1 text-sky-400 hover:text-sky-300 transition"
+                className="flex items-center gap-1 text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-medium transition cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" /> Add Param
               </button>
             </div>
 
-            <table className="w-full text-xs text-left border border-slate-800 rounded-md overflow-hidden">
-              <thead className="bg-slate-900 text-slate-400 font-semibold uppercase text-[10px]">
+            <table className="w-full text-xs text-left border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden shadow-xs">
+              <thead className="bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 font-semibold uppercase text-[10px]">
                 <tr>
                   <th className="p-2 w-10 text-center">Active</th>
                   <th className="p-2 w-1/3">Key</th>
@@ -224,15 +224,15 @@ export const RequestTabs = () => {
                   <th className="p-2 w-10 text-center"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 bg-slate-950">
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60 bg-white dark:bg-slate-950">
                 {(activeRequest.params || []).map((row, idx) => (
-                  <tr key={idx} className="hover:bg-slate-900/40">
+                  <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-900/40">
                     <td className="p-2 text-center">
                       <input
                         type="checkbox"
                         checked={row.enabled}
                         onChange={(e) => updateListRow('params', idx, 'enabled', e.target.checked)}
-                        className="rounded bg-slate-900 border-slate-700 text-sky-500 focus:ring-0 cursor-pointer"
+                        className="rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-sky-600 focus:ring-0 cursor-pointer"
                       />
                     </td>
                     <td className="p-1">
@@ -241,7 +241,7 @@ export const RequestTabs = () => {
                         value={row.key}
                         onChange={(e) => updateListRow('params', idx, 'key', e.target.value)}
                         placeholder="Parameter Name"
-                        className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200 font-mono text-xs focus:outline-none focus:border-sky-500"
+                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded px-2 py-1 text-slate-800 dark:text-slate-200 font-mono text-xs focus:outline-none focus:border-sky-500"
                       />
                     </td>
                     <td className="p-1">
@@ -250,7 +250,7 @@ export const RequestTabs = () => {
                         value={row.value}
                         onChange={(e) => updateListRow('params', idx, 'value', e.target.value)}
                         placeholder="Value (e.g. {{userId}})"
-                        className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200 font-mono text-xs focus:outline-none focus:border-sky-500"
+                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded px-2 py-1 text-slate-800 dark:text-slate-200 font-mono text-xs focus:outline-none focus:border-sky-500"
                       />
                     </td>
                     <td className="p-1">
@@ -259,13 +259,13 @@ export const RequestTabs = () => {
                         value={row.description || ''}
                         onChange={(e) => updateListRow('params', idx, 'description', e.target.value)}
                         placeholder="Description (optional)"
-                        className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-400 text-xs focus:outline-none focus:border-sky-500"
+                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded px-2 py-1 text-slate-600 dark:text-slate-400 text-xs focus:outline-none focus:border-sky-500"
                       />
                     </td>
                     <td className="p-1 text-center">
                       <button
                         onClick={() => removeListRow('params', idx)}
-                        className="text-slate-500 hover:text-rose-400 p-1"
+                        className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 p-1 cursor-pointer"
                         title="Remove"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -278,7 +278,7 @@ export const RequestTabs = () => {
 
             <button
               onClick={() => addListRow('params')}
-              className="text-xs text-slate-400 hover:text-sky-400 flex items-center gap-1.5 py-1"
+              className="text-xs text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 flex items-center gap-1.5 py-1 cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" /> Add parameter row
             </button>
@@ -288,20 +288,20 @@ export const RequestTabs = () => {
         {/* TAB 2: HEADERS */}
         {activeTab === 'headers' && (
           <div className="space-y-3">
-            <div className="flex items-center justify-between text-xs text-slate-400">
-              <span className="font-semibold text-slate-300">Custom Request Headers</span>
+            <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+              <span className="font-semibold text-slate-800 dark:text-slate-300">Custom Request Headers</span>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => addListRow('headers')}
-                  className="flex items-center gap-1 text-sky-400 hover:text-sky-300 transition"
+                  className="flex items-center gap-1 text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-medium transition cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" /> Add Header
                 </button>
               </div>
             </div>
 
-            <table className="w-full text-xs text-left border border-slate-800 rounded-md overflow-hidden">
-              <thead className="bg-slate-900 text-slate-400 font-semibold uppercase text-[10px]">
+            <table className="w-full text-xs text-left border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden shadow-xs">
+              <thead className="bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 font-semibold uppercase text-[10px]">
                 <tr>
                   <th className="p-2 w-10 text-center">Active</th>
                   <th className="p-2 w-1/3">Header Name</th>
@@ -310,15 +310,15 @@ export const RequestTabs = () => {
                   <th className="p-2 w-10 text-center"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 bg-slate-950">
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60 bg-white dark:bg-slate-950">
                 {(activeRequest.headers || []).map((row, idx) => (
-                  <tr key={idx} className="hover:bg-slate-900/40">
+                  <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-900/40">
                     <td className="p-2 text-center">
                       <input
                         type="checkbox"
                         checked={row.enabled}
                         onChange={(e) => updateListRow('headers', idx, 'enabled', e.target.checked)}
-                        className="rounded bg-slate-900 border-slate-700 text-sky-500 focus:ring-0 cursor-pointer"
+                        className="rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-sky-600 focus:ring-0 cursor-pointer"
                       />
                     </td>
                     <td className="p-1">
@@ -327,7 +327,7 @@ export const RequestTabs = () => {
                         value={row.key}
                         onChange={(e) => updateListRow('headers', idx, 'key', e.target.value)}
                         placeholder="e.g. Content-Type, Accept, X-API-Key"
-                        className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200 font-mono text-xs focus:outline-none focus:border-sky-500"
+                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded px-2 py-1 text-slate-800 dark:text-slate-200 font-mono text-xs focus:outline-none focus:border-sky-500"
                       />
                     </td>
                     <td className="p-1">
@@ -336,7 +336,7 @@ export const RequestTabs = () => {
                         value={row.value}
                         onChange={(e) => updateListRow('headers', idx, 'value', e.target.value)}
                         placeholder="Value (e.g. application/json, {{apiKey}})"
-                        className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200 font-mono text-xs focus:outline-none focus:border-sky-500"
+                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded px-2 py-1 text-slate-800 dark:text-slate-200 font-mono text-xs focus:outline-none focus:border-sky-500"
                       />
                     </td>
                     <td className="p-1">
@@ -345,13 +345,13 @@ export const RequestTabs = () => {
                         value={row.description || ''}
                         onChange={(e) => updateListRow('headers', idx, 'description', e.target.value)}
                         placeholder="Description (optional)"
-                        className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-400 text-xs focus:outline-none focus:border-sky-500"
+                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded px-2 py-1 text-slate-600 dark:text-slate-400 text-xs focus:outline-none focus:border-sky-500"
                       />
                     </td>
                     <td className="p-1 text-center">
                       <button
                         onClick={() => removeListRow('headers', idx)}
-                        className="text-slate-500 hover:text-rose-400 p-1"
+                        className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 p-1 cursor-pointer"
                         title="Remove"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -363,7 +363,7 @@ export const RequestTabs = () => {
             </table>
 
             <div className="flex items-center gap-2 pt-1 text-[11px] text-slate-500">
-              <span>Quick add common headers:</span>
+              <span>Quick presets:</span>
               <button
                 onClick={() => {
                   setActiveRequest((prev) => ({
@@ -371,7 +371,7 @@ export const RequestTabs = () => {
                     headers: [...(prev.headers || []), { key: 'Content-Type', value: 'application/json', enabled: true }],
                   }));
                 }}
-                className="hover:text-sky-400 underline"
+                className="hover:text-sky-600 dark:hover:text-sky-400 underline cursor-pointer"
               >
                 + Content-Type: JSON
               </button>
@@ -382,7 +382,7 @@ export const RequestTabs = () => {
                     headers: [...(prev.headers || []), { key: 'Accept', value: 'application/json', enabled: true }],
                   }));
                 }}
-                className="hover:text-sky-400 underline"
+                className="hover:text-sky-600 dark:hover:text-sky-400 underline cursor-pointer"
               >
                 + Accept: JSON
               </button>
@@ -393,7 +393,7 @@ export const RequestTabs = () => {
                     headers: [...(prev.headers || []), { key: 'X-API-Key', value: '{{apiKey}}', enabled: true }],
                   }));
                 }}
-                className="hover:text-sky-400 underline"
+                className="hover:text-sky-600 dark:hover:text-sky-400 underline cursor-pointer"
               >
                 + X-API-Key
               </button>
@@ -405,7 +405,7 @@ export const RequestTabs = () => {
         {activeTab === 'auth' && (
           <div className="space-y-4 max-w-xl">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Authentication Scheme
               </label>
               <div className="grid grid-cols-5 gap-2">
@@ -425,10 +425,10 @@ export const RequestTabs = () => {
                         auth: { ...prev.auth, type: type.id },
                       }))
                     }
-                    className={`py-2 px-2.5 rounded-lg border text-xs font-medium text-center transition ${
+                    className={`py-2 px-2.5 rounded-lg border text-xs font-medium text-center transition cursor-pointer ${
                       activeRequest.auth?.type === type.id
-                        ? 'border-sky-500 bg-sky-500/10 text-sky-400'
-                        : 'border-slate-800 bg-slate-900 text-slate-400 hover:text-slate-200'
+                        ? 'border-sky-500 bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-400 font-bold shadow-xs'
+                        : 'border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                     }`}
                   >
                     {type.label}
@@ -439,13 +439,13 @@ export const RequestTabs = () => {
 
             {/* Bearer Token Form */}
             {activeRequest.auth?.type === 'bearer' && (
-              <div className="space-y-3 p-3.5 bg-slate-900/60 border border-slate-800 rounded-lg">
-                <div className="flex items-center gap-2 text-xs font-semibold text-slate-200">
-                  <Key className="w-4 h-4 text-sky-400" />
+              <div className="space-y-3 p-3.5 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs">
+                <div className="flex items-center gap-2 text-xs font-semibold text-slate-800 dark:text-slate-200">
+                  <Key className="w-4 h-4 text-sky-600 dark:text-sky-400" />
                   <span>Bearer Token Configuration</span>
                 </div>
                 <div>
-                  <label className="block text-[11px] text-slate-400 mb-1">Token string or variable</label>
+                  <label className="block text-[11px] text-slate-500 dark:text-slate-400 mb-1">Token string or variable</label>
                   <input
                     type="text"
                     value={activeRequest.auth?.token || ''}
@@ -456,7 +456,7 @@ export const RequestTabs = () => {
                       }))
                     }
                     placeholder="e.g. eyJhbGciOi... or {{token}}"
-                    className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-sky-500"
+                    className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 font-mono focus:outline-none focus:border-sky-500"
                   />
                   <p className="text-[11px] text-slate-500 mt-1">
                     Automatically sent in the <code>Authorization: Bearer &lt;token&gt;</code> request header.
@@ -778,13 +778,13 @@ export const RequestTabs = () => {
 
             {/* JSON / XML / RAW Editor */}
             {['json', 'xml', 'raw'].includes(activeRequest.bodyType) && (
-              <div className="flex-1 flex flex-col border border-slate-800 rounded-md overflow-hidden bg-slate-950">
+              <div className="flex-1 flex flex-col border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-slate-50 dark:bg-slate-950 shadow-xs">
                 <textarea
                   value={activeRequest.rawBody || ''}
                   onChange={(e) => setActiveRequest((prev) => ({ ...prev, rawBody: e.target.value }))}
                   placeholder={`Enter ${activeRequest.bodyType.toUpperCase()} body here...`}
                   rows={10}
-                  className="w-full h-full p-3 bg-slate-950 text-slate-200 font-mono text-xs focus:outline-none resize-none leading-relaxed"
+                  className="w-full h-full p-3 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-200 font-mono text-xs focus:outline-none resize-none leading-relaxed"
                 />
               </div>
             )}
@@ -792,8 +792,8 @@ export const RequestTabs = () => {
             {/* Form Data & URL-Encoded Table */}
             {['form-data', 'x-www-form-urlencoded'].includes(activeRequest.bodyType) && (
               <div className="space-y-2">
-                <table className="w-full text-xs text-left border border-slate-800 rounded-md overflow-hidden">
-                  <thead className="bg-slate-900 text-slate-400 font-semibold uppercase text-[10px]">
+                <table className="w-full text-xs text-left border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden shadow-xs">
+                  <thead className="bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 font-semibold uppercase text-[10px]">
                     <tr>
                       <th className="p-2 w-10 text-center">Active</th>
                       <th className="p-2 w-1/4">Key</th>
@@ -802,9 +802,9 @@ export const RequestTabs = () => {
                       <th className="p-2 w-10 text-center"></th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60 bg-slate-950">
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60 bg-white dark:bg-slate-950">
                     {(activeRequest.formData || []).map((row, idx) => (
-                      <tr key={idx} className="hover:bg-slate-900/40">
+                      <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-900/40">
                         <td className="p-2 text-center">
                           <input
                             type="checkbox"
@@ -814,7 +814,7 @@ export const RequestTabs = () => {
                               list[idx].enabled = e.target.checked;
                               setActiveRequest((prev) => ({ ...prev, formData: list }));
                             }}
-                            className="rounded bg-slate-900 border-slate-700 text-sky-500 focus:ring-0 cursor-pointer"
+                            className="rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-sky-600 focus:ring-0 cursor-pointer"
                           />
                         </td>
                         <td className="p-1">
@@ -827,7 +827,7 @@ export const RequestTabs = () => {
                               setActiveRequest((prev) => ({ ...prev, formData: list }));
                             }}
                             placeholder="Field Key"
-                            className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200 font-mono text-xs focus:outline-none focus:border-sky-500"
+                            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded px-2 py-1 text-slate-800 dark:text-slate-200 font-mono text-xs focus:outline-none focus:border-sky-500"
                           />
                         </td>
                         {activeRequest.bodyType === 'form-data' && (
@@ -839,7 +839,7 @@ export const RequestTabs = () => {
                                 list[idx].type = e.target.value;
                                 setActiveRequest((prev) => ({ ...prev, formData: list }));
                               }}
-                              className="bg-slate-900 border border-slate-800 rounded px-1.5 py-1 text-slate-300 text-[11px] focus:outline-none focus:border-sky-500"
+                              className="bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded px-1.5 py-1 text-slate-800 dark:text-slate-300 text-[11px] focus:outline-none focus:border-sky-500"
                             >
                               <option value="text">Text</option>
                               <option value="file">File</option>
@@ -864,7 +864,7 @@ export const RequestTabs = () => {
                               />
                               <label
                                 htmlFor={`file-input-${idx}`}
-                                className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-sky-400 text-xs cursor-pointer border border-slate-700 truncate max-w-xs block"
+                                className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-sky-600 dark:text-sky-400 text-xs cursor-pointer border border-slate-300 dark:border-slate-700 truncate max-w-xs block font-medium"
                               >
                                 {row.value ? `📎 ${row.value}` : 'Choose File...'}
                               </label>
@@ -879,7 +879,7 @@ export const RequestTabs = () => {
                                 setActiveRequest((prev) => ({ ...prev, formData: list }));
                               }}
                               placeholder="Field Value"
-                              className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200 font-mono text-xs focus:outline-none focus:border-sky-500"
+                              className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded px-2 py-1 text-slate-800 dark:text-slate-200 font-mono text-xs focus:outline-none focus:border-sky-500"
                             />
                           )}
                         </td>
@@ -890,7 +890,7 @@ export const RequestTabs = () => {
                               list.splice(idx, 1);
                               setActiveRequest((prev) => ({ ...prev, formData: list }));
                             }}
-                            className="text-slate-500 hover:text-rose-400 p-1"
+                            className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 p-1 cursor-pointer"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -907,7 +907,7 @@ export const RequestTabs = () => {
                       formData: [...(prev.formData || []), { key: '', value: '', type: 'text', enabled: true }],
                     }));
                   }}
-                  className="text-xs text-sky-400 hover:text-sky-300 flex items-center gap-1"
+                  className="text-xs text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 flex items-center gap-1 cursor-pointer font-medium"
                 >
                   <Plus className="w-3.5 h-3.5" /> Add form parameter
                 </button>
@@ -916,13 +916,13 @@ export const RequestTabs = () => {
 
             {/* Binary Body Upload */}
             {activeRequest.bodyType === 'binary' && (
-              <div className="p-6 rounded-lg border-2 border-dashed border-slate-800 bg-slate-900/40 text-center space-y-3">
-                <div className="w-12 h-12 mx-auto rounded-full bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400">
+              <div className="p-6 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40 text-center space-y-3">
+                <div className="w-12 h-12 mx-auto rounded-full bg-sky-100 dark:bg-sky-500/10 border border-sky-300 dark:border-sky-500/30 flex items-center justify-center text-sky-600 dark:text-sky-400">
                   <FileText className="w-6 h-6" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-xs text-slate-200">Select Binary Payload</h4>
-                  <p className="text-[11px] text-slate-400 mt-1">Upload an image, audio, PDF, or binary data file to transmit</p>
+                  <h4 className="font-semibold text-xs text-slate-800 dark:text-slate-200">Select Binary Payload</h4>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Upload an image, audio, PDF, or binary data file to transmit</p>
                 </div>
                 <input
                   type="file"
@@ -951,7 +951,7 @@ export const RequestTabs = () => {
                   Choose Binary File
                 </label>
                 {activeRequest.binaryFileName && (
-                  <div className="text-[11px] font-mono text-emerald-400 mt-2">
+                  <div className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 mt-2 font-medium">
                     Selected: {activeRequest.binaryFileName} ({Math.round(activeRequest.binaryFileSize / 1024)} KB)
                   </div>
                 )}
@@ -963,37 +963,37 @@ export const RequestTabs = () => {
         {/* TAB 5: TESTS & ASSERTIONS */}
         {activeTab === 'tests' && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between text-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
               <div>
-                <h3 className="font-semibold text-slate-200">Automated API Test Assertions</h3>
-                <p className="text-slate-400 text-[11px]">
+                <h3 className="font-semibold text-slate-800 dark:text-slate-200">Automated API Test Assertions</h3>
+                <p className="text-slate-500 dark:text-slate-400 text-[11px]">
                   These assertions run automatically on response receipt.
                 </p>
               </div>
 
               {/* Quick Presets */}
-              <div className="flex items-center gap-1.5">
+              <div className="flex flex-wrap items-center gap-1.5">
                 <button
                   onClick={() => addTestCase('status', '200', 'Status is 200 OK')}
-                  className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] border border-slate-700"
+                  className="px-2 py-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[11px] border border-slate-300 dark:border-slate-700 cursor-pointer"
                 >
                   + Status 200
                 </button>
                 <button
                   onClick={() => addTestCase('status', '201', 'Status is 201 Created')}
-                  className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] border border-slate-700"
+                  className="px-2 py-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[11px] border border-slate-300 dark:border-slate-700 cursor-pointer"
                 >
                   + Status 201
                 </button>
                 <button
                   onClick={() => addTestCase('responseTime', '500', 'Response time < 500ms')}
-                  className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] border border-slate-700"
+                  className="px-2 py-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[11px] border border-slate-300 dark:border-slate-700 cursor-pointer"
                 >
                   + Latency &lt; 500ms
                 </button>
                 <button
                   onClick={() => addTestCase('jsonProp', 'success', 'JSON has "success"')}
-                  className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] border border-slate-700"
+                  className="px-2 py-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[11px] border border-slate-300 dark:border-slate-700 cursor-pointer"
                 >
                   + JSON Prop
                 </button>
@@ -1001,8 +1001,8 @@ export const RequestTabs = () => {
             </div>
 
             {/* Test Cases Table */}
-            <table className="w-full text-xs text-left border border-slate-800 rounded-md overflow-hidden">
-              <thead className="bg-slate-900 text-slate-400 font-semibold uppercase text-[10px]">
+            <table className="w-full text-xs text-left border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden shadow-xs">
+              <thead className="bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 font-semibold uppercase text-[10px]">
                 <tr>
                   <th className="p-2 w-10 text-center">Run</th>
                   <th className="p-2 w-1/3">Test Name</th>
@@ -1011,15 +1011,15 @@ export const RequestTabs = () => {
                   <th className="p-2 w-10 text-center"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 bg-slate-950">
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60 bg-white dark:bg-slate-950">
                 {(activeRequest.testCases || []).map((tc, idx) => (
-                  <tr key={idx} className="hover:bg-slate-900/40">
+                  <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-900/40">
                     <td className="p-2 text-center">
                       <input
                         type="checkbox"
                         checked={tc.enabled}
                         onChange={(e) => updateTestCase(idx, 'enabled', e.target.checked)}
-                        className="rounded bg-slate-900 border-slate-700 text-sky-500 focus:ring-0 cursor-pointer"
+                        className="rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-sky-600 focus:ring-0 cursor-pointer"
                       />
                     </td>
                     <td className="p-1">
@@ -1028,14 +1028,14 @@ export const RequestTabs = () => {
                         value={tc.name}
                         onChange={(e) => updateTestCase(idx, 'name', e.target.value)}
                         placeholder="Test Description"
-                        className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200 text-xs focus:outline-none focus:border-sky-500"
+                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded px-2 py-1 text-slate-800 dark:text-slate-200 text-xs focus:outline-none focus:border-sky-500"
                       />
                     </td>
                     <td className="p-1">
                       <select
                         value={tc.type}
                         onChange={(e) => updateTestCase(idx, 'type', e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200 text-xs focus:outline-none focus:border-sky-500 cursor-pointer"
+                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded px-2 py-1 text-slate-800 dark:text-slate-200 text-xs focus:outline-none focus:border-sky-500 cursor-pointer"
                       >
                         <option value="status">Status code equals</option>
                         <option value="responseTime">Response time is less than (ms)</option>
@@ -1050,13 +1050,13 @@ export const RequestTabs = () => {
                         value={tc.expectedValue || ''}
                         onChange={(e) => updateTestCase(idx, 'expectedValue', e.target.value)}
                         placeholder="e.g. 200, 500, data.id, application/json"
-                        className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200 font-mono text-xs focus:outline-none focus:border-sky-500"
+                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded px-2 py-1 text-slate-800 dark:text-slate-200 font-mono text-xs focus:outline-none focus:border-sky-500"
                       />
                     </td>
                     <td className="p-1 text-center">
                       <button
                         onClick={() => removeTestCase(idx)}
-                        className="text-slate-500 hover:text-rose-400 p-1"
+                        className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 p-1 cursor-pointer"
                         title="Remove assertion"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -1069,7 +1069,7 @@ export const RequestTabs = () => {
 
             <button
               onClick={() => addTestCase('status', '200', 'Status is 200')}
-              className="text-xs text-sky-400 hover:text-sky-300 flex items-center gap-1"
+              className="text-xs text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 flex items-center gap-1 font-medium cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" /> Add custom assertion
             </button>

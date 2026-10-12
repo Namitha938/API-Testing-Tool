@@ -3,303 +3,247 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useApi } from '../context/ApiContext';
 import {
+  LayoutGrid,
+  ChevronDown,
   Globe,
   Sliders,
-  PlayCircle,
-  ShieldCheck,
+  MessageSquare,
   User,
   LogOut,
   LogIn,
-  Zap,
-  FolderOpen,
-  Sparkles,
-  Home,
+  PanelLeft,
   Sun,
   Moon,
-  Menu,
-  PanelLeft,
-  Server,
-  BookOpen,
-  Terminal,
+  Zap,
 } from 'lucide-react';
 
 export const Navbar = ({
   onOpenAuth,
-  onOpenAdmin,
   onOpenProfile,
   onOpenEnvironments,
-  onOpenRunner,
-  onOpenCollections,
-  onOpenMockServer,
-  onOpenApiDocs,
-  onOpenCurlImport,
   theme,
   onToggleTheme,
   onToggleSidebar,
+  sidebarCollapsed,
 }) => {
   const navigate = useNavigate();
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout } = useAuth();
   const {
     environments,
     activeEnvironmentId,
     setActiveEnvironmentId,
-    activeRequest,
-    newRequestTemplate,
-    response,
-    aiAssistantOpen,
-    setAiAssistantOpen,
   } = useApi();
 
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-  const hasError = response && (response.status >= 400 || response.status === 0 || (response.testResults || []).some((t) => !t.passed));
+  const [envDropdownOpen, setEnvDropdownOpen] = useState(false);
+
+  const activeEnv = environments.find((e) => e._id === activeEnvironmentId);
 
   return (
-    <header className="h-14 bg-white/95 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/90 dark:border-slate-800/80 flex items-center justify-between px-3 sm:px-4 select-none shrink-0 z-20 shadow-xs transition-colors duration-200">
-      {/* Brand & Logo with link to Studio Workbench */}
-      <div className="flex items-center gap-2 sm:gap-2.5">
-        {/* Mobile / Desktop Sidebar Toggle Button */}
-       
-        <Link to="/app" className="flex items-center gap-2 group hover:opacity-95 transition" title="APITester Studio Workbench">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-sm shadow-sky-500/20 ring-1 ring-black/5 dark:ring-white/20 group-hover:scale-105 transition-transform">
-            <Zap className="w-4 h-4 text-amber-300 fill-amber-300 drop-shadow" />
+    <header className="h-16 bg-white dark:bg-[#0c1017] border-b border-[#E1E5EA] dark:border-slate-800 flex items-center justify-between px-4 sm:px-6 select-none shrink-0 z-20 transition-colors">
+      {/* Left: App-switcher grid icon + Swagger-style green icon + "APITester" wordmark */}
+      <div className="flex items-center gap-3">
+        {/* Sidebar Collapse/Expand Toggle Button (immediately left of logo) */}
+        <button
+          id="sidebar-toggle-btn"
+          type="button"
+          onClick={onToggleSidebar}
+          aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-expanded={!sidebarCollapsed}
+          aria-controls="studio-sidebar"
+          title={sidebarCollapsed ? 'Expand sidebar (Ctrl+B)' : 'Collapse sidebar (Ctrl+B)'}
+          className="p-1.5 rounded-md text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0B63C5] transition cursor-pointer"
+        >
+          <PanelLeft className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+        </button>
+
+        {/* Brand Logo & Wordmark (Swagger Catalog Aesthetic) */}
+        <Link to="/app" className="flex items-center gap-2.5 group" title="PulseAPI Catalog & Studio">
+          {/* Swagger-style rounded brand mark */}
+          <div className="w-8 h-8 rounded-lg bg-[#6CC24A] flex items-center justify-center text-white shadow-xs group-hover:scale-105 transition-transform">
+            <span className="font-extrabold text-sm tracking-tighter">{}</span>
+            <div className="w-3.5 h-3.5 rounded-sm border-2 border-white flex items-center justify-center">
+              <div className="w-1.5 h-1.5 bg-white rounded-xs" />
+            </div>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="font-extrabold text-slate-900 dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-r dark:from-white dark:via-slate-200 dark:to-sky-300 text-sm sm:text-base tracking-tight">
-              APITester
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-[#0E2A47] dark:text-white text-lg tracking-tight">
+              PulseAPI
             </span>
-            <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-sky-100 dark:bg-sky-500/15 text-sky-700 dark:text-sky-400 border border-sky-300/60 dark:border-sky-500/30 font-mono font-bold tracking-wide">
-              STUDIO
+            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-[#E8F1FB] dark:bg-sky-950 text-[#0B63C5] dark:text-sky-400 border border-[#B3D4F8] dark:border-sky-800">
+              Studio
             </span>
           </div>
         </Link>
-
-        <Link
-          to="/"
-          className="text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800/60 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-300/80 dark:border-slate-700/60 transition shadow-xs cursor-pointer"
-          title="Go to Landing & Account Page"
-        >
-          <Home className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
-          <span className="hidden sm:inline font-medium">Home / Account</span>
-        </Link>
-
-        <div className="hidden md:block h-4 w-px bg-slate-300 dark:bg-slate-800 mx-0.5" />
-
-        <button
-          onClick={newRequestTemplate}
-          className="hidden lg:flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 transition border border-slate-300/80 dark:border-slate-700/70 hover:border-sky-500/50 shadow-xs cursor-pointer active:scale-95"
-          title="Create a new clean request"
-        >
-          <Sparkles className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
-          <span>New</span>
-        </button>
-
-        <button
-          onClick={onOpenCollections}
-          className="hidden sm:flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 transition border border-slate-300/80 dark:border-slate-700/70 hover:border-indigo-500/50 shadow-xs cursor-pointer active:scale-95"
-          title="Manage Collections & Import/Export"
-        >
-          <FolderOpen className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-          <span className="hidden md:inline">Collections</span>
-        </button>
-
-        <button
-          onClick={onOpenRunner}
-          className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/70 hover:bg-emerald-100 dark:hover:bg-emerald-900/90 text-emerald-800 dark:text-emerald-300 transition border border-emerald-300/80 dark:border-emerald-600/50 shadow-xs cursor-pointer active:scale-95"
-          title="Run test suite across collection"
-        >
-          <PlayCircle className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-          <span className="hidden sm:inline">Runner</span>
-        </button>
-
-        <button
-          onClick={onOpenMockServer}
-          className="hidden md:flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/80 text-indigo-800 dark:text-indigo-300 transition border border-indigo-300/80 dark:border-indigo-700/60 shadow-xs cursor-pointer active:scale-95"
-          title="Open Mock Server Sandbox"
-        >
-          <Server className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-          <span>Mock Server</span>
-        </button>
-
-        <button
-          onClick={onOpenApiDocs}
-          className="hidden lg:flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 transition border border-slate-300/80 dark:border-slate-700/70 hover:border-sky-500/50 shadow-xs cursor-pointer active:scale-95"
-          title="Generate and export API documentation"
-        >
-          <BookOpen className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
-          <span>Docs</span>
-        </button>
-
-        <button
-          onClick={onOpenCurlImport}
-          className="hidden xl:flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/70 text-amber-800 dark:text-amber-300 transition border border-amber-300/80 dark:border-amber-700/50 shadow-xs cursor-pointer active:scale-95"
-          title="Import raw cURL command"
-        >
-          <Terminal className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-          <span>cURL</span>
-        </button>
       </div>
 
-      {/* Right side controls: Environment selector, Admin, Theme, User */}
-      <div className="flex items-center gap-2 sm:gap-2.5">
-        {/* Environment Picker */}
-        <div className="hidden sm:flex items-center bg-slate-100 dark:bg-slate-800/80 border border-slate-300/80 dark:border-slate-700 rounded-lg px-2 py-1 text-xs">
-          <Globe className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 mr-1.5 shrink-0" />
-          <select
-            value={activeEnvironmentId}
-            onChange={(e) => setActiveEnvironmentId(e.target.value)}
-            className="bg-transparent text-slate-800 dark:text-slate-200 focus:outline-none cursor-pointer pr-1 text-xs max-w-[110px] sm:max-w-[130px] truncate"
-          >
-            <option value="" className="bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400">No Environment</option>
-            {environments.map((env) => (
-              <option key={env._id} value={env._id} className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200">
-                {env.name} {env.isGlobal ? '(Global)' : ''}
-              </option>
-            ))}
-          </select>
+      {/* Right: Environment dropdown, Orange Call-to-Action badge, Feedback, User avatar */}
+      <div className="flex items-center gap-3">
+        {/* Environment Selector (Swagger Enterprise Trial pill style) */}
+        <div className="relative">
           <button
-            onClick={onOpenEnvironments}
-            className="text-slate-500 hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-400 p-0.5 ml-1 transition cursor-pointer"
-            title="Configure Environments & Variables"
+            onClick={() => setEnvDropdownOpen(!envDropdownOpen)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#E1E5EA] dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-semibold text-[#0E2A47] dark:text-slate-200 hover:border-slate-400 transition cursor-pointer shadow-2xs"
+            title="Active Environment"
           >
-            <Sliders className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        {/* AI Assistant Button */}
-        <button
-          onClick={() => setAiAssistantOpen((prev) => !prev)}
-          className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg border transition shadow-xs cursor-pointer active:scale-95 ${
-            hasError
-              ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white border-purple-500 shadow-md shadow-purple-600/25 ring-2 ring-purple-400/40'
-              : aiAssistantOpen
-              ? 'bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 border-purple-400'
-              : 'bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800/50'
-          }`}
-          title="Open AI Assistant & API Troubleshooter"
-        >
-          <Sparkles className={`w-3.5 h-3.5 ${hasError ? 'text-amber-300 fill-amber-300 animate-spin' : 'text-purple-600 dark:text-purple-400'}`} />
-          <span className="font-bold">AI Assistant</span>
-          {hasError && (
-            <span className="text-[9px] px-1 py-0.2 rounded bg-amber-400 text-slate-950 font-bold uppercase font-mono">
-              Fix
+            <Globe className="w-3.5 h-3.5 text-[#0B63C5]" />
+            <span className="max-w-[130px] sm:max-w-[170px] truncate">
+              {activeEnv ? `${activeEnv.name} ${activeEnv.isGlobal ? '(Global)' : ''}` : 'Local Dev Environment'}
             </span>
-          )}
-        </button>
+            <ChevronDown className="w-3 h-3 text-slate-400" />
+          </button>
 
-
-        {/* Theme Toggle Button */}
-        <button
-          onClick={onToggleTheme}
-          className="p-1.5 rounded-lg border border-slate-300/80 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-amber-500 dark:text-amber-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition hover:scale-105 active:scale-95 cursor-pointer shadow-xs"
-          title={theme === 'dark' ? 'Switch to Corporate Light Mode' : 'Switch to Dark Mode'}
-        >
-          {theme === 'dark' ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5 text-indigo-600" />}
-        </button>
-
-        {/* User Account / Auth */}
-        {user ? (
-          <div className="flex items-center gap-2">
-            <button
-              onClick={onOpenProfile}
-              className="hidden md:flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300/80 dark:border-slate-700/60 transition cursor-pointer hover:border-sky-500/50"
-              title="Upload profile picture and edit details"
+          {envDropdownOpen && (
+            <div
+              className="absolute right-0 mt-1.5 w-60 bg-white dark:bg-slate-900 border border-[#E1E5EA] dark:border-slate-800 rounded-xl shadow-lg py-1.5 z-40 text-xs"
+              onMouseLeave={() => setEnvDropdownOpen(false)}
             >
-              <User className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
-              <span>Profile</span>
-            </button>
+              <div className="px-3 py-1.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Environments</span>
+                <button
+                  onClick={() => {
+                    setEnvDropdownOpen(false);
+                    onOpenEnvironments?.();
+                  }}
+                  className="text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <Sliders className="w-3 h-3" /> Manage
+                </button>
+              </div>
 
-            <div className="relative">
               <button
-                onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                className="flex items-center gap-2 text-xs font-medium px-2.5 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-300/80 dark:border-slate-700/60 transition cursor-pointer"
+                onClick={() => {
+                  setActiveEnvironmentId('');
+                  setEnvDropdownOpen(false);
+                }}
+                className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer ${
+                  !activeEnvironmentId ? 'bg-[#E8F1FB] dark:bg-sky-950/50 text-[#0B63C5] font-semibold' : 'text-slate-700 dark:text-slate-300'
+                }`}
               >
-                {user.photoURL ? (
-                  <img
-                    src={user.photoURL}
-                    alt={user.name}
-                    className="w-5 h-5 rounded-full object-cover border border-sky-400/50"
-                  />
-                ) : (
-                  <div className="w-5 h-5 rounded-full bg-sky-600 text-white flex items-center justify-center font-bold text-[10px]">
-                    {user.name.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <span className="max-w-[90px] sm:max-w-[110px] truncate">{user.name}</span>
-                {user.role === 'admin' ? (
-                  <span className="text-[10px] px-1 py-0.2 rounded bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-300 dark:border-purple-500/30 font-semibold font-mono">
-                    Admin
-                  </span>
-                ) : (
-                  <span className="text-[9px] px-1 py-0.2 rounded bg-slate-200 dark:bg-slate-700/60 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 font-mono">
-                    User
-                  </span>
-                )}
+                <span>No Environment</span>
               </button>
 
-              {userDropdownOpen && (
-                <div
-                  className="absolute right-0 mt-2 w-52 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-xl py-1 z-30 text-xs"
-                  onMouseLeave={() => setUserDropdownOpen(false)}
+              {environments.map((env) => (
+                <button
+                  key={env._id}
+                  onClick={() => {
+                    setActiveEnvironmentId(env._id);
+                    setEnvDropdownOpen(false);
+                  }}
+                  className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer ${
+                    activeEnvironmentId === env._id ? 'bg-[#E8F1FB] dark:bg-sky-950/50 text-[#0B63C5] font-semibold' : 'text-slate-700 dark:text-slate-300'
+                  }`}
                 >
-                  <div className="px-3 py-2 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400">
-                    <p className="font-semibold text-slate-900 dark:text-slate-200 truncate">{user.name}</p>
-                    <p className="text-[11px] truncate text-slate-500 dark:text-slate-400 font-mono">{user.email}</p>
-                  </div>
-
-                  <button
-                    onClick={() => {
-                      setUserDropdownOpen(false);
-                      onOpenProfile?.();
-                    }}
-                    className="w-full text-left px-3 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2 cursor-pointer transition"
-                  >
-                    <User className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
-                    <span>Upload Photo & Profile</span>
-                  </button>
-
-                  {isAdmin && (
-                    <button
-                      onClick={() => {
-                        setUserDropdownOpen(false);
-                        navigate('/admin');
-                      }}
-                      className="w-full text-left px-3 py-2 text-purple-700 dark:text-purple-300 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2 cursor-pointer transition"
-                    >
-                      <ShieldCheck className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-                      <span>Admin Console</span>
-                    </button>
+                  <span className="truncate">{env.name}</span>
+                  {env.isGlobal && (
+                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-500">Global</span>
                   )}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
-                  <button
-                    onClick={() => {
-                      setUserDropdownOpen(false);
-                      sessionStorage.removeItem('guestMode');
-                      logout();
-                      navigate('/');
-                    }}
-                    className="w-full text-left px-3 py-2 text-rose-600 dark:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2 cursor-pointer transition border-t border-slate-200 dark:border-slate-800/80"
-                  >
-                    <LogOut className="w-3.5 h-3.5" />
-                    <span>Sign Out</span>
-                  </button>
+        {/* Orange Call-to-Action Badge (Swagger Enterprise Trial style) */}
+        <div className="hidden md:flex items-center">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FFF3EB] dark:bg-orange-950/40 text-[#FF6A00] dark:text-orange-400 border border-[#FFD8BF] dark:border-orange-800/60 shadow-2xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#FF6A00] animate-pulse" />
+            <span>Enterprise Trial</span>
+          </span>
+        </div>
+
+        {/* Feedback Icon Button */}
+        <button
+          type="button"
+          onClick={() => window.open('https://github.com/Namitha938/API-Testing-Tool/issues', '_blank')}
+          className="p-2 rounded-md text-slate-500 hover:text-[#0B63C5] dark:hover:text-sky-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+          title="Send Feedback"
+          aria-label="Send Feedback"
+        >
+          <MessageSquare className="w-4 h-4" />
+        </button>
+
+        {/* Dark/Light Theme Toggle */}
+        <button
+          onClick={onToggleTheme}
+          className="p-2 rounded-md text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          aria-label="Toggle Theme"
+        >
+          {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
+        </button>
+
+        {/* User Dropdown with Avatar */}
+        {user ? (
+          <div className="relative">
+            <button
+              onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+              className="flex items-center gap-2 p-1 rounded-full border border-slate-200 dark:border-slate-700 hover:border-[#0B63C5] transition cursor-pointer"
+              aria-label="User Menu"
+            >
+              {user.photoURL ? (
+                <img
+                  src={user.photoURL}
+                  alt={user.name}
+                  className="w-7 h-7 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-7 h-7 rounded-full bg-[#0B63C5] text-white flex items-center justify-center font-bold text-xs">
+                  {user.name?.charAt(0).toUpperCase() || 'U'}
                 </div>
               )}
-            </div>
+            </button>
+
+            {userDropdownOpen && (
+              <div
+                className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 border border-[#E1E5EA] dark:border-slate-800 rounded-xl shadow-xl py-1.5 z-40 text-xs"
+                onMouseLeave={() => setUserDropdownOpen(false)}
+              >
+                <div className="px-3.5 py-2.5 border-b border-slate-100 dark:border-slate-800">
+                  <p className="font-bold text-[#0E2A47] dark:text-slate-100 truncate">{user.name}</p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono truncate">{user.email}</p>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setUserDropdownOpen(false);
+                    onOpenProfile?.();
+                  }}
+                  className="w-full text-left px-3.5 py-2 text-slate-700 dark:text-slate-200 hover:bg-[#F0F6FC] dark:hover:bg-slate-800 flex items-center gap-2 cursor-pointer transition"
+                >
+                  <User className="w-3.5 h-3.5 text-[#0B63C5]" />
+                  <span>Account & Profile</span>
+                </button>
+
+
+                <button
+                  onClick={() => {
+                    setUserDropdownOpen(false);
+                    logout();
+                    navigate('/login');
+                  }}
+                  className="w-full text-left px-3.5 py-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-2 cursor-pointer transition border-t border-slate-100 dark:border-slate-800"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex items-center gap-2">
             <Link
               to="/login"
-              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-md bg-sky-600 hover:bg-sky-500 text-white transition shadow-sm"
+              className="px-3.5 py-1.5 rounded-md bg-[#0B63C5] hover:bg-[#0952A5] text-white font-semibold text-xs transition shadow-2xs cursor-pointer flex items-center gap-1.5"
             >
               <LogIn className="w-3.5 h-3.5" />
               <span>Sign In</span>
             </Link>
             <Link
               to="/register"
-              className="hidden sm:flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700/60 transition"
+              className="hidden sm:inline-flex px-3 py-1.5 rounded-md border border-[#E1E5EA] text-[#0E2A47] dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold text-xs transition cursor-pointer"
             >
-              <span>Register</span>
+              Sign Up
             </Link>
           </div>
         )}
@@ -307,4 +251,3 @@ export const Navbar = ({
     </header>
   );
 };
-

@@ -125,7 +125,7 @@ export const MockServerModal = ({ isOpen, onClose }) => {
       bodyType: 'json',
       body: JSON.stringify(
         {
-          client: 'APITester Studio',
+          client: 'PulseAPI Studio',
           timestamp: new Date().toISOString(),
           testPayload: 'Echo test data payload',
         },

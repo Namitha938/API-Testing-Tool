@@ -49,9 +49,9 @@ function generateApiSuggestions({ request = {}, response = {} }) {
       description: 'Many production APIs (including GitHub, Cloudflare, and CDN protected endpoints) reject requests lacking a standard User-Agent header with HTTP 403 Forbidden.',
       action: {
         type: 'header',
-        label: 'Add User-Agent: APITester/1.0',
+        label: 'Add User-Agent: PulseAPI/1.0',
         key: 'User-Agent',
-        value: 'APITester-Client/1.0',
+        value: 'PulseAPI-Client/1.0',
       },
     });
   }
@@ -307,16 +307,16 @@ function analyzeApiIssue({ request = {}, response = {}, userPrompt = '' }) {
     rootCause =
       'The API provider requires a standard "User-Agent" header to identify the client application. Requests without a User-Agent are automatically rejected by security policies.';
     solution =
-      '1. Add the "User-Agent" header in the Headers tab.\n2. Set the value to an application identifier (e.g., "APITester-Client/1.0").\n3. Click "1-Click Apply Fix" below to automatically insert this header.';
+      '1. Add the "User-Agent" header in the Headers tab.\n2. Set the value to an application identifier (e.g., "PulseAPI-Client/1.0").\n3. Click "1-Click Apply Fix" below to automatically insert this header.';
     explanation =
       'Public APIs like GitHub, Reddit, and Cloudflare WAF protect against unidentifiable scrapers by enforcing User-Agent requirements.';
     quickFix = {
       type: 'header',
       key: 'User-Agent',
-      value: 'APITester-Client/1.0',
+      value: 'PulseAPI-Client/1.0',
       label: 'Add User-Agent Header',
     };
-    codeSnippet = 'User-Agent: APITester-Client/1.0';
+    codeSnippet = 'User-Agent: PulseAPI-Client/1.0';
   }
   // 3. UNAUTHORIZED (Status 401)
   else if (status === 401) {
@@ -571,7 +571,7 @@ async function generateAiChatResponse({ message = '', history = [], request = {}
         .join('\n');
 
       const systemPrompt = `
-You are APITester Studio's AI Assistant, an elite senior backend and API testing engineer.
+You are PulseAPI Studio's AI Assistant, an elite senior backend and API testing engineer.
 A developer is testing real APIs and is asking for your assistance with their active request and response.
 
 ACTIVE REQUEST CONTEXT:
@@ -735,13 +735,13 @@ INSTRUCTIONS:
     reply = `### 🌐 CORS & Network Troubleshooting\n\n` +
       `When testing APIs from web clients:\n\n` +
       `- **CORS Preflight**: Browsers block cross-origin requests unless the target server returns \`Access-Control-Allow-Origin: *\` or your origin.\n` +
-      `- **Backend Proxy**: APITester Studio includes a built-in proxy server that automatically bypasses browser CORS restrictions when testing!\n` +
+      `- **Backend Proxy**: PulseAPI Studio includes a built-in proxy server that automatically bypasses browser CORS restrictions when testing!\n` +
       `- **Self-Signed SSL**: If testing internal HTTPS servers, make sure the SSL certificate is recognized or use HTTP locally.\n` +
       `- **Localhost**: Ensure your local microservice is running and listening on the designated port (e.g. \`http://127.0.0.1:5000\`).`;
   }
   // 6. General / Fallback API Assistant guidance
   else {
-    reply = `### 🤖 APITester Copilot\n\n` +
+    reply = `### 🤖 PulseAPI Copilot\n\n` +
       `I am analyzing your active API test execution:\n` +
       `- **Target**: \`${method} ${url || '(No URL provided)'}\`\n` +
       `- **Result**: \`${status} ${statusText || 'Pending Execution'}\`\n` +

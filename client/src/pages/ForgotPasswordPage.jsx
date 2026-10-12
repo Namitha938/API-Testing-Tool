@@ -259,7 +259,7 @@ export default function ForgotPasswordPage() {
               <Zap className="w-5 h-5 text-amber-300 fill-amber-300" />
             </div>
             <div>
-              <span className="font-extrabold text-white text-lg tracking-tight block">APITester Studio</span>
+              <span className="font-extrabold text-white text-lg tracking-tight block">PulseAPI Studio</span>
               <span className="text-[10px] text-sky-300 font-mono tracking-widest uppercase font-semibold">
                 Enterprise API Platform
               </span>
@@ -279,7 +279,7 @@ export default function ForgotPasswordPage() {
           </div>
           <h2 className="text-xl font-extrabold text-white mb-2">Secure OTP Account Recovery</h2>
           <p className="text-xs text-slate-300 leading-relaxed mb-6">
-            APITester uses short-lived, cryptographically hashed One-Time Passwords (OTPs) delivered directly to your inbox.
+            PulseAPI uses short-lived, cryptographically hashed One-Time Passwords (OTPs) delivered directly to your inbox.
             Your credentials are never stored in plaintext and passwords are encrypted with bcrypt.
           </p>
 
@@ -307,7 +307,7 @@ export default function ForgotPasswordPage() {
 
         {/* Bottom Footer Note */}
         <div className="relative z-10 text-[11px] text-slate-400 flex items-center justify-between">
-          <span>&copy; {new Date().getFullYear()} APITester Studio Inc.</span>
+          <span>&copy; {new Date().getFullYear()} PulseAPI Studio Inc.</span>
           <span className="font-mono">Security Protocol v2.4</span>
         </div>
       </div>
@@ -405,7 +405,7 @@ export default function ForgotPasswordPage() {
             <p className={`text-xs sm:text-sm mt-1.5 leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
               {step === 1 && 'Enter your registered email address and we will send you a 6-digit verification code.'}
               {step === 2 && `Enter the 6-digit verification code sent to ${email}. The code expires in 10 minutes.`}
-              {step === 3 && 'Enter and confirm your new secure password for APITester Studio.'}
+              {step === 3 && 'Enter and confirm your new secure password for PulseAPI Studio.'}
               {step === 4 && 'Your password has been securely updated. Redirecting to sign in...'}
             </p>
           </div>
@@ -717,7 +717,7 @@ export default function ForgotPasswordPage() {
               <div>
                 <h3 className="text-base font-bold text-slate-100">All Set!</h3>
                 <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                  Your password has been securely updated. You can now log into APITester with your new password.
+                  Your password has been securely updated. You can now log into PulseAPI with your new password.
                 </p>
               </div>
 

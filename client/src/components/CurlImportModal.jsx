@@ -29,7 +29,7 @@ export const CurlImportModal = ({ isOpen, onClose }) => {
     {
       label: 'GET GitHub Commits',
       cmd: `curl -X GET "https://api.github.com/repos/facebook/react/commits?per_page=5&page=1" \\
-  -H "User-Agent: APITester-Studio" \\
+  -H "User-Agent: PulseAPI-Studio" \\
   -H "Accept: application/vnd.github.v3+json"`,
     },
     {

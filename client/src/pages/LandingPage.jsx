@@ -53,6 +53,11 @@ export default function LandingPage() {
 
   useEffect(() => {
     localStorage.setItem('theme', theme);
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   }, [theme]);
 
   const toggleTheme = () => {
@@ -169,7 +174,7 @@ export default function LandingPage() {
               <Zap className="w-5 h-5 text-amber-300 fill-amber-300" />
             </div>
             <span className="font-bold text-lg tracking-tight flex items-center gap-2">
-              APITester{' '}
+              PulseAPI{' '}
               <span className="text-xs px-2 py-0.5 rounded bg-sky-500/10 text-sky-500 border border-sky-500/20 font-mono">
                 PRO
               </span>
@@ -389,7 +394,7 @@ export default function LandingPage() {
               <div className="w-3 h-3 rounded-full bg-amber-500 transition-transform duration-200 hover:scale-125" />
               <div className="w-3 h-3 rounded-full bg-emerald-500 transition-transform duration-200 hover:scale-125" />
               <span className={`text-xs ml-2 font-mono ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                APITester Studio - Request Workbench
+                PulseAPI Studio - Request Workbench
               </span>
             </div>
             <Link
@@ -687,7 +692,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
           <div className={`flex items-center gap-2 ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
             <Zap className="w-4 h-4 text-sky-500" />
-            <span className={`font-semibold ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>APITester PRO</span>
+            <span className={`font-semibold ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>PulseAPI PRO</span>
             <span>&copy; {new Date().getFullYear()} All Rights Reserved.</span>
           </div>
 

@@ -93,7 +93,7 @@ router.delete('/:id', optionalAuth, async (req, res) => {
 // POST /api/collections/:id/folders - Add folder to collection
 router.post('/:id/folders', optionalAuth, async (req, res) => {
   try {
-    const { name, description = '', parentId = null } = req.body;
+    const { name, description = '', parentId = null, color = 'indigo', tag = '' } = req.body;
     if (!name) return res.status(400).json({ message: 'Folder name is required' });
 
     const collection = await Collection.findById(req.params.id);
@@ -104,6 +104,8 @@ router.post('/:id/folders', optionalAuth, async (req, res) => {
       name,
       description,
       parentId: parentId || null,
+      color: color || 'indigo',
+      tag: tag || '',
     };
 
     collection.folders.push(newFolder);
@@ -113,6 +115,74 @@ router.post('/:id/folders', optionalAuth, async (req, res) => {
     res.json({ ...collection.toObject(), requests });
   } catch (error) {
     res.status(500).json({ message: 'Failed to add folder', error: error.message });
+  }
+});
+
+// PUT /api/collections/:id/folders/:folderId - Update folder name/description/color/tag
+router.put('/:id/folders/:folderId', optionalAuth, async (req, res) => {
+  try {
+    const { name, description, color, tag } = req.body;
+    const collection = await Collection.findById(req.params.id);
+    if (!collection) return res.status(404).json({ message: 'Collection not found' });
+
+    const folder = collection.folders.find((f) => f.id === req.params.folderId);
+    if (!folder) return res.status(404).json({ message: 'Folder not found' });
+
+    if (name !== undefined) folder.name = name;
+    if (description !== undefined) folder.description = description;
+    if (color !== undefined) folder.color = color;
+    if (tag !== undefined) folder.tag = tag;
+
+    await collection.save();
+    const requests = await SavedRequest.find({ collectionId: collection._id });
+    res.json({ ...collection.toObject(), requests });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to update folder', error: error.message });
+  }
+});
+
+// POST /api/collections/:id/folders/:folderId/duplicate - Duplicate folder and all contained requests
+router.post('/:id/folders/:folderId/duplicate', optionalAuth, async (req, res) => {
+  try {
+    const collection = await Collection.findById(req.params.id);
+    if (!collection) return res.status(404).json({ message: 'Collection not found' });
+
+    const folder = collection.folders.find((f) => f.id === req.params.folderId);
+    if (!folder) return res.status(404).json({ message: 'Folder not found' });
+
+    const newFolderId = 'f-' + Date.now();
+    const duplicatedFolder = {
+      id: newFolderId,
+      name: `${folder.name} (Copy)`,
+      description: folder.description,
+      parentId: folder.parentId,
+      color: folder.color,
+      tag: folder.tag,
+    };
+
+    collection.folders.push(duplicatedFolder);
+    await collection.save();
+
+    // Duplicate all requests in this folder
+    const folderRequests = await SavedRequest.find({
+      collectionId: collection._id,
+      folderId: req.params.folderId,
+    });
+
+    for (const reqItem of folderRequests) {
+      const copyObj = reqItem.toObject();
+      delete copyObj._id;
+      delete copyObj.createdAt;
+      delete copyObj.updatedAt;
+      copyObj.folderId = newFolderId;
+      copyObj.name = `${reqItem.name} (Copy)`;
+      await SavedRequest.create(copyObj);
+    }
+
+    const allRequests = await SavedRequest.find({ collectionId: collection._id });
+    res.json({ ...collection.toObject(), requests: allRequests });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to duplicate folder', error: error.message });
   }
 });
 

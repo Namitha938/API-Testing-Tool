@@ -33,9 +33,7 @@ export const AuthProvider = ({ children }) => {
         });
         if (res.ok) {
           const data = await res.json();
-          const email = (data.user?.email || '').toLowerCase().replace(/\s+/g, '').trim();
-          const ALLOWED = ['singunamitha@gmail.com', 's.v.padmavathi2005@gmail.com'];
-          if (data.user?.role === 'admin' && ALLOWED.includes(email)) {
+          if (data.user?.role === 'admin') {
             setAdminUser(data.user);
             sessionStorage.setItem('adminUser', JSON.stringify(data.user));
           } else {
@@ -375,10 +373,7 @@ export const AuthProvider = ({ children }) => {
       throw new Error(data.message || 'Google authentication failed');
     }
 
-    const email = (data.user?.email || '').toLowerCase().replace(/\s+/g, '').trim();
-    const ALLOWED_ADMINS = ['singunamitha@gmail.com', 's.v.padmavathi2005@gmail.com'];
-
-    if (!ALLOWED_ADMINS.includes(email) || data.user?.role !== 'admin') {
+    if (data.user?.role !== 'admin') {
       throw new Error('Unauthorized: Access denied. This account does not have administrator privileges.');
     }
 
@@ -404,7 +399,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  const isNormalUserAdmin = user?.role === 'admin' && ['singunamitha@gmail.com', 's.v.padmavathi2005@gmail.com'].includes((user?.email || '').toLowerCase().replace(/\s+/g, '').trim());
+  const isNormalUserAdmin = user?.role === 'admin';
   const hasActiveAdminSession = adminUser?.role === 'admin' && Boolean(adminToken);
 
   return (

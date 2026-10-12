@@ -146,7 +146,7 @@ export const AuthModal = ({ isOpen, onClose }) => {
                 ? 'Two-Factor Authentication'
                 : isRegister
                 ? 'Create an Account'
-                : 'Sign In to APITester'}
+                : 'Sign In to PulseAPI'}
             </h3>
           </div>
           <button

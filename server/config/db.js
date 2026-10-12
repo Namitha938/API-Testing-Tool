@@ -20,34 +20,21 @@ async function seedInitialData() {
     const SavedRequest = require('../models/SavedRequest');
     const Environment = require('../models/Environment');
 
-    // Seed default admin if no users exist
-    // Ensure authorized admins have admin role and demo user exists
-    const admin1 = await User.findOne({ email: 'singunamitha@gmail.com' });
-    if (!admin1) {
-      const defaultAdminPass = await bcrypt.hash('Admin@2026!', 10);
-      await User.create({
-        name: 'Namitha Singun',
-        email: 'singunamitha@gmail.com',
-        password: defaultAdminPass,
-        role: 'admin',
-      });
-    } else if (admin1.role !== 'admin') {
-      admin1.role = 'admin';
-      await admin1.save();
-    }
-
-    const admin2 = await User.findOne({ email: 's.v.padmavathi2005@gmail.com' });
-    if (!admin2) {
-      const defaultAdminPass = await bcrypt.hash('Admin@2026!', 10);
-      await User.create({
-        name: 'Padmavathi S.V.',
-        email: 's.v.padmavathi2005@gmail.com',
-        password: defaultAdminPass,
-        role: 'admin',
-      });
-    } else if (admin2.role !== 'admin') {
-      admin2.role = 'admin';
-      await admin2.save();
+    // Seed admin from environment variables if defined
+    const adminEmail = (process.env.ADMIN_EMAIL || '').trim().toLowerCase();
+    const adminPassword = (process.env.ADMIN_PASSWORD || '').trim();
+    if (adminEmail && adminPassword && adminPassword.length >= 12) {
+      let envAdmin = await User.findOne({ email: adminEmail });
+      if (!envAdmin) {
+        const adminPassHash = await bcrypt.hash(adminPassword, 10);
+        await User.create({
+          name: adminEmail.split('@')[0],
+          email: adminEmail,
+          password: adminPassHash,
+          role: 'admin',
+          status: 'active',
+        });
+      }
     }
 
     // Clean up admin@apitester.io if it exists with admin role

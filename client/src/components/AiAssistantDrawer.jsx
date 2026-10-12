@@ -547,7 +547,7 @@ export const AiAssistantDrawer = ({ isOpen, onClose }) => {
 
         <div className="flex items-center justify-between mt-2 text-[10px] text-slate-400 px-1">
           <span>Context: Request URL, headers, payload, & live response status</span>
-          <span className="font-mono">APITester AI v2.0</span>
+          <span className="font-mono">PulseAPI AI v2.0</span>
         </div>
       </div>
     </div>

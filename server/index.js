@@ -30,7 +30,7 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'online',
     timestamp: new Date().toISOString(),
-    service: 'API Testing Tool Engine',
+    service: 'PulseAPI Server Engine',
     database: 'MongoDB',
   });
 });
@@ -60,7 +60,7 @@ app.use((req, res, next) => {
       res.status(200).send(`
         <html>
           <body style="font-family: sans-serif; background: #0d1117; color: #fff; padding: 40px; text-align: center;">
-            <h2>API Testing Tool Backend is Running on port ${PORT}</h2>
+            <h2>PulseAPI Server is Running on port ${PORT}</h2>
             <p>Database: Connected to MongoDB</p>
             <p>To run the frontend in development mode, run: <code>cd client && npm run dev</code></p>
           </body>
@@ -81,7 +81,7 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`=======================================================`);
-  console.log(`🚀 API Testing Tool Server running on http://127.0.0.1:${PORT}`);
+  console.log(`🚀 PulseAPI Server running on http://127.0.0.1:${PORT}`);
   console.log(`📊 Health Endpoint: http://localhost:${PORT}/api/health`);
   console.log(`🛠️ Mock APIs: http://localhost:${PORT}/api/mock/users`);
   console.log(`=======================================================`);

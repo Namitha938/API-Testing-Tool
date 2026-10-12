@@ -14,16 +14,26 @@ import {
   Zap,
 } from 'lucide-react';
 
-export const CollectionRunnerModal = ({ isOpen, onClose, targetCollection }) => {
+export const CollectionRunnerModal = ({ isOpen, onClose, targetCollection, targetFolder }) => {
   const { collections, environments, activeEnvironmentId } = useApi();
   const [selectedColId, setSelectedColId] = useState(targetCollection?._id || collections[0]?._id || '');
+  const [selectedFolderId, setSelectedFolderId] = useState(targetFolder?.id || '');
   const [selectedEnvId, setSelectedEnvId] = useState(activeEnvironmentId || '');
   const [delayMs, setDelayMs] = useState(100);
   const [isRunning, setIsRunning] = useState(false);
   const [runnerResult, setRunnerResult] = useState(null);
   const [expandedItem, setExpandedItem] = useState(null);
 
+  React.useEffect(() => {
+    if (targetCollection?._id) setSelectedColId(targetCollection._id);
+    if (targetFolder?.id) setSelectedFolderId(targetFolder.id);
+    else if (!targetFolder) setSelectedFolderId('');
+  }, [targetCollection, targetFolder, isOpen]);
+
   if (!isOpen) return null;
+
+  const activeCol = collections.find((c) => c._id === (selectedColId || targetCollection?._id));
+  const activeFolder = activeCol?.folders?.find((f) => f.id === selectedFolderId);
 
   const handleStartRunner = async () => {
     const colId = selectedColId || targetCollection?._id;
@@ -38,12 +48,16 @@ export const CollectionRunnerModal = ({ isOpen, onClose, targetCollection }) => 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           collectionId: colId,
+          folderId: selectedFolderId || null,
           environmentId: selectedEnvId || null,
           delayMs: parseInt(delayMs) || 100,
         }),
       });
 
       const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Runner failed');
+      }
       setRunnerResult(data);
     } catch (err) {
       alert(`Runner failed: ${err.message}`);
@@ -51,8 +65,6 @@ export const CollectionRunnerModal = ({ isOpen, onClose, targetCollection }) => 
       setIsRunning(false);
     }
   };
-
-  const activeCol = collections.find((c) => c._id === (selectedColId || targetCollection?._id));
 
   return (
     <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
@@ -62,8 +74,23 @@ export const CollectionRunnerModal = ({ isOpen, onClose, targetCollection }) => 
           <div className="flex items-center gap-2.5">
             <PlayCircle className="w-5 h-5 text-emerald-400" />
             <div>
-              <h2 className="text-base font-bold text-slate-100">Automated Collection Runner</h2>
-              <p className="text-xs text-slate-400">Execute multiple test cases in batch with performance metrics</p>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-bold text-slate-100">Automated Test Runner</h2>
+                {activeFolder ? (
+                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 font-medium">
+                    Folder: {activeFolder.name}
+                  </span>
+                ) : (
+                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-medium">
+                    Collection Suite
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-400">
+                {activeFolder
+                  ? `Execute test cases for distinct API folder: "${activeFolder.name}"`
+                  : 'Execute multiple test cases in batch with performance metrics'}
+              </p>
             </div>
           </div>
           <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-200 rounded-lg hover:bg-slate-800 transition">
@@ -72,12 +99,15 @@ export const CollectionRunnerModal = ({ isOpen, onClose, targetCollection }) => 
         </div>
 
         {/* Configuration Bar */}
-        <div className="p-4 bg-slate-950/80 border-b border-slate-800 grid grid-cols-3 gap-3 text-xs">
+        <div className="p-4 bg-slate-950/80 border-b border-slate-800 grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
           <div>
-            <label className="block text-slate-400 font-semibold mb-1">Collection</label>
+            <label className="block text-slate-400 font-semibold mb-1">Target Collection</label>
             <select
               value={selectedColId}
-              onChange={(e) => setSelectedColId(e.target.value)}
+              onChange={(e) => {
+                setSelectedColId(e.target.value);
+                setSelectedFolderId('');
+              }}
               className="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none"
             >
               {collections.map((c) => (
@@ -85,6 +115,25 @@ export const CollectionRunnerModal = ({ isOpen, onClose, targetCollection }) => 
                   {c.name} ({c.requests?.length || 0} reqs)
                 </option>
               ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-slate-400 font-semibold mb-1">API Scope / Folder</label>
+            <select
+              value={selectedFolderId}
+              onChange={(e) => setSelectedFolderId(e.target.value)}
+              className="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-slate-200 focus:outline-none"
+            >
+              <option value="">All APIs in Collection</option>
+              {activeCol?.folders?.map((f) => {
+                const count = (activeCol.requests || []).filter((r) => r.folderId === f.id).length;
+                return (
+                  <option key={f.id} value={f.id}>
+                    📁 {f.name} ({count} APIs)
+                  </option>
+                );
+              })}
             </select>
           </div>
 
@@ -105,7 +154,7 @@ export const CollectionRunnerModal = ({ isOpen, onClose, targetCollection }) => 
           </div>
 
           <div>
-            <label className="block text-slate-400 font-semibold mb-1">Inter-request Delay (ms)</label>
+            <label className="block text-slate-400 font-semibold mb-1">Delay & Run</label>
             <div className="flex gap-2">
               <input
                 type="number"
@@ -113,7 +162,8 @@ export const CollectionRunnerModal = ({ isOpen, onClose, targetCollection }) => 
                 onChange={(e) => setDelayMs(e.target.value)}
                 min="0"
                 step="50"
-                className="w-24 bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200 font-mono focus:outline-none"
+                className="w-20 bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200 font-mono focus:outline-none"
+                placeholder="ms"
               />
               <button
                 onClick={handleStartRunner}

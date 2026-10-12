@@ -1,5 +1,5 @@
 /**
- * Parses raw cURL command into an APITester request structure.
+ * Parses raw cURL command into an PulseAPI request structure.
  * Supports methods (-X, --request), headers (-H, --header),
  * data/payloads (-d, --data, --data-raw, --data-binary),
  * basic auth (-u, --user), and URL with query parameters.

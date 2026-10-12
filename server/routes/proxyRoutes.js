@@ -116,14 +116,23 @@ router.post('/execute', optionalAuth, async (req, res) => {
 // POST /api/proxy/run-collection - Automated API Test Runner
 router.post('/run-collection', optionalAuth, async (req, res) => {
   try {
-    const { collectionId, environmentId, delayMs = 100 } = req.body;
+    const { collectionId, folderId, environmentId, delayMs = 100 } = req.body;
     if (!collectionId) {
       return res.status(400).json({ message: 'Collection ID is required for runner.' });
     }
 
-    const requests = await SavedRequest.find({ collectionId }).sort({ createdAt: 1 });
+    const query = { collectionId };
+    if (folderId) {
+      query.folderId = folderId;
+    }
+
+    const requests = await SavedRequest.find(query).sort({ createdAt: 1 });
     if (!requests || requests.length === 0) {
-      return res.status(404).json({ message: 'No requests found in this collection to run.' });
+      return res.status(404).json({
+        message: folderId
+          ? 'No requests found in this folder to run.'
+          : 'No requests found in this collection to run.',
+      });
     }
 
     const userId = req.user ? req.user._id : null;

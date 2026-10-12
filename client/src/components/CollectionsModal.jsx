@@ -183,6 +183,15 @@ export const CollectionsModal = ({ isOpen, onClose }) => {
                     <div className="text-[10px] text-slate-500">
                       Requests: {col.requests?.length || 0} | Folders: {col.folders?.length || 0}
                     </div>
+                    {col.folders?.length > 0 && (
+                      <div className="flex flex-wrap gap-1 pt-1">
+                        {col.folders.map(f => (
+                          <span key={f.id} className="text-[10px] px-1.5 py-0.5 rounded-md bg-indigo-500/15 border border-indigo-500/25 text-indigo-300 font-mono">
+                            📁 {f.name} {f.tag ? `[${f.tag}]` : ''}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-2">

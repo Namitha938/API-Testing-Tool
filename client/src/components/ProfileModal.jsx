@@ -290,12 +290,12 @@ export const ProfileModal = ({ isOpen, onClose }) => {
 
   const handleDownloadCodes = () => {
     if (twoFactorRecoveryCodes.length === 0) return;
-    const content = `APITester Studio - Two-Factor Authentication Backup Recovery Codes\nAccount: ${user?.email}\nGenerated: ${new Date().toLocaleString()}\n\nKeep these codes safe and private. Each code can only be used once to access your account if you lose your authenticator app:\n\n${twoFactorRecoveryCodes.map((c, i) => `${i + 1}. ${c}`).join('\n')}\n`;
+    const content = `PulseAPI Studio - Two-Factor Authentication Backup Recovery Codes\nAccount: ${user?.email}\nGenerated: ${new Date().toLocaleString()}\n\nKeep these codes safe and private. Each code can only be used once to access your account if you lose your authenticator app:\n\n${twoFactorRecoveryCodes.map((c, i) => `${i + 1}. ${c}`).join('\n')}\n`;
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `apitester-recovery-codes-${user?.email?.split('@')[0] || 'account'}.txt`;
+    a.download = `pulseapi-recovery-codes-${user?.email?.split('@')[0] || 'account'}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

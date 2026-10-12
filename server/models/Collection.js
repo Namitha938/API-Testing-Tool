@@ -6,6 +6,8 @@ const folderSchema = new mongoose.Schema(
     name: { type: String, required: true },
     parentId: { type: String, default: null },
     description: { type: String, default: '' },
+    color: { type: String, default: 'indigo' },
+    tag: { type: String, default: '' },
   },
   { _id: false }
 );

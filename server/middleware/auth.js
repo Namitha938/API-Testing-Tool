@@ -23,15 +23,6 @@ const authenticate = async (req, res, next) => {
       return res.status(403).json({ message: 'Your account has been suspended by an administrator.' });
     }
 
-    const ADMIN_WHITELIST = ['singunamitha@gmail.com', 's.v.padmavathi2005@gmail.com'];
-    if (user && ADMIN_WHITELIST.includes((user.email || '').toLowerCase().trim()) && user.role !== 'admin') {
-      user.role = 'admin';
-      await user.save();
-    } else if (user && !ADMIN_WHITELIST.includes((user.email || '').toLowerCase().trim()) && user.role === 'admin') {
-      user.role = 'user';
-      await user.save();
-    }
-
     req.user = user;
     next();
   } catch (error) {
@@ -56,7 +47,6 @@ const optionalAuth = async (req, res, next) => {
     // Ignore and proceed with fallback
   }
 
-  // Fallback to first active user or admin
   try {
     const defaultUser = await User.findOne({ status: 'active' });
     req.user = defaultUser;
@@ -65,15 +55,13 @@ const optionalAuth = async (req, res, next) => {
   next();
 };
 
-const ALLOWED_ADMIN_EMAILS = [
-  'singunamitha@gmail.com',
-  's.v.padmavathi2005@gmail.com',
-];
-
-// Admin Only Middleware
+// Admin Only Middleware: 401 if unauthenticated, 403 if not role "admin"
 const requireAdmin = (req, res, next) => {
-  if (!req.user || req.user.role !== 'admin' || !ALLOWED_ADMIN_EMAILS.includes((req.user.email || '').toLowerCase().trim())) {
-    return res.status(403).json({ message: 'Access denied: Administrator privileges required for authorized accounts only.' });
+  if (!req.user) {
+    return res.status(401).json({ message: 'Authentication required. Please sign in.' });
+  }
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Access denied: Administrator privileges required.' });
   }
   next();
 };

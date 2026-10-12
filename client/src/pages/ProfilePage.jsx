@@ -55,6 +55,11 @@ export default function ProfilePage() {
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
   useEffect(() => {
     localStorage.setItem('theme', theme);
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   }, [theme]);
   const toggleTheme = () => setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
   const isDark = theme === 'dark';
@@ -306,12 +311,12 @@ export default function ProfilePage() {
 
   const handleDownloadCodes = () => {
     if (twoFactorRecoveryCodes.length === 0) return;
-    const content = `APITester Studio - Two-Factor Authentication Backup Recovery Codes\nAccount: ${user?.email}\nGenerated: ${new Date().toLocaleString()}\n\nKeep these codes safe and private. Each code can only be used once to access your account if you lose your authenticator app:\n\n${twoFactorRecoveryCodes.map((c, i) => `${i + 1}. ${c}`).join('\n')}\n`;
+    const content = `PulseAPI Studio - Two-Factor Authentication Backup Recovery Codes\nAccount: ${user?.email}\nGenerated: ${new Date().toLocaleString()}\n\nKeep these codes safe and private. Each code can only be used once to access your account if you lose your authenticator app:\n\n${twoFactorRecoveryCodes.map((c, i) => `${i + 1}. ${c}`).join('\n')}\n`;
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `apitester-recovery-codes-${user?.email?.split('@')[0] || 'account'}.txt`;
+    a.download = `pulseapi-recovery-codes-${user?.email?.split('@')[0] || 'account'}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -337,7 +342,7 @@ export default function ProfilePage() {
                 <Zap className="w-5 h-5 text-amber-300 fill-amber-300" />
               </div>
               <span className="font-bold text-base tracking-tight">
-                APITester <span className="text-xs px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 font-mono">PRO</span>
+                PulseAPI <span className="text-xs px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 font-mono">PRO</span>
               </span>
             </Link>
 
@@ -359,20 +364,6 @@ export default function ProfilePage() {
             >
               <span>API Studio</span>
             </Link>
-
-            {isAdmin && (
-              <Link
-                to="/admin"
-                className={`text-xs flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition ${
-                  isDark
-                    ? 'border-purple-500/30 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20'
-                    : 'border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100'
-                }`}
-              >
-                <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
-                <span>Admin Dashboard</span>
-              </Link>
-            )}
           </div>
 
           <div className="flex items-center gap-3">

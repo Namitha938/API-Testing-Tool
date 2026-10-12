@@ -46,7 +46,7 @@ export default function AdminPage() {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
 
   // Dedicated admin session or authorized normal user
-  const isNormalUserAdmin = user?.role === 'admin' && ['singunamitha@gmail.com', 's.v.padmavathi2005@gmail.com'].includes((user?.email || '').toLowerCase().replace(/\s+/g, '').trim());
+  const isNormalUserAdmin = user?.role === 'admin';
   const effectiveAdminToken = adminToken || (isNormalUserAdmin ? token : null);
   const isDashboardAdmin = Boolean(effectiveAdminToken);
 
@@ -56,6 +56,11 @@ export default function AdminPage() {
 
   useEffect(() => {
     localStorage.setItem('theme', theme);
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   }, [theme]);
 
   const toggleTheme = () => {
@@ -240,7 +245,7 @@ export default function AdminPage() {
               <ShieldCheck className="w-5 h-5 text-white" />
             </div>
             <span className="font-bold text-sm tracking-tight flex items-center gap-1.5">
-              Admin Console <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/30 font-mono">SYS</span>
+              PulseAPI Admin Console <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/30 font-mono">SYS</span>
             </span>
           </Link>
 
@@ -256,13 +261,14 @@ export default function AdminPage() {
             <span className="hidden sm:inline">Home</span>
           </Link>
 
-          {/* Launch Studio Link */}
+          {/* Back to workbench Link */}
           <Link
             to="/app"
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-sky-500 hover:text-sky-400 hover:bg-sky-500/10 transition"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-300 border border-sky-200 dark:border-sky-800/60 hover:bg-sky-100 dark:hover:bg-sky-900/50 transition shadow-2xs"
+            title="Return to API Studio Workbench"
           >
-            <Zap className="w-3.5 h-3.5" />
-            <span>Launch Studio</span>
+            <ArrowRight className="w-3.5 h-3.5 rotate-180" />
+            <span>Back to workbench</span>
           </Link>
         </div>
 
@@ -307,20 +313,18 @@ export default function AdminPage() {
                   </span>
                 </span>
               </div>
-              {adminToken && (
-                <button
-                  onClick={() => {
-                    logoutAdmin();
-                    if (!isNormalUserAdmin) {
-                      navigate('/app');
-                    }
-                  }}
-                  className="px-2.5 py-1 rounded-lg text-xs text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 transition cursor-pointer"
-                  title="Lock Admin Console without logging out normal user"
-                >
-                  Exit Admin
-                </button>
-              )}
+              <button
+                onClick={() => {
+                  logoutAdmin();
+                  logout();
+                  navigate('/login');
+                }}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 transition cursor-pointer"
+                title="Sign out of Admin Console"
+              >
+                <LogOut className="w-3.5 h-3.5 text-rose-500" />
+                <span>Sign Out</span>
+              </button>
             </div>
           ) : user ? (
             <div className="flex items-center gap-2.5">
@@ -905,7 +909,7 @@ export default function AdminPage() {
                                     <span className="text-amber-400">TTFB:{log.timings?.ttfb || 0}ms</span>
                                   </td>
                                   <td className="p-3 font-sans text-slate-300 text-xs">
-                                    {log.userId?.name || 'Guest / Studio'}
+                                    {log.userId?.name || 'Unassigned / Studio'}
                                   </td>
                                   <td className="p-3 text-slate-500 text-[10px]">
                                     {new Date(log.createdAt).toLocaleTimeString()}
@@ -1098,7 +1102,7 @@ export default function AdminPage() {
                             </td>
                             <td className="p-3 text-slate-400">{log.responseTime}ms</td>
                             <td className="p-3 font-sans text-slate-300">
-                              {log.userId?.name || 'Guest / Automated'}
+                              {log.userId?.name || 'Unassigned / Automated'}
                             </td>
                             <td className="p-3 text-slate-500 text-[10px]">
                               {new Date(log.createdAt).toLocaleString()}

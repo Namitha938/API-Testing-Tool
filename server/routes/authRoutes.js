@@ -46,16 +46,13 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'A user with this email address already exists.' });
     }
 
-    const ALLOWED_ADMIN_EMAILS = ['singunamitha@gmail.com', 's.v.padmavathi2005@gmail.com'];
     const cleanEmail = email.toLowerCase().trim();
-    const role = ALLOWED_ADMIN_EMAILS.includes(cleanEmail) ? 'admin' : 'user';
-
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await User.create({
       name,
       email: cleanEmail,
       password: hashedPassword,
-      role,
+      role: 'user', // Public registration can only ever create 'user' accounts
     });
 
     const token = jwt.sign({ id: newUser._id, role: newUser.role }, JWT_SECRET, { expiresIn: '7d' });
@@ -78,19 +75,40 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Email and password are required.' });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const cleanEmail = email.toLowerCase().trim();
+    const user = await User.findOne({ email: cleanEmail });
     if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials. User not found.' });
+      // Generic error: never reveal if user or admin exists
+      return res.status(401).json({ message: 'Invalid email or password.' });
     }
 
     if (user.status === 'suspended') {
       return res.status(403).json({ message: 'Your account has been suspended by an administrator.' });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    // Rate limiting & lockout check (5 failed attempts -> 15 minutes lockout)
+    if (user.loginLockUntil && new Date(user.loginLockUntil) > new Date()) {
+      const remainingMinutes = Math.ceil((new Date(user.loginLockUntil) - new Date()) / 60000);
+      return res.status(429).json({
+        message: `Too many failed login attempts. Account is temporarily locked. Please try again in ${remainingMinutes} minute(s).`,
+        locked: true,
+        remainingMinutes,
+      });
+    }
+
+    const isMatch = user.password ? await bcrypt.compare(password, user.password) : false;
     if (!isMatch) {
+      user.loginFailedAttempts = (user.loginFailedAttempts || 0) + 1;
+      if (user.loginFailedAttempts >= 5) {
+        user.loginLockUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes lockout
+      }
+      await user.save();
       return res.status(401).json({ message: 'Invalid email or password.' });
     }
+
+    // Reset login failed attempts counter upon successful credentials
+    user.loginFailedAttempts = 0;
+    user.loginLockUntil = null;
 
     // Check if 2FA is enabled for this user
     if (user.twoFactorEnabled) {
@@ -114,7 +132,9 @@ router.post('/login', async (req, res) => {
     user.lastLogin = new Date();
     await user.save();
 
-    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+    // Admin sessions expire sooner (2 hours); regular sessions expire in 7 days
+    const tokenExpiry = user.role === 'admin' ? '2h' : '7d';
+    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: tokenExpiry });
 
     res.json({
       message: 'Logged in successfully!',
@@ -260,8 +280,8 @@ router.post('/2fa/generate', authenticate, async (req, res) => {
 
     // Generate unique Base32 secret for Google Authenticator / Microsoft Authenticator / Authy
     const secret = speakeasy.generateSecret({
-      name: `APITester Studio (${user.email})`,
-      issuer: 'APITester Studio',
+      name: `PulseAPI Studio (${user.email})`,
+      issuer: 'PulseAPI Studio',
       length: 20,
     });
 
@@ -496,12 +516,6 @@ router.post('/google', async (req, res) => {
     const cleanEmail = email.toLowerCase().replace(/\s+/g, '').trim();
     let user = await User.findOne({ email: cleanEmail });
 
-    const ADMIN_EMAILS = [
-      'singunamitha@gmail.com',
-      's.v.padmavathi2005@gmail.com',
-    ];
-    const isAdmin = ADMIN_EMAILS.includes(cleanEmail);
-
     if (user) {
       if (user.status === 'suspended') {
         return res.status(403).json({ message: 'Your account has been suspended by an administrator.' });
@@ -509,25 +523,19 @@ router.post('/google', async (req, res) => {
       user.lastLogin = new Date();
       if (photoURL && !user.photoURL) user.photoURL = photoURL;
       if (googleId && !user.googleId) user.googleId = googleId;
-      if (isAdmin) {
-        user.role = 'admin';
-      } else {
-        user.role = 'user';
-      }
       await user.save();
     } else {
-      const role = isAdmin ? 'admin' : 'user';
-
       user = await User.create({
         name: name || cleanEmail.split('@')[0],
         email: cleanEmail,
         photoURL: photoURL || '',
         googleId: googleId || 'google_' + Date.now(),
-        role,
+        role: 'user', // Google sign-in can only ever create 'user' accounts
       });
     }
 
-    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+    const tokenExpiry = user.role === 'admin' ? '2h' : '7d';
+    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: tokenExpiry });
 
     res.json({
       message: 'Google authentication successful!',

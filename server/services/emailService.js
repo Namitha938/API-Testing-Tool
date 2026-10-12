@@ -69,14 +69,14 @@ async function getTransporter() {
  * @param {string} options.name - Recipient user name
  */
 async function sendPasswordResetOtp({ to, otp, name = 'Developer' }) {
-  const from = process.env.EMAIL_FROM || '"APITester Studio" <no-reply@apitester.io>';
+  const from = process.env.EMAIL_FROM || '"PulseAPI Studio" <no-reply@pulseapi.io>';
   const transporter = await getTransporter();
 
-  const subject = `APITester Verification Code: ${otp}`;
+  const subject = `PulseAPI Verification Code: ${otp}`;
   const textContent = `
 Hello ${name},
 
-We received a request to reset the password for your APITester Studio account (${to}).
+We received a request to reset the password for your PulseAPI Studio account (${to}).
 
 Your One-Time Verification Code (OTP) is:
 ${otp}
@@ -85,7 +85,7 @@ This verification code will expire in 10 minutes.
 If you did not request a password reset, you can safely ignore this email. Your password will remain unchanged.
 
 Best regards,
-The APITester Team
+The PulseAPI Team
 `;
 
   const htmlContent = `
@@ -108,7 +108,7 @@ The APITester Team
               <div style="display: inline-block; width: 44px; height: 44px; background: linear-gradient(135deg, #0284c7 0%, #4f46e5 100%); border-radius: 12px; line-height: 44px; text-align: center; font-size: 22px; margin-bottom: 12px;">
                 ⚡
               </div>
-              <h1 style="margin: 0; font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px;">APITester Studio</h1>
+              <h1 style="margin: 0; font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px;">PulseAPI Studio</h1>
               <p style="margin: 6px 0 0; font-size: 13px; color: #94a3b8;">Password Reset Verification</p>
             </td>
           </tr>
@@ -120,7 +120,7 @@ The APITester Team
                 Hello <strong>${name}</strong>,
               </p>
               <p style="margin: 0 0 24px; font-size: 14px; line-height: 1.6; color: #94a3b8;">
-                We received a request to reset the password for your APITester account. Enter the verification code below on the recovery screen:
+                We received a request to reset the password for your PulseAPI account. Enter the verification code below on the recovery screen:
               </p>
 
               <!-- OTP Code Display Card -->
@@ -137,7 +137,7 @@ The APITester Team
               <!-- Security Notice -->
               <div style="background-color: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 10px; padding: 14px 16px; margin: 0 0 24px;">
                 <p style="margin: 0; font-size: 12px; line-height: 1.5; color: #fbbf24;">
-                  🛡️ <strong>Security Tip:</strong> Never share this verification code with anyone. APITester staff will never ask for your code. If you didn't request this reset, your account is safe and you can ignore this message.
+                  🛡️ <strong>Security Tip:</strong> Never share this verification code with anyone. PulseAPI staff will never ask for your code. If you didn't request this reset, your account is safe and you can ignore this message.
                 </p>
               </div>
 
@@ -151,7 +151,7 @@ The APITester Team
           <tr>
             <td style="padding: 20px 32px; background-color: #090d16; border-top: 1px solid #1f2937; text-align: center;">
               <p style="margin: 0; font-size: 11px; color: #64748b;">
-                &copy; ${new Date().getFullYear()} APITester Studio Inc. All rights reserved.
+                &copy; ${new Date().getFullYear()} PulseAPI Studio Inc. All rights reserved.
               </p>
             </td>
           </tr>

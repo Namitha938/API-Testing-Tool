@@ -1,4 +1,4 @@
-# 🚀 APITester Studio - Modern API Testing & Automation Platform
+# 🚀 PulseAPI Studio - Modern API Testing & Automation Platform
 
 A production-ready, high-performance web platform for creating, testing, debugging, automating, and documenting REST & HTTP APIs. Built with **React 18, Tailwind CSS, Node.js, Express, and MongoDB (Mongoose)**.
 
@@ -66,7 +66,7 @@ A production-ready, high-performance web platform for creating, testing, debuggi
 
 ## 🔐 Two-Factor Authentication (2FA)
 
-APITester Studio implements an RFC 6238-compliant TOTP Two-Factor Authentication system:
+PulseAPI Studio implements an RFC 6238-compliant TOTP Two-Factor Authentication system:
 
 1. **Setup Flow**:
    - Navigating to **Profile $\rightarrow$ Security & Password** allows users to enable 2FA.
@@ -172,7 +172,7 @@ SMTP_PORT=465
 SMTP_SECURE=true
 SMTP_USER=your_email@gmail.com
 SMTP_PASS=your_16_digit_google_app_password
-EMAIL_FROM="APITester Studio" <your_email@gmail.com>
+EMAIL_FROM="PulseAPI Studio" <your_email@gmail.com>
 
 # Two-Factor Authentication AES-256 Key (optional, auto-derived if omitted)
 TWO_FACTOR_ENCRYPTION_KEY=your-32-byte-hex-encryption-key-optional
